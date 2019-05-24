@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <item android:id="@+id/goMainScreen"
+        android:title="Pantalla principal"
+        android:icon="@drawable/ic_users"/>
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/goMantInventario"
+            android:icon="@drawable/ic_inventario"
+            android:title="Mantenimiento Inventario" />
+
+        <item
+            android:id="@+id/goMantProductos"
+            android:icon="@drawable/ic_fastfood"
+            android:title="Mantenimiento Productos" />
+
+        <item
+            android:id="@+id/goMantUsuarios"
+            android:icon="@drawable/ic_users"
+            android:title="Mantenimiento Usuarios" />
+
+        <item
+            android:id="@+id/goMantAreas"
+            android:icon="@drawable/ic_users"
+            android:title="Mantenimiento Areas" />
+
+        <item
+            android:id="@+id/goMantControls"
+            android:icon="@drawable/ic_users"
+            android:title="Mantenimiento Controles" />
+    </group>
+
+    <group android:checkableBehavior="single">
+
+        <item
+            android:id="@+id/goMenu"
+            android:icon="@drawable/ic_action_list_alt"
+            android:title="Ordenar" />
+        <item
+            android:id="@+id/goPendingOrders"
+            android:icon="@drawable/ic_action_timelapse"
+            android:title="Ordenes" />
+        <item
+            android:id="@+id/goReports"
+            android:icon="@drawable/ic_menu_slideshow"
+            android:title="Reportes"
+            android:visible="true"/>
+        <item
+            android:id="@+id/nav_manage"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Tools"
+            android:visible="false"/>
+    </group>
+
+
+</menu>
