@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <integer name="idProductsTypes">001</integer>
-    <integer name="idMeasureunits">002</integer>
-    <integer name="idUsers">003</integer>
-    <integer name="idUserTypes">004</integer>
-    <integer name="idProductsSubTypes">005</integer>
-    <integer name="idProducts">006</integer>
-</resources>
