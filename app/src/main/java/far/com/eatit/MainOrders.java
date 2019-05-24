@@ -1,0 +1,527 @@
+package far.com.eatit;
+
+import android.content.res.ColorStateList;
+import android.inputmethodservice.Keyboard;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.os.Bundle;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.ImageViewCompat;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
+import android.view.ContextMenu;
+import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.security.Key;
+import java.util.ArrayList;
+import java.util.UUID;
+
+import far.com.eatit.Adapters.Models.NotificationRowModel;
+import far.com.eatit.Adapters.Models.OrderDetailModel;
+import far.com.eatit.Adapters.Models.SimpleRowModel;
+import far.com.eatit.Adapters.Models.WorkedOrdersRowModel;
+import far.com.eatit.CloudFireStoreObjects.Products;
+import far.com.eatit.CloudFireStoreObjects.Sales;
+import far.com.eatit.CloudFireStoreObjects.SalesDetails;
+import far.com.eatit.CloudFireStoreObjects.UserInbox;
+import far.com.eatit.Controllers.AreasController;
+import far.com.eatit.Controllers.ProductsController;
+import far.com.eatit.Controllers.SalesController;
+import far.com.eatit.Controllers.TempOrdersController;
+import far.com.eatit.Controllers.UserInboxController;
+import far.com.eatit.Dialogs.AddProductDialog;
+import far.com.eatit.Dialogs.MessageSendDialog;
+import far.com.eatit.Dialogs.NotificationsDialog;
+import far.com.eatit.Dialogs.WorkedOrdersDialog;
+import far.com.eatit.Globales.CODES;
+import far.com.eatit.Interfases.ListableActivity;
+import far.com.eatit.Utils.Funciones;
+
+public class MainOrders extends AppCompatActivity implements ListableActivity, NavigationView.OnNavigationItemSelectedListener {
+
+    SalesController salesController;
+    UserInboxController userInboxController;
+
+    CollectionReference sales;
+    CollectionReference salesDetails;
+    CollectionReference userInbox;
+
+    NewOrderFragment newOrderFragment;
+    ResumenOrderFragment resumenOrderFragment;
+
+    TempOrdersController tempOrdersController;
+    String orderCode = null;
+    RelativeLayout rlNotifications;
+    CardView cvNotificacions;
+    TextView tvNotificationsNumber;
+    ImageView imgMenu, imgSeach, imgHideSearch, imgBell;
+    EditText etSearch;
+    LinearLayout llSearch, llMenu;
+
+
+    DrawerLayout drawer;
+    NavigationView nav;
+
+    NotificationsDialog notificationsDialog;
+    WorkedOrdersDialog workedOrdersDialog;
+    OrderDetailModel objectToEditFromResume = null;
+
+    public static final String KEY_ORDERCODE = "KEYORDERCODE";
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main_orders);
+        tempOrdersController = TempOrdersController.getInstance(MainOrders.this);
+        salesController = SalesController.getInstance(MainOrders.this);
+        userInboxController = UserInboxController.getInstance(MainOrders.this);
+
+        sales = salesController.getReferenceFireStore();
+        salesDetails = salesController.getReferenceDetailFireStore();
+        userInbox = userInboxController.getReferenceFireStore();
+
+        rlNotifications = findViewById(R.id.rlNotifications);
+        cvNotificacions = findViewById(R.id.cvNotifications);
+        tvNotificationsNumber = findViewById(R.id.tvNotificationNumber);
+        imgBell = findViewById(R.id.imgBell);
+        imgMenu = findViewById(R.id.imgMenu);
+        imgHideSearch = findViewById(R.id.imgHideSearch);
+        imgSeach = findViewById(R.id.imgSearch);
+        llSearch = findViewById(R.id.llSearch);
+        etSearch = findViewById(R.id.etSearch);
+        llMenu = findViewById(R.id.llMenu);
+
+        imgMenu.setVisibility(View.VISIBLE);
+        imgSeach.setVisibility(View.VISIBLE);
+
+        etSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                        if(etSearch.getText().toString().trim().equals("")){
+                            return false;
+                        }
+                        newOrderFragment.setLastSearch(etSearch.getText().toString());
+                        imgHideSearch.performClick();
+
+                        newOrderFragment.search();
+
+                        return true;
+
+                }
+                return false;
+            }
+        });
+        imgSeach.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                llMenu.setVisibility(View.GONE);
+                rlNotifications.setVisibility(View.GONE);
+                imgSeach.setVisibility(View.GONE);
+                llSearch.setVisibility(View.VISIBLE);
+                etSearch.requestFocus();
+                etSearch.setText("");
+                Funciones.showKeyBoard(etSearch, MainOrders.this);
+            }
+        });
+
+        imgHideSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Funciones.hideKeyBoard(etSearch, MainOrders.this);
+
+                llMenu.setVisibility(View.VISIBLE);
+                rlNotifications.setVisibility(View.VISIBLE);
+                imgSeach.setVisibility(View.VISIBLE);
+                llSearch.setVisibility(View.GONE);
+            }
+        });
+
+        rlNotifications.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                callNotificationsDialog();
+            }
+        });
+
+
+        newOrderFragment = new NewOrderFragment();
+        newOrderFragment.setParent(this);
+        resumenOrderFragment = new ResumenOrderFragment();
+        resumenOrderFragment.setParent(this);
+
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        nav = (NavigationView)findViewById(R.id.nav_view);
+
+        imgMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    if (nav.isShown()) {
+                        drawer.closeDrawer(nav);
+                    } else {
+                        drawer.openDrawer(nav);
+                    }
+                }catch(Exception e){
+                    e.printStackTrace();
+                }
+            }
+        });
+
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(MainOrders.this);
+
+
+        // SI SE ENTRA POR PRIMERA VEZ, SI SE GIRA LA PANTALLA NO CORRER OTRA VEZ.
+        if(savedInstanceState == null){
+            prepareNewOrder();
+        }
+        goToNewOrder();
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        sales.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) { salesController.delete(null, null);
+                for(DocumentSnapshot dc: querySnapshot){
+                    Sales s = dc.toObject(Sales.class);
+                    salesController.insert(s);
+                }
+
+                refreshInterface();
+
+            }
+        });
+
+        salesDetails.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
+                salesController.delete_Detail(null, null);
+                for(DocumentSnapshot dc: querySnapshot){
+                    SalesDetails sd = dc.toObject(SalesDetails.class);
+                    salesController.insert_Detail(sd);
+                }
+
+                refreshInterface();
+            }
+        });
+
+        userInbox.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
+                userInboxController.delete(null, null);
+                for(DocumentSnapshot dc: querySnapshot){
+                    UserInbox ui = dc.toObject(UserInbox.class);
+                    if(ui.getCODEUSER().equals(Funciones.getCodeuserLogged(MainOrders.this))) {
+                        userInboxController.insert(ui);
+                    }
+                }
+
+                refreshInterface();
+            }
+        });
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_edit_delete, menu);
+        menu.findItem(R.id.actionEdit).setVisible(false);
+        super.onCreateContextMenu(menu, v, menuInfo);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case R.id.actionEdit:
+                callAddDialog(objectToEditFromResume);
+                return true;
+            case R.id.actionDelete:
+                deleteOrderLine(objectToEditFromResume);
+                return  true;
+
+            default:return super.onContextItemSelected(item);
+        }
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+         if (id == R.id.openOrders) {
+            callWorkedOrdersDialog();
+        }else if (id == R.id.nav_gallery) {
+             // goToOrders();
+         }
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        // Save UI state changes to the savedInstanceState.
+        // This bundle will be passed to onCreate if the process is
+        // killed and restarted.
+        savedInstanceState.putString(KEY_ORDERCODE, orderCode);
+
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        // Restore UI state from the savedInstanceState.
+        // This bundle has also been passed to onCreate.
+        orderCode = savedInstanceState.getString(KEY_ORDERCODE);
+        resumenOrderFragment.refreshList();
+    }
+
+    public void goToNewOrder(){
+        changeFragment(newOrderFragment, R.id.details);
+        changeFragment(resumenOrderFragment, R.id.result);
+    }
+
+    public void changeFragment(Fragment f, int id){
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(id, f);
+        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+
+        ft.commit();
+    }
+
+    @Override
+    public void onClick(Object obj) {
+        if(obj instanceof SimpleRowModel) {
+            Products p = ProductsController.getInstance(MainOrders.this).getProductByCode(((SimpleRowModel) obj).getId());
+            callAddDialog(p);
+        }else if(obj instanceof NotificationRowModel){
+            UserInboxController.getInstance(MainOrders.this).setMessageReaded(((NotificationRowModel) obj).getCode());
+            notificationsDialog.showDetail((NotificationRowModel)obj);
+        }else if(obj instanceof OrderDetailModel){
+            objectToEditFromResume = (OrderDetailModel) obj;
+        }else if(obj instanceof WorkedOrdersRowModel){
+            workedOrdersDialog.showDetail((WorkedOrdersRowModel) obj);
+        }
+
+    }
+
+    public void callAddDialog(Object object){
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        Fragment prev = getSupportFragmentManager().findFragmentByTag("dialog");
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+        DialogFragment newFragment = null;
+
+            newFragment = AddProductDialog.newInstance(object);
+
+        // Create and show the dialog.
+        newFragment.show(ft, "dialog");
+    }
+
+    public void callMsgDialog(UserInbox userInbox){
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        Fragment prev = getSupportFragmentManager().findFragmentByTag("dialog");
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+        DialogFragment newFragment =  MessageSendDialog.newInstance(MainOrders.this, userInbox);
+
+        // Create and show the dialog.
+        newFragment.show(ft, "dialog");
+    }
+
+
+    public void callNotificationsDialog(){
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        Fragment prev = getSupportFragmentManager().findFragmentByTag("dialogNotification");
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+        notificationsDialog =  NotificationsDialog.newInstance();
+        // Create and show the dialog.
+        notificationsDialog.show(ft, "dialogNotification");
+    }
+
+    public void callWorkedOrdersDialog(){
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        Fragment prev = getSupportFragmentManager().findFragmentByTag("dialogWorkedOrders");
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+        workedOrdersDialog =  WorkedOrdersDialog.newInstance();
+        // Create and show the dialog.
+        workedOrdersDialog.show(ft, "dialogWorkedOrders");
+    }
+
+    public void prepareNewOrder(){
+        tempOrdersController.delete(null, null);
+        tempOrdersController.delete_Detail(null, null);
+        orderCode  = UUID.randomUUID().toString();
+        double totalDiscount = 0.0;
+        double total = 0.0;
+        String codeUser = Funciones.getCodeuserLogged(MainOrders.this);
+
+        Sales s = new Sales(orderCode,codeUser,null, totalDiscount, total, CODES.CODE_ORDER_STATUS_OPEN,"", null, null, null, null, orderCode);
+        tempOrdersController.insert(s);//
+    }
+
+    public String getOrderCode() {
+        return orderCode;
+    }
+
+    public void refreshResume(){
+     resumenOrderFragment.refreshList();
+    }
+
+    public void prepareResumeForEdition(){
+        setThemeEditing();
+        resumenOrderFragment.prepareResumeForEdition();
+    }
+    public void refreshProductsSearch(int goToPosition){
+        newOrderFragment.search();
+        newOrderFragment.setSelection(goToPosition);
+    }
+
+    public void notityOrdersReady(){
+       /* String where =SalesController.STATUS+" = ? ";
+        String[] args = new String[]{CODES.CODE_ORDER_STATUS_READY+""};
+        ArrayList<Sales> sales =  salesController.getSales(where, args);
+*/
+        String where = UserInboxController.STATUS+" = ? ";
+        String[] args = new String[]{CODES.CODE_USERINBOX_STATUS_NO_READ+""};
+        String orderBy = UserInboxController.MDATE+" DESC, "+UserInboxController.CODEMESSAGE;
+        ArrayList<UserInbox> msgs =  UserInboxController.getInstance(MainOrders.this).getUserInbox(where, args, orderBy);
+
+        if((/*sales.size() +*/ msgs.size())>0){
+            cvNotificacions.setVisibility(View.VISIBLE);
+            tvNotificationsNumber.setText((/*sales.size() +*/ msgs.size())+"");
+        }else{
+            cvNotificacions.setVisibility(View.GONE);
+            tvNotificationsNumber.setText("0");
+        }
+    }
+
+
+    public void refreshInterface(){
+        notityOrdersReady();
+        if(notificationsDialog != null && notificationsDialog.isVisible()){
+            notificationsDialog.refreshNotifications();
+        }else if(workedOrdersDialog != null && workedOrdersDialog.isVisible()){
+            workedOrdersDialog.refreshNotifications();
+        }
+    }
+
+    public void editOrder(Sales s){
+        orderCode = s.getCODE();
+        tempOrdersController.delete(null, null);
+        tempOrdersController.delete_Detail(null, null);
+
+        tempOrdersController.insert(s);
+
+        for(SalesDetails sd: salesController.getSalesDetailsByCodeSales(orderCode)){
+            tempOrdersController.insert_Detail(sd);
+        }
+
+        refreshResume();
+        prepareResumeForEdition();
+
+
+        FrameLayout menuFrameLayout = findViewById(R.id.details);
+        FrameLayout resumenFrameLayout = findViewById(R.id.result);
+
+        //Si la visivilidad esta en modo "telefono" mostrar el layout del resumen si actualmente se esta visualizando el "menu"
+        if(menuFrameLayout.getVisibility()== View.VISIBLE && resumenFrameLayout.getVisibility() == View.GONE){
+            menuFrameLayout.setVisibility(View.GONE);
+            resumenFrameLayout.setVisibility(View.VISIBLE);
+        }
+
+    }
+
+    public void deleteOrderLine(OrderDetailModel d){
+        String where = TempOrdersController.DETAIL_CODE +" = ? AND "+TempOrdersController.DETAIL_CODESALES+" = ?";
+        tempOrdersController.delete_Detail(where, new String[]{d.getCode(), d.getCode_sales()});
+        refreshResume();
+        objectToEditFromResume = null;
+    }
+
+    public void showDetail(){
+        ((ViewGroup)findViewById(R.id.details)).setVisibility(View.GONE);
+        ((ViewGroup)findViewById(R.id.result)).setVisibility(View.VISIBLE);
+
+    }
+
+    public void showMenu(){
+        ((ViewGroup)findViewById(R.id.details)).setVisibility(View.VISIBLE);
+        ((ViewGroup)findViewById(R.id.result)).setVisibility(View.GONE);
+    }
+
+
+    public void refresh(){
+        prepareNewOrder();
+        resumenOrderFragment.refreshList();
+        resumenOrderFragment.llCancel.setVisibility(View.GONE);
+        resumenOrderFragment.etNotas.setText("");
+        resumenOrderFragment.llMore.setVisibility(View.GONE);
+        resumenOrderFragment.imgMore.setImageResource(R.drawable.ic_arrow_drop_down);
+
+
+        AreasController.getInstance(MainOrders.this).fillSpinner(resumenOrderFragment.spnAreas, true);
+    }
+
+    public void setThemeEditing(){
+        setTheme(R.style.ThemeEditing);
+        ((LinearLayout)findViewById(R.id.llParent)).setBackgroundColor(getResources().getColor(R.color.yellow_700));
+        ImageViewCompat.setImageTintList(imgMenu, ColorStateList.valueOf(getResources().getColor(android.R.color.black)));
+        ImageViewCompat.setImageTintList(imgSeach, ColorStateList.valueOf(getResources().getColor(android.R.color.black)));
+        ImageViewCompat.setImageTintList(imgHideSearch, ColorStateList.valueOf(getResources().getColor(android.R.color.black)));
+        ImageViewCompat.setImageTintList(imgBell, ColorStateList.valueOf(getResources().getColor(android.R.color.black)));
+
+
+    }
+    public void setThemeNormal(){
+        setTheme(R.style.AppTheme);
+        ((LinearLayout)findViewById(R.id.llParent)).setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+        ImageViewCompat.setImageTintList(imgMenu, ColorStateList.valueOf(getResources().getColor(android.R.color.white)));
+        ImageViewCompat.setImageTintList(imgSeach, ColorStateList.valueOf(getResources().getColor(android.R.color.white)));
+        ImageViewCompat.setImageTintList(imgHideSearch, ColorStateList.valueOf(getResources().getColor(android.R.color.white)));
+        ImageViewCompat.setImageTintList(imgBell, ColorStateList.valueOf(getResources().getColor(android.R.color.white)));
+    }
+
+}
