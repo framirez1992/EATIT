@@ -17,6 +17,8 @@
     android:orientation="vertical"
     android:paddingTop="50dp">
 
+
+
     <EditText android:id="@+id/etUser"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -39,7 +41,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="10dp"/>
+
+    <TextView android:id="@+id/tvPhoneID"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textStyle="bold"
+        android:padding="20dp"/>
 </LinearLayout>
 
 </ScrollView>
+
 </LinearLayout>

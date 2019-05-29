@@ -99,15 +99,15 @@ public class Funciones {
     public static String gerErrorMessage(int code){
         String message = "UNKNOWN";
         switch (code){
-            case 0001:message = "Clave de producto invalida";
+            case 1000:message = "Clave de producto invalida";
                 break;
-            case 0002:message = "La licencia expiro";
+            case 2000:message = "La licencia expiro";
                 break;
-            case 0003:message = "La licencia fue desabilitada";
+            case 3000:message = "La licencia fue desabilitada";
                 break;
-            case 0004:message = "Alcanzo el limite maximo de dispositivos permitidos de la licencia";
+            case 4000:message = "Alcanzo el limite maximo de dispositivos permitidos de la licencia";
                 break;
-            case 0005:message = "Debe realizar una carga inicial";
+            case 5000:message = "Debe realizar una carga inicial";
                 break;
         }
         return message;

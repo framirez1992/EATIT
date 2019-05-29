@@ -273,7 +273,7 @@ public class Main extends AppCompatActivity
 
     public void setUpForUserType(){
         Users u = usersController.getUserByCode(Funciones.getCodeuserLogged(Main.this));
-        if(u.getSYSTEMCODE().equals("0") || u.getSYSTEMCODE().equals("1")){//SU o Administrador
+        if(u.getSYSTEMCODE()!= null &&( u.getSYSTEMCODE().equals("0") || u.getSYSTEMCODE().equals("1"))){//SU o Administrador
             fragmentMaintenance = new MaintenanceFragment();
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.details, fragmentMaintenance);

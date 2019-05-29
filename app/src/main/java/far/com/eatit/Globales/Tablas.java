@@ -36,6 +36,7 @@ public class Tablas {
     public static final String generalUsersTableFilter = "TableFilter";
     public static final String generalUsersUserControl = "UserControl";
     public static final String generalUsersUsers = "Users";
+    public static final String generalUsersUsersDevices = "UsersDevices";
     public static final String generalUsersUserTypes = "UserTypes";
     public static final String generalUsersUserInbox = "UserInbox";
     //GENERAL_LICENSES childs

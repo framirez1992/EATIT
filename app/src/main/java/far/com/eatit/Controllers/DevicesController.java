@@ -58,6 +58,7 @@ public class DevicesController {
         Task<QuerySnapshot> devices = getReferenceFireStore(l).get();
         devices.addOnSuccessListener(onSuccessListener);
     }
+
     public void RegisterDevice(Licenses l){
 
         Devices dev = new Devices(Funciones.getPhoneID(context),true);

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -65,7 +66,10 @@ public class UsersController {
         CollectionReference reference = db.collection(Tablas.generalUsers).document(l.getCODE()).collection(Tablas.generalUsersUsers);
         return reference;
     }
-
+    public CollectionReference getReferenceFireStore(Licenses l){
+        CollectionReference reference = db.collection(Tablas.generalUsers).document(l.getCODE()).collection(Tablas.generalUsersUsers);
+        return reference;
+    }
     public long insert(Users user){
         ContentValues cv = new ContentValues();
         cv.put(CODE, user.getCODE());
@@ -255,6 +259,15 @@ public class UsersController {
         Query query = getReferenceFireStore().whereEqualTo("code", user).whereEqualTo("password", pass);
 // retrieve  query results asynchronously using query.get()
         return query.get();
+    }
+
+    public void getQueryUsersByCode(Licenses l, String code, OnSuccessListener<QuerySnapshot> success, OnCompleteListener<QuerySnapshot> complete, OnFailureListener failute){
+            getReferenceFireStore(l).
+                    whereEqualTo(CODE, code).get().
+                    addOnSuccessListener(success).
+                    addOnCompleteListener(complete).
+                    addOnFailureListener(failute);
+
     }
 
 }
