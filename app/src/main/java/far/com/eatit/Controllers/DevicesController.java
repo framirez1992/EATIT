@@ -6,6 +6,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.provider.ContactsContract;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -157,5 +158,14 @@ public class DevicesController {
         }catch(Exception e){
             e.printStackTrace();
         }
+    }
+
+    public void getQueryDevicesByCode(Licenses licence, String code, OnSuccessListener<QuerySnapshot> success, OnCompleteListener<QuerySnapshot> complete, OnFailureListener failute){
+        getReferenceFireStore(licence).
+                whereEqualTo(CODE, code).get().
+                addOnSuccessListener(success).
+                addOnCompleteListener(complete).
+                addOnFailureListener(failute);
+
     }
 }

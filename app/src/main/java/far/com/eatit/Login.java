@@ -87,6 +87,10 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
 
         init();
         initDialog();
+        if(getIntent().getExtras()!= null && getIntent().getExtras().containsKey(CODES.EXTRA_SECURITY_ERROR_CODE)){
+            int code = getIntent().getExtras().getInt(CODES.EXTRA_SECURITY_ERROR_CODE);
+            ((TextView)findViewById(R.id.tvErrorMsg)).setText(Funciones.gerErrorMessage(code));
+        }
         //Funciones.getDateOnline(Login.this);
         //Sales s = new Sales();
         //s.toString();
@@ -105,7 +109,7 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
     @Override
     protected void onStart() {
         super.onStart();
-
+/*
             devicesController.getReferenceFireStore(licenseController.getLicense()).addSnapshotListener(new EventListener<QuerySnapshot>() {
                 @Override
                 public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
@@ -119,7 +123,7 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
 
                    }
                 }
-            });
+            });*/
 
 
 
@@ -219,9 +223,9 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
         try {
             Licenses l = licenseController.getLicense();
             if(l != null){
-                if(!validateDevice()){
-                return;
-                }
+               // if(!validateDevice()){
+                //return;
+                //}
                 usersController.getUserFromFireBase(etUser.getText().toString(), etPassword.getText().toString())
                 .addOnSuccessListener(onSuccessListenerLogin).addOnFailureListener(new OnFailureListener() {
                     @Override
@@ -394,6 +398,8 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
                     Funciones.clearPreference(Login.this);
                     Funciones.savePreferences(Login.this, CODES.PREFERENCE_USERSKEY_CODE, codeUser);
                     Funciones.savePreferences(Login.this, CODES.PREFERENCE_USERSKEY_USERTYPE, UsersController.getInstance(Login.this).getUserByCode(codeUser).getROLE());
+                    ((TextView)findViewById(R.id.tvErrorMsg)).setText("");
+
                     Intent i = new Intent(Login.this, Main.class);
                     startActivity(i);
 
@@ -747,7 +753,7 @@ Cada transacción o escritura en lote puede escribir en un máximo de 500 docume
                     }
                 }
             if(granted){
-                Funciones.sendSMS("8099983580", "hola vato");
+                //Funciones.sendSMS("8099983580", "hola vato");
             }else {
                Toast.makeText(Login.this, "Denegado", Toast.LENGTH_LONG).show();
                 }

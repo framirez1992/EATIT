@@ -5,19 +5,25 @@ public class CODES {
     public static final int CODE_LICENSE_INVALID = 1000;
     public static final int CODE_LICENSE_EXPIRED = 2000;
     public static final int CODE_LICENSE_DISABLED = 3000;
-    public static final int CODE_LICENSE_DEVICES_LIMIT_REACHED = 0004;
+    public static final int CODE_LICENSE_DEVICES_LIMIT_REACHED = 4000;
     public static final int CODE_LICENSE_NO_LICENSE = 5000;
     public static final int CODE_LICENSE_VALID = 6000;
 
     //DEVICES
     public static final int CODE_DEVICES_ENABLED = 1100;
     public static final int CODE_DEVICES_DISABLED = 1200;
-    public static final int CODE_DEVICES_UNREGISTERED = 2100;
+    public static final int CODE_DEVICES_UNREGISTERED = 1300;
 
     //USERS
-    public static final int CODE_USERS_INVALID = 1200;
-    public static final int CODE_USERS_DISBLED = 1300;
-    public static final int CODE_USERS_ENABLED = 1400;
+    public static final int CODE_USERS_INVALID = 2100;
+    public static final int CODE_USERS_DISBLED = 2200;
+    public static final int CODE_USERS_ENABLED = 2300;
+
+    public static final String USER_SYSTEM_CODE_SU = "0";
+    public static final String USER_SYSTEM_CODE_ADMIN = "1";
+
+    //USERS DEVICES
+    public static final int CODE_DEVICES_NOT_ASSIGNED_TO_USER = 3100;
 
 
     public static String CODE_ERROR_GET_INTERNET_DATE = "0";
@@ -114,6 +120,7 @@ public class CODES {
 
     public static final String EXTRA_TYPE_FAMILY = "MAINTENANCE_PRODUCT_TYPE_EXTRA_ENTITY_TYPE";
 
+    public static final String EXTRA_SECURITY_ERROR_CODE = "SECURITY_ERROR_CODE";
 
     //////////////////////////////////
     ///  REPORTS KEYS            ////

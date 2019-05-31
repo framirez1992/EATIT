@@ -16,6 +16,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -25,14 +26,18 @@ import java.util.ArrayList;
 
 import javax.annotation.Nullable;
 
+import far.com.eatit.CloudFireStoreObjects.Devices;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.ProductsControl;
 import far.com.eatit.CloudFireStoreObjects.UserInbox;
 import far.com.eatit.CloudFireStoreObjects.Users;
+import far.com.eatit.CloudFireStoreObjects.UsersDevices;
+import far.com.eatit.Controllers.DevicesController;
 import far.com.eatit.Controllers.LicenseController;
 import far.com.eatit.Controllers.ProductsControlController;
 import far.com.eatit.Controllers.UserInboxController;
 import far.com.eatit.Controllers.UsersController;
+import far.com.eatit.Controllers.UsersDevicesController;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Utils.Funciones;
 
@@ -42,9 +47,11 @@ public class Main extends AppCompatActivity
     MaintenanceFragment fragmentMaintenance;
     LogoFragment logoFragment;
     LicenseController licenseController;
+    UsersController usersController;
+    DevicesController devicesController;
+    UsersDevicesController usersDevicesController;
     UserInboxController userInboxController;
     ProductsControlController productsControlController;
-    UsersController usersController;
     RelativeLayout rlNotifications;
     CardView cvNotificacions;
     TextView tvNotificationsNumber, tvTotalOrders;
@@ -61,8 +68,10 @@ public class Main extends AppCompatActivity
 
         licenseController = LicenseController.getInstance(Main.this);
         userInboxController = UserInboxController.getInstance(Main.this);
+        devicesController = DevicesController.getInstance(Main.this);
         productsControlController = ProductsControlController.getInstance(Main.this);
         usersController = UsersController.getInstance(Main.this);
+        usersDevicesController = UsersDevicesController.getInstance(Main.this);
 
         rlNotifications = findViewById(R.id.rlNotifications);
         cvNotificacions = findViewById(R.id.cvNotifications);
@@ -134,22 +143,9 @@ public class Main extends AppCompatActivity
         });
 
         licenseController.getReferenceFireStore().addSnapshotListener(licenceListener);
-
-
-        usersController.getReferenceFireStore().addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
-                if(querySnapshot != null) {//los querySnapshot estan viniendo null en ocasiones. por eso se agrego esta condicion.
-                    usersController.delete(null, null);
-                    for (DocumentSnapshot dc : querySnapshot) {
-                        Users users = dc.toObject(Users.class);
-                        usersController.insert(users);
-                    }
-                    validateUser();
-
-                }
-            }
-        });
+        usersController.getReferenceFireStore().addSnapshotListener(usersListener);
+        devicesController.getReferenceFireStore(licenseController.getLicense()).addSnapshotListener(deviceListener);
+        usersDevicesController.getReferenceFireStore(licenseController.getLicense()).addSnapshotListener(userDevicesListener);
 
       /*  userInboxController.getReferenceFireStore().addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -246,11 +242,69 @@ public class Main extends AppCompatActivity
                 Licenses lic = querySnapshot.getDocuments().get(0).toObject(Licenses.class);
                 licenseController.delete(null, null);
                 licenseController.insert(lic);
-                validateLicence(lic);
+            }
+            validateLicence(licenseController.getLicense());
+        }
+    };
+
+    public EventListener<QuerySnapshot> usersListener =  new EventListener<QuerySnapshot>() {
+        @Override
+        public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
+
+            if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
+                for(DocumentSnapshot doc: querySnapshot){
+                    Users u = doc.toObject(Users.class);
+                    if(u.getCODE().equals(Funciones.getCodeuserLogged(Main.this))) {
+                        usersController.delete(null, null);
+                        usersController.insert(u);
+
+                        break;
+                    }
+                }
+                validateUser();
             }
         }
     };
 
+    public EventListener<QuerySnapshot> deviceListener =  new EventListener<QuerySnapshot>() {
+        @Override
+        public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
+
+            if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
+                for(DocumentSnapshot doc: querySnapshot){
+                    Devices d = doc.toObject(Devices.class);
+                    if(d.getCODE().equals(Funciones.getPhoneID(Main.this))) {
+                        devicesController.delete(null, null);
+                        devicesController.insert(d);
+                        break;
+                    }
+                }
+                validateDevices();
+            }
+        }
+    };
+
+    public EventListener<QuerySnapshot> userDevicesListener =  new EventListener<QuerySnapshot>() {
+        @Override
+        public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
+
+            boolean valid = false;
+            if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
+                for(DocumentSnapshot doc: querySnapshot){
+                    UsersDevices ud = doc.toObject(UsersDevices.class);
+                    if(ud.getCODEDEVICE().equals(Funciones.getPhoneID(Main.this))
+                            && ud.getCODEUSER().equals(Funciones.getCodeuserLogged(Main.this))){
+                          valid = true;
+                        break;
+                    }
+                }
+
+               if(!valid){
+                   startActivityLoginFromBegining(CODES.CODE_DEVICES_NOT_ASSIGNED_TO_USER);
+               }
+            }
+        }
+    };
     public void goToOrders(){
 
         startActivity(new Intent(Main.this, MainOrders.class));
@@ -281,38 +335,59 @@ public class Main extends AppCompatActivity
 
         int code = usersController.validateUser(usersController.getUserByCode(Funciones.getCodeuserLogged(Main.this)));
 
-        if(code == CODES.CODE_USERS_INVALID){
-            Toast.makeText(Main.this, "Usuario no registrado. Contacte con el administrador", Toast.LENGTH_LONG).show();
-            startActivityLoginFromBegining();
-            return false;
-        }
-
-        if(code == CODES.CODE_USERS_DISBLED){
-            Toast.makeText(Main.this, "Usuario inactivo. Contacte con el administrador", Toast.LENGTH_LONG).show();
-            startActivityLoginFromBegining();
+        if(code == CODES.CODE_USERS_INVALID || code == CODES.CODE_USERS_DISBLED) {
+           exitWithNoLoginCode(code);
             return false;
         }
 
         return true;
     }
 
-    public void startActivityLoginFromBegining(){
+    public boolean validateDevices(){
+
+        int code = DevicesController.getInstance(Main.this).validateDevice();
+
+        if(code == CODES.CODE_DEVICES_UNREGISTERED || code == CODES.CODE_DEVICES_DISABLED) {
+            exitWithNoLoginCode(code);
+            return false;
+        }
+
+        return true;
+    }
+
+    public void startActivityLoginFromBegining(int code){
             Intent intent = new Intent(getApplicationContext(), Login.class);
+            intent.putExtra(CODES.EXTRA_SECURITY_ERROR_CODE, code);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
 
     }
 
     public void setUpForUserType(){
-        Users u = usersController.getUserByCode(Funciones.getCodeuserLogged(Main.this));
-        if(u.getSYSTEMCODE()!= null &&( u.getSYSTEMCODE().equals("0") || u.getSYSTEMCODE().equals("1"))){//SU o Administrador
+        if(usersController.isSuperUser() || usersController.isAdmin()){//SU o Administrador
+            nav.getMenu().findItem(R.id.goMantInventario).setVisible(true);
+            nav.getMenu().findItem(R.id.goMantProductos).setVisible(true);
+            nav.getMenu().findItem(R.id.goMantUsuarios).setVisible(true);
+            nav.getMenu().findItem(R.id.goMantAreas).setVisible(true);
+            nav.getMenu().findItem(R.id.goMantControls).setVisible(true);
+            nav.getMenu().findItem(R.id.goReports).setVisible(true);
+
+            nav.getMenu().findItem(R.id.goMenu).setVisible(usersController.isSuperUser());
+            nav.getMenu().findItem(R.id.goPendingOrders).setVisible(usersController.isSuperUser());
+
             fragmentMaintenance = new MaintenanceFragment();
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.details, fragmentMaintenance);
             ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-
             ft.commit();
         }else {
+            nav.getMenu().findItem(R.id.goMantInventario).setVisible(false);
+            nav.getMenu().findItem(R.id.goMantProductos).setVisible(false);
+            nav.getMenu().findItem(R.id.goMantUsuarios).setVisible(false);
+            nav.getMenu().findItem(R.id.goMantAreas).setVisible(false);
+            nav.getMenu().findItem(R.id.goMantControls).setVisible(false);
+            nav.getMenu().findItem(R.id.goReports).setVisible(false);
+
             logoFragment = new LogoFragment();
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.details, logoFragment);
@@ -321,10 +396,10 @@ public class Main extends AppCompatActivity
             ft.commit();
         }
 
-        if(u.getROLE().equals(CODES.USERTYPE_CHEFF) || u.getROLE().equals(CODES.USERTYPE_BARTENDER)){
+        if(usersController.isUserRole(CODES.USERTYPE_CHEFF) || usersController.isUserRole(CODES.USERTYPE_BARTENDER)){
             nav.getMenu().findItem(R.id.goMenu).setVisible(false);
             nav.getMenu().findItem(R.id.goPendingOrders).setVisible(true);
-        }else if(u.getROLE().equals(CODES.USERTYPE_MESERO)){
+        }else if(usersController.isUserRole(CODES.USERTYPE_MESERO)){
             nav.getMenu().findItem(R.id.goMenu).setVisible(true);
             nav.getMenu().findItem(R.id.goPendingOrders).setVisible(false);
         }
@@ -334,23 +409,19 @@ public class Main extends AppCompatActivity
 
     public void changeModule(int id){
 
-        fragmentMaintenance.llMaintenanceInventory.setVisibility((id == R.id.goMantInventario)?View.VISIBLE:View.GONE);
-        fragmentMaintenance.llMaintenanceProducts.setVisibility((id == R.id.goMantProductos)?View.VISIBLE:View.GONE);
-        fragmentMaintenance.llMaintenanceUsers.setVisibility((id == R.id.goMantUsuarios)?View.VISIBLE:View.GONE);
-        fragmentMaintenance.llMaintenanceAreas.setVisibility((id == R.id.goMantAreas)?View.VISIBLE:View.GONE);
-        fragmentMaintenance.llMaintenanceControls.setVisibility((id == R.id.goMantControls)?View.VISIBLE:View.GONE);
-        fragmentMaintenance.llMainScreen.setVisibility((id == R.id.goMainScreen)?View.VISIBLE:View.GONE);
+        if((usersController.isSuperUser() || usersController.isAdmin())) {
+            fragmentMaintenance.llMaintenanceInventory.setVisibility((id == R.id.goMantInventario) ? View.VISIBLE : View.GONE);
+            fragmentMaintenance.llMaintenanceProducts.setVisibility((id == R.id.goMantProductos) ? View.VISIBLE : View.GONE);
+            fragmentMaintenance.llMaintenanceUsers.setVisibility((id == R.id.goMantUsuarios) ? View.VISIBLE : View.GONE);
+            fragmentMaintenance.llMaintenanceAreas.setVisibility((id == R.id.goMantAreas) ? View.VISIBLE : View.GONE);
+            fragmentMaintenance.llMaintenanceControls.setVisibility((id == R.id.goMantControls) ? View.VISIBLE : View.GONE);
+            fragmentMaintenance.llMainScreen.setVisibility((id == R.id.goMainScreen) ? View.VISIBLE : View.GONE);
+        }
 
 
     }
 
-    public void validateLicence(Licenses lic){
-
-        // if (lic.getCODE().equals(actualLicence.getCODE())) {
-                            /*if (lic.getLASTUPDATE() == null) {
-                                return;
-                            }*/
-        //Validando vigencia de la licencia.
+    public boolean validateLicence(Licenses lic){
 
         int code = licenseController.validateLicense(lic);
         switch (code){
@@ -359,30 +430,65 @@ public class Main extends AppCompatActivity
             case CODES.CODE_LICENSE_DISABLED:
             case CODES.CODE_LICENSE_NO_LICENSE:
                 licenceListener = null;
-                Toast.makeText(Main.this, Funciones.gerErrorMessage(code), Toast.LENGTH_LONG).show();
-                Funciones.savePreferences(Main.this, CODES.PREFERENCE_LOGIN_BLOQUED, "1");
-                Funciones.savePreferences(Main.this, CODES.PREFERENCE_LOGIN_BLOQUED_REASON, code+"");
-
-                startActivityLoginFromBegining();
-                return;
+                exitWithNoLoginCode(code);
+                return false;
 
         }
 
-                             /*if (!Funciones.getFormatedDateNoTime(lic.getLASTUPDATE()).equals(Funciones.getFormatedDateNoTime(actualLicence.getLASTUPDATE()))) {
-                                //Validando que la fecha de ultima actualizancion este al dia, de no ser asi actualizala.
-                                int counter = Funciones.calcularDias(Funciones.getFormatedDate(lic.getLASTUPDATE()), Funciones.getFormatedDate(lic.getDATEINI()));
-                                lic.setCOUNTER(counter);
-                                if (Funciones.fechaMayorQue(Funciones.getFormatedDate(lic.getLASTUPDATE()), Funciones.getFormatedDate(lic.getDATEEND()))) {
-                                    lic.setSTATUS(CODES.CODE_LICENSE_EXPIRED);
-                                }
-                                licenseController.sendToFireBase(lic);
-                            } else {
+        return true;
+    }
 
-                                licenseController.delete(null, null);
-                                licenseController.insert(lic);
-                            }*/
+/*
+    public OnSuccessListener<QuerySnapshot> onSuccessUsers = new OnSuccessListener<QuerySnapshot>() {
+        @Override
+        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+            if(queryDocumentSnapshots != null && queryDocumentSnapshots.size() >0 ){
+                DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
+                Users u = doc.toObject(Users.class);
+                UsersController.getInstance(Main.this).delete(null, null);
+                UsersController.getInstance(Main.this).insert(u);
+            }
 
+            if(validateUser()){
+                DevicesController.getInstance(Main.this).getQueryDevicesByCode(licenseController.getLicense(), Funciones.getPhoneID(Main.this), onSuccessDevice, null, null);
+            }
+        }
+    };
 
-        // }
+    public OnSuccessListener<QuerySnapshot> onSuccessDevice = new OnSuccessListener<QuerySnapshot>() {
+        @Override
+        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+            if(queryDocumentSnapshots != null && queryDocumentSnapshots.size() >0 ){
+                DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
+                Devices d = doc.toObject(Devices.class);
+                DevicesController.getInstance(Main.this).delete(null, null);
+                DevicesController.getInstance(Main.this).insert(d);
+            }
+
+            if(validateDevices()){
+                UsersDevicesController.getInstance(Main.this).getQueryusersDevices(licenseController.getLicense(), Funciones.getCodeuserLogged(Main.this), Funciones.getPhoneID(Main.this), onSuccessUsersDevices, null, null);
+            }
+        }
+    };
+
+    public OnSuccessListener<QuerySnapshot> onSuccessUsersDevices = new OnSuccessListener<QuerySnapshot>() {
+        @Override
+        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+            if(queryDocumentSnapshots != null && queryDocumentSnapshots.size() >0 ){
+                return;
+            }
+
+                Toast.makeText(Main.this, Funciones.gerErrorMessage(CODES.CODE_DEVICES_NOT_ASSIGNED_TO_USER), Toast.LENGTH_LONG).show();
+                Funciones.savePreferences(Main.this, CODES.PREFERENCE_LOGIN_BLOQUED, "1");
+                Funciones.savePreferences(Main.this, CODES.PREFERENCE_LOGIN_BLOQUED_REASON, CODES.CODE_DEVICES_NOT_ASSIGNED_TO_USER+"");
+                startActivityLoginFromBegining(CODES.CODE_DEVICES_NOT_ASSIGNED_TO_USER);
+
+        }
+    };*/
+    public void exitWithNoLoginCode(int code){
+        Toast.makeText(Main.this, Funciones.gerErrorMessage(code), Toast.LENGTH_LONG).show();
+        Funciones.savePreferences(Main.this, CODES.PREFERENCE_LOGIN_BLOQUED, "1");
+        Funciones.savePreferences(Main.this, CODES.PREFERENCE_LOGIN_BLOQUED_REASON, code+"");
+        startActivityLoginFromBegining(code);
     }
 }

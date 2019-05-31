@@ -99,16 +99,27 @@ public class Funciones {
     public static String gerErrorMessage(int code){
         String message = "UNKNOWN";
         switch (code){
-            case 1000:message = "Clave de producto invalida";
+            case CODES.CODE_LICENSE_INVALID:message = "Clave de producto invalida";
                 break;
-            case 2000:message = "La licencia expiro";
+            case CODES.CODE_LICENSE_EXPIRED:message = "La licencia expiro";
                 break;
-            case 3000:message = "La licencia fue desabilitada";
+            case CODES.CODE_LICENSE_DISABLED:message = "La licencia fue desabilitada";
                 break;
-            case 4000:message = "Alcanzo el limite maximo de dispositivos permitidos de la licencia";
+            case CODES.CODE_LICENSE_DEVICES_LIMIT_REACHED:message = "Alcanzo el limite maximo de dispositivos permitidos de la licencia";
                 break;
-            case 5000:message = "Debe realizar una carga inicial";
+            case CODES.CODE_LICENSE_NO_LICENSE:message = "Debe realizar una carga inicial";
                 break;
+            case CODES.CODE_USERS_INVALID:message = "Usuario invalido ";
+                break;
+            case CODES.CODE_USERS_DISBLED:message = "Usuario deshabilitado";
+                break;
+            case CODES.CODE_DEVICES_UNREGISTERED:message = "Este dispositivo no esta registrado";
+                break;
+            case CODES.CODE_DEVICES_DISABLED:message = "Este dispositivo  esta deshabilitado";
+                break;
+            case CODES.CODE_DEVICES_NOT_ASSIGNED_TO_USER:message = "Este dispositivo  no esta asignado a este usuario";
+                break;
+
         }
         return message;
     }
