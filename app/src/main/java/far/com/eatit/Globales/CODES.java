@@ -52,6 +52,9 @@ public class CODES {
     //LOGIN
     public static final String PREFERENCE_USERSKEY_CODE = "USERSKEY_CODE";
     public static final String PREFERENCE_USERSKEY_USERTYPE = "USERSKEY_USERTYPE";
+    public static final String PREFERENCE_LOGIN_BLOQUED = "LOGIN_BLOQUED";
+    public static final String PREFERENCE_LOGIN_BLOQUED_REASON = "LOGIN_BLOQUED_REASON";
+    public static final String PREFERENCE_LOGIN_BLOQUED_TOKEN_ATTEMPS = "LOGIN_BLOQUED_TOKEN_ATTEMPS";
     //PREFERENCES FIN
 
     //TABLAS Y TABLAS_CODE

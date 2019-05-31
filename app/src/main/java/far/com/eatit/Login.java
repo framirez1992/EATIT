@@ -42,10 +42,12 @@ import javax.annotation.Nullable;
 import far.com.eatit.CloudFireStoreObjects.Devices;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.Sales;
+import far.com.eatit.CloudFireStoreObjects.Token;
 import far.com.eatit.CloudFireStoreObjects.Users;
 import far.com.eatit.CloudFireStoreObjects.UsersDevices;
 import far.com.eatit.Controllers.DevicesController;
 import far.com.eatit.Controllers.LicenseController;
+import far.com.eatit.Controllers.TokenController;
 import far.com.eatit.Controllers.UsersController;
 import far.com.eatit.Controllers.UsersDevicesController;
 import far.com.eatit.DataBase.CloudFireStoreDB;
@@ -70,7 +72,13 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
     Button btnLogin, btnAceptar;
     EditText etUserDialog, etKeyDialog;
     TextView tvMessageDialog, tvPhoneID;
-    boolean fromLogin = true;
+
+
+    TextView tvMsgToken;
+    EditText etToken;
+    Button btnOKToken;
+    LinearLayout llProgressBarToken;
+    Dialog tokenDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,69 +95,16 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
     @Override
     protected void onResume() {
         super.onResume();
-        fromLogin = true;
+        if(licenseController.getLicense() == null) {
+            Snackbar.make(findViewById(R.id.root), "Realize una carga inicial", Snackbar.LENGTH_LONG).show();
+        }
+
     }
 
 
     @Override
     protected void onStart() {
         super.onStart();
-        if(licenseController.getLicense() == null){
-            Snackbar.make(findViewById(R.id.root), "Realize una carga inicial", Snackbar.LENGTH_LONG).show();
-        }else {
-            licenseController.setLastUpdateToFireBase();//Actualiza la licencia
-            licenseController.getReferenceFireStore().addSnapshotListener(new EventListener<QuerySnapshot>() {
-                @Override
-                public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
-
-                    if (querySnapshot != null) {
-
-                        Licenses actualLicence = licenseController.getLicense();
-                        if (actualLicence == null) {
-                            Toast.makeText(Login.this, "Realize una carga inicial ", Toast.LENGTH_LONG).show();
-                            return;
-                        }
-
-                        for (DocumentSnapshot doc : querySnapshot) {
-                            Licenses lic = doc.toObject(Licenses.class);
-                            if (lic.getCODE().equals(actualLicence.getCODE())) {
-                                if (lic.getLASTUPDATE() == null) {
-                                    return;
-                                }
-                                //Validando vigencia de la licencia.
-                                if (Funciones.fechaMayorQue(Funciones.getFormatedDate(lic.getLASTUPDATE()), Funciones.getFormatedDate(lic.getDATEEND()))) {
-                                    Toast.makeText(Login.this, "Licencia vencida. Contacte con el administrador", Toast.LENGTH_LONG).show();
-                                    startActivityLoginFromBegining();
-
-                                } else if (lic.getSTATUS() == CODES.CODE_LICENSE_DISABLED) { //Validando vigencia de la licencia.
-                                    Toast.makeText(Login.this, "Licencia inhabilitada. Contacte con el administrador", Toast.LENGTH_LONG).show();
-                                    startActivityLoginFromBegining();
-                                    //return;
-                                } else if (!lic.isENABLED()) { //Validar si la licencia esta activa
-                                    Toast.makeText(Login.this, "Licencia inactiva. Contacte con el administrador", Toast.LENGTH_LONG).show();
-                                    startActivityLoginFromBegining();
-                                    //return;
-                                } else if (!Funciones.getFormatedDateNoTime(lic.getLASTUPDATE()).equals(Funciones.getFormatedDateNoTime(actualLicence.getLASTUPDATE()))) {
-                                    //Validando que la fecha de ultima actualizancion este al dia, de no ser asi actualizala.
-                                    int counter = Funciones.calcularDias(Funciones.getFormatedDate(lic.getLASTUPDATE()), Funciones.getFormatedDate(lic.getDATEINI()));
-                                    lic.setCOUNTER(counter);
-                                    if (Funciones.fechaMayorQue(Funciones.getFormatedDate(lic.getLASTUPDATE()), Funciones.getFormatedDate(lic.getDATEEND()))) {
-                                        lic.setSTATUS(CODES.CODE_LICENSE_EXPIRED);
-                                    }
-                                    licenseController.sendToFireBase(lic);
-                                } else {
-
-                                    licenseController.delete(null, null);
-                                    licenseController.insert(lic);
-                                }
-
-
-                            }
-
-                        }
-                    }
-                }
-            });
 
             devicesController.getReferenceFireStore(licenseController.getLicense()).addSnapshotListener(new EventListener<QuerySnapshot>() {
                 @Override
@@ -167,25 +122,26 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
             });
 
 
-        }
+
 
 
     }
 
-    public void startActivityLoginFromBegining(){
-        if(!fromLogin) {
-            fromLogin = true;
 
+
+    public void startActivityLoginFromBegining(){
             Intent intent = new Intent(getApplicationContext(), Login.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
-
-        }
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
         new MenuInflater(Login.this).inflate(R.menu.main_menu, menu);
+        boolean loginBloqued = Funciones.getPreferences(Login.this, CODES.PREFERENCE_LOGIN_BLOQUED).equals("1");
+            menu.findItem(R.id.token).setVisible(loginBloqued);
+            menu.findItem(R.id.initialize).setVisible(!loginBloqued);
         return (super.onCreateOptionsMenu(menu));
     }
 
@@ -195,6 +151,9 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
         switch (item.getItemId()) {
             case R.id.initialize:
                 showCargaInicialDialog();
+                return true;
+            case R.id.token:
+                showTokenDialog();
                 return true;
 
         }
@@ -223,7 +182,15 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                 login();
+                if(Funciones.getPreferences(Login.this, CODES.PREFERENCE_LOGIN_BLOQUED).equals("1")){
+                    AlertDialog a = new AlertDialog.Builder(Login.this).create();
+                    a.setTitle("Alerta");
+                    a.setMessage(Funciones.gerErrorMessage(Integer.parseInt(Funciones.getPreferences(Login.this, CODES.PREFERENCE_LOGIN_BLOQUED_REASON))));
+                    a.show();
+                }else{
+                    login();
+                }
+
               /*  if(checkPermissions(Manifest.permission.SEND_SMS) == 1){
                     Funciones.sendSMS("8099983580", "hola vato");
                 }else{
@@ -333,6 +300,30 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
         cargaInicialDialog.setCancelable(true);
     }
 
+    public void startLoadingToken(){
+        String intentos = getTokenAttemps();
+        tvMsgToken.setText("Intentos: "+intentos+"/3");
+        llProgressBarToken.setVisibility(View.VISIBLE);
+        etToken.setEnabled(false);
+        tokenDialog.setCancelable(false);
+        btnOKToken.setEnabled(false);
+    }
+    public void endLoadingToken(){
+
+        llProgressBarToken.setVisibility(View.INVISIBLE);
+        tokenDialog.setCancelable(true);
+        String intentos = getTokenAttemps();
+        if(Integer.parseInt(intentos) >= 3){
+            btnOKToken.setEnabled(false);
+            etToken.setEnabled(false);
+            tvMsgToken.setText("Agoto el numero de intentos permitidos");
+        }else{
+            tvMsgToken.setText("Intentos: "+intentos+"/3");
+            btnOKToken.setEnabled(true);
+            etToken.setEnabled(true);
+        }
+    }
+
     public void setMessageCargaInicial(String message){
     setMessageCargaInicial(message, android.R.color.black);
     }
@@ -405,7 +396,6 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
                     Funciones.savePreferences(Login.this, CODES.PREFERENCE_USERSKEY_USERTYPE, UsersController.getInstance(Login.this).getUserByCode(codeUser).getROLE());
                     Intent i = new Intent(Login.this, Main.class);
                     startActivity(i);
-                    fromLogin = false;
 
                 }else{
                     Snackbar.make(findViewById(R.id.root), "ERROR obteniendo Usuario", Snackbar.LENGTH_LONG).show();
@@ -790,6 +780,51 @@ Cada transacción o escritura en lote puede escribir en un máximo de 500 docume
         });
     }
 
+    public void showTokenDialog(){
+        tokenDialog = new Dialog(Login.this);
+        tokenDialog.setContentView(R.layout.dialog_edit_button);
+        tvMsgToken = tokenDialog.findViewById(R.id.tvMessage);
+        etToken = tokenDialog.findViewById(R.id.etValue);
+        btnOKToken = tokenDialog.findViewById(R.id.btnOK);
+        llProgressBarToken = tokenDialog.findViewById(R.id.llProgress);
+        etToken.setHint("Token");
+        etToken.setText("");
+        String intentos = getTokenAttemps();
+        if(Integer.parseInt(intentos) >= 3){
+            btnOKToken.setEnabled(false);
+            etToken.setEnabled(false);
+            tvMsgToken.setText("Agoto el numero de intentos permitidos");
+        }else{
+            tvMsgToken.setText("Intentos: "+intentos+"/3");
+        }
+
+
+        btnOKToken.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String token = etToken.getText().toString();
+                if(token.equals("")){
+                    return;
+                }
+                if(Integer.parseInt(getTokenAttemps()) >= 3){
+                    endLoadingToken();
+                    return;
+                }
+               startLoadingToken();
+               TokenController.getInstance(Login.this).getQueryTokenByCode(token, onSuccessToken, onCompleteToken, onFailureToken);
+            }
+        });
+
+        tokenDialog.show();
+
+    }
+
+    public String getTokenAttemps(){
+        String intentos = Funciones.getPreferences(Login.this, CODES.PREFERENCE_LOGIN_BLOQUED_TOKEN_ATTEMPS);
+        if(intentos.equals(""))
+            intentos = "0";
+        return intentos;
+    }
 
 
     public OnSuccessListener<DocumentSnapshot> LicenceListener = new OnSuccessListener<DocumentSnapshot>() {
@@ -887,6 +922,46 @@ Cada transacción o escritura en lote puede escribir en un máximo de 500 docume
         }
     };
 
+
+    public OnSuccessListener<QuerySnapshot> onSuccessToken = new OnSuccessListener<QuerySnapshot>() {
+        @Override
+        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+            if(queryDocumentSnapshots != null && queryDocumentSnapshots.size() >0 ){
+                DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
+                Token t = doc.toObject(Token.class);
+                Funciones.savePreferences(Login.this, CODES.PREFERENCE_LOGIN_BLOQUED, "");
+                Funciones.savePreferences(Login.this, CODES.PREFERENCE_LOGIN_BLOQUED_TOKEN_ATTEMPS, "");
+                Funciones.savePreferences(Login.this, CODES.PREFERENCE_LOGIN_BLOQUED_REASON, "");
+
+                Licenses actualLicence = LicenseController.getInstance(Login.this).getLicense();
+                LicenseController.getInstance(Login.this).getQueryLicenceByCode(actualLicence.getCODE(), onSuccessLicence, onCompleteToken, onFailureToken);
+                //TokenController.getInstance(Login.this).deleteFromFireBase(t);
+                return;
+            }
+            String intentos = getTokenAttemps();
+            intentos = String.valueOf(Integer.parseInt(intentos)+1);
+            Funciones.savePreferences(Login.this, CODES.PREFERENCE_LOGIN_BLOQUED_TOKEN_ATTEMPS, intentos);
+
+            endLoadingToken();
+            //setMessageCargaInicial("Invalid User", R.color.red_700);
+            //endLoading();
+        }
+    };
+
+    public OnSuccessListener<QuerySnapshot> onSuccessLicence = new OnSuccessListener<QuerySnapshot>() {
+        @Override
+        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+            if(queryDocumentSnapshots != null && queryDocumentSnapshots.size() >0 ){
+                DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
+                Licenses l = doc.toObject(Licenses.class);
+                LicenseController.getInstance(Login.this).delete(null, null);
+                LicenseController.getInstance(Login.this).insert(l);
+                recreate();
+                return;
+            }
+        }
+    };
+
     public OnCompleteListener onComplete = new OnCompleteListener() {
         @Override
         public void onComplete(@NonNull Task task) {
@@ -898,13 +973,21 @@ Cada transacción o escritura en lote puede escribir en un máximo de 500 docume
         }
     };
 
-    public OnFailureListener FailureListener = new OnFailureListener() {
+    public OnCompleteListener onCompleteToken = new OnCompleteListener() {
+        @Override
+        public void onComplete(@NonNull Task task) {
+            //Fin de query
+            if(task.getException() != null){
+                tvMsgToken.setText(task.getException().getMessage().toString());
+                endLoading();
+            }
+        }
+    };
+
+    public OnFailureListener onFailureToken = new OnFailureListener() {
         @Override
         public void onFailure(@NonNull Exception e) {
-            AlertDialog a = new AlertDialog.Builder(Login.this).create();
-            a.setTitle("Error");
-            a.setMessage(e.getMessage());
-            a.show();
+            tvMsgToken.setText(e.getMessage().toString());
         }
     };
 

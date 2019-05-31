@@ -25,9 +25,11 @@ import java.util.ArrayList;
 
 import javax.annotation.Nullable;
 
+import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.ProductsControl;
 import far.com.eatit.CloudFireStoreObjects.UserInbox;
 import far.com.eatit.CloudFireStoreObjects.Users;
+import far.com.eatit.Controllers.LicenseController;
 import far.com.eatit.Controllers.ProductsControlController;
 import far.com.eatit.Controllers.UserInboxController;
 import far.com.eatit.Controllers.UsersController;
@@ -39,6 +41,7 @@ public class Main extends AppCompatActivity
 
     MaintenanceFragment fragmentMaintenance;
     LogoFragment logoFragment;
+    LicenseController licenseController;
     UserInboxController userInboxController;
     ProductsControlController productsControlController;
     UsersController usersController;
@@ -56,6 +59,7 @@ public class Main extends AppCompatActivity
        // Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         //setSupportActionBar(toolbar);
 
+        licenseController = LicenseController.getInstance(Main.this);
         userInboxController = UserInboxController.getInstance(Main.this);
         productsControlController = ProductsControlController.getInstance(Main.this);
         usersController = UsersController.getInstance(Main.this);
@@ -129,6 +133,9 @@ public class Main extends AppCompatActivity
             }
         });
 
+        licenseController.getReferenceFireStore().addSnapshotListener(licenceListener);
+
+
         usersController.getReferenceFireStore().addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
@@ -163,6 +170,12 @@ public class Main extends AppCompatActivity
             }
         });*/
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        licenseController.setLastUpdateToFireBase();//Actualiza la licencia
     }
 
     @Override
@@ -218,6 +231,25 @@ public class Main extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+  public EventListener<QuerySnapshot> licenceListener =  new EventListener<QuerySnapshot>() {
+        @Override
+        public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
+
+            if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
+
+                   /* Licenses actualLicence = licenseController.getLicense();
+                    if (actualLicence == null) {
+                        Toast.makeText(Login.this, "Realize una carga inicial ", Toast.LENGTH_LONG).show();
+                        return;
+                    }*/
+                Licenses lic = querySnapshot.getDocuments().get(0).toObject(Licenses.class);
+                licenseController.delete(null, null);
+                licenseController.insert(lic);
+                validateLicence(lic);
+            }
+        }
+    };
 
     public void goToOrders(){
 
@@ -310,5 +342,47 @@ public class Main extends AppCompatActivity
         fragmentMaintenance.llMainScreen.setVisibility((id == R.id.goMainScreen)?View.VISIBLE:View.GONE);
 
 
+    }
+
+    public void validateLicence(Licenses lic){
+
+        // if (lic.getCODE().equals(actualLicence.getCODE())) {
+                            /*if (lic.getLASTUPDATE() == null) {
+                                return;
+                            }*/
+        //Validando vigencia de la licencia.
+
+        int code = licenseController.validateLicense(lic);
+        switch (code){
+            //Validando vigencia de la licencia.
+            case CODES.CODE_LICENSE_EXPIRED:
+            case CODES.CODE_LICENSE_DISABLED:
+            case CODES.CODE_LICENSE_NO_LICENSE:
+                licenceListener = null;
+                Toast.makeText(Main.this, Funciones.gerErrorMessage(code), Toast.LENGTH_LONG).show();
+                Funciones.savePreferences(Main.this, CODES.PREFERENCE_LOGIN_BLOQUED, "1");
+                Funciones.savePreferences(Main.this, CODES.PREFERENCE_LOGIN_BLOQUED_REASON, code+"");
+
+                startActivityLoginFromBegining();
+                return;
+
+        }
+
+                             /*if (!Funciones.getFormatedDateNoTime(lic.getLASTUPDATE()).equals(Funciones.getFormatedDateNoTime(actualLicence.getLASTUPDATE()))) {
+                                //Validando que la fecha de ultima actualizancion este al dia, de no ser asi actualizala.
+                                int counter = Funciones.calcularDias(Funciones.getFormatedDate(lic.getLASTUPDATE()), Funciones.getFormatedDate(lic.getDATEINI()));
+                                lic.setCOUNTER(counter);
+                                if (Funciones.fechaMayorQue(Funciones.getFormatedDate(lic.getLASTUPDATE()), Funciones.getFormatedDate(lic.getDATEEND()))) {
+                                    lic.setSTATUS(CODES.CODE_LICENSE_EXPIRED);
+                                }
+                                licenseController.sendToFireBase(lic);
+                            } else {
+
+                                licenseController.delete(null, null);
+                                licenseController.insert(lic);
+                            }*/
+
+
+        // }
     }
 }

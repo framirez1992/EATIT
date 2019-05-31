@@ -3,5 +3,6 @@
 
 <item android:id="@+id/initialize"
     android:title="Inicializar"/>
-
+    <item android:id="@+id/token"
+        android:title="Token"/>
 </menu>

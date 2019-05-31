@@ -34,6 +34,7 @@ public class Tablas {
     public static final String generalUsersStoreHouseDetail = "StoreHouseDetail";
     public static final String generalUsersTableCode = "TableCode";
     public static final String generalUsersTableFilter = "TableFilter";
+    public static final String generalUsersToken = "Token";
     public static final String generalUsersUserControl = "UserControl";
     public static final String generalUsersUsers = "Users";
     public static final String generalUsersUsersDevices = "UsersDevices";

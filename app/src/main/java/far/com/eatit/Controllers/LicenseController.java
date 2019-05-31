@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -262,6 +263,15 @@ public class LicenseController  {
         PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         return alarmIntent;
+    }
+
+    public void getQueryLicenceByCode(String code, OnSuccessListener<QuerySnapshot> success, OnCompleteListener<QuerySnapshot> complete, OnFailureListener failute){
+        getReferenceFireStore().
+                whereEqualTo(CODE, code).get().
+                addOnSuccessListener(success).
+                addOnCompleteListener(complete).
+                addOnFailureListener(failute);
+
     }
 
 }
