@@ -390,7 +390,7 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
                     }*/
                    usersController.delete(null, null);
                    usersController.insert(u);
-                  if(!validateUser(u)){
+                  if(!isValidUser(u)){
                      return;
                   }
 
@@ -431,7 +431,7 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
         return true;
     }
 
-    public boolean validateUser(Users u){
+    public boolean isValidUser(Users u){
         int code = usersController.validateUser(u);
         if(code != CODES.CODE_USERS_ENABLED){
 
@@ -448,6 +448,21 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
 
         return true;
     }
+
+    public boolean validateUserCargaInicial(Users u){
+
+        int code = (u != null)?usersController.validateUser(usersController.getUserByCode(u.getCODE())):CODES.CODE_USERS_INVALID;
+
+        if(code == CODES.CODE_USERS_INVALID || code == CODES.CODE_USERS_DISBLED) {
+            setMessageCargaInicial(Funciones.gerErrorMessage(code), R.color.red_700);
+            endLoading();
+            return false;
+        }
+
+        return true;
+    }
+
+
 
 
     @Override
@@ -866,17 +881,18 @@ Cada transacción o escritura en lote puede escribir en un máximo de 500 docume
     public OnSuccessListener<QuerySnapshot> onSuccessUsers = new OnSuccessListener<QuerySnapshot>() {
         @Override
         public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+            Users u = null;
             if(queryDocumentSnapshots != null && queryDocumentSnapshots.size() >0 ){
                 DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
-                Users u = doc.toObject(Users.class);
+                u = doc.toObject(Users.class);
                 usersController.delete(null, null);
                 usersController.insert(u);
-                UsersDevicesController.getInstance(Login.this).getQueryusersDevices(license,u.getCODE(),Funciones.getPhoneID(Login.this),onSuccessUsersDevices,onComplete,Login.this);
                 //devicesController.getDevices(license, DevicesListener);
-                return;
             }
-            setMessageCargaInicial("Invalid User", R.color.red_700);
-            endLoading();
+
+            if (validateUserCargaInicial(u)) {
+                UsersDevicesController.getInstance(Login.this).getQueryusersDevices(license,u.getCODE(),Funciones.getPhoneID(Login.this),onSuccessUsersDevices,onComplete,Login.this);
+            }
         }
     };
 
