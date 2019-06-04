@@ -74,6 +74,10 @@ public class CODES {
     /////////////////////////////////
     //USERCONTROL               /////
     /////////////////////////////////
+    public static final String USERSCONTROL_TARGET_USER = "0";
+    public static final String USERSCONTROL_TARGET_USER_ROL = "1";
+    public static final String USERSCONTROL_TARGET_COMPANY = "2";
+
     /*
     Indica si una orden se va a seccionar en 2 o mas ordenes. depende de ORDERSPLIT
      */

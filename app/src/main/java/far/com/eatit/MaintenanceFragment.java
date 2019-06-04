@@ -24,7 +24,7 @@ import far.com.eatit.Interfases.ListableActivity;
 public class MaintenanceFragment extends Fragment {
 
 
-    ImageView btnFamily, btnGroup, btnMeasures, btnProducts,btnFamilyInv, btnGroupInv, btnMeasuresInv, btnProductsInv, btnUsers, btnUserRol, btnAreas, btnMesas, btnTableCode,
+    ImageView btnFamily, btnGroup, btnMeasures, btnProducts,btnFamilyInv, btnGroupInv, btnMeasuresInv, btnProductsInv, btnUsers, btnUserRol, btnAreas, btnMesas,btnControls, btnTableCode,
             btnTableFilter, btnActualizationCenter;
     LinearLayout llMainScreen,llMaintenanceControls, llMaintenanceAreas, llMaintenanceUsers, llMaintenanceProducts,llMaintenanceInventory;
     public MaintenanceFragment() {
@@ -62,6 +62,7 @@ public class MaintenanceFragment extends Fragment {
         btnUserRol = view.findViewById(R.id.btnUserRol);
         btnAreas = view.findViewById(R.id.btnAreas);
         btnMesas = view.findViewById(R.id.btnMesas);
+        btnControls = view.findViewById(R.id.btnControls);
         btnTableCode = view.findViewById(R.id.btnTableCode);
         btnTableFilter = view.findViewById(R.id.btnTableFilter);
         btnActualizationCenter = view.findViewById(R.id.btnActualizationCenter);
@@ -80,6 +81,7 @@ public class MaintenanceFragment extends Fragment {
         btnUserRol.setOnClickListener(imageClick);
         btnAreas.setOnClickListener(imageClick);
         btnMesas.setOnClickListener(imageClick);
+        btnControls.setOnClickListener(imageClick);
         btnTableCode.setOnClickListener(imageClick);
         btnTableFilter.setOnClickListener(imageClick);
         btnActualizationCenter.setOnClickListener(imageClick);
@@ -133,6 +135,9 @@ public class MaintenanceFragment extends Fragment {
                     break;
                 case R.id.btnActualizationCenter:
                     i = new Intent(getActivity(), MainActualizationCenter.class);
+                    break;
+                case R.id.btnControls:
+                    i = new Intent(getActivity(), MaintenanceUsersControl.class);
                     break;
 
             }

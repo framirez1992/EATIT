@@ -11,16 +11,17 @@ import java.util.HashMap;
 import far.com.eatit.Controllers.UserControlController;
 
 public class UserControl {
-    private String CODE, CODEUSER, CODEUSERTYPE,  CONTROL,VALUE;
+    private String CODE,TARGET,TARGETCODE, CONTROL,VALUE;
+    private Boolean ACTIVE;
     private @ServerTimestamp
     Date DATE, MDATE;
 
     public UserControl(){
 
     }
-    public UserControl(String code, String codeUser, String codeUserType, String control, String value){
-        this.CODE = code; this.CODEUSER = codeUser;this.CODEUSERTYPE = codeUserType;
-        this.CONTROL = control; this.VALUE = value;
+    public UserControl(String code, String target, String targetCode, String control, String value, boolean active){
+        this.CODE = code; this.TARGET = target;this.TARGETCODE = targetCode;
+        this.CONTROL = control; this.VALUE = value;this.ACTIVE = active;
     }
 
     public UserControl(Cursor c){
@@ -30,10 +31,11 @@ public class UserControl {
     public HashMap<String, Object> toMap(){
         HashMap<String, Object> map = new HashMap<>();
         map.put(UserControlController.CODE,CODE);
-        map.put(UserControlController.CODEUSER,CODEUSER);
-        map.put(UserControlController.CODEUSERTYPE,CODEUSERTYPE);
+        map.put(UserControlController.TARGET,TARGET);
+        map.put(UserControlController.TARGETCODE,TARGETCODE);
         map.put(UserControlController.CONTROL,CONTROL);
         map.put(UserControlController.VALUE,VALUE);
+        map.put(UserControlController.ACTIVE, ACTIVE);
         map.put(UserControlController.DATE,(DATE == null)? FieldValue.serverTimestamp():DATE);
         map.put(UserControlController.MDATE,(MDATE == null)? FieldValue.serverTimestamp():MDATE);
         return map;
@@ -46,22 +48,6 @@ public class UserControl {
 
     public void setCODE(String CODE) {
         this.CODE = CODE;
-    }
-
-    public String getCODEUSER() {
-        return CODEUSER;
-    }
-
-    public void setCODEUSER(String CODEUSER) {
-        this.CODEUSER = CODEUSER;
-    }
-
-    public String getCODEUSERTYPE() {
-        return CODEUSERTYPE;
-    }
-
-    public void setCODEUSERTYPE(String CODEUSERTYPE) {
-        this.CODEUSERTYPE = CODEUSERTYPE;
     }
 
     public String getCONTROL() {
@@ -94,5 +80,29 @@ public class UserControl {
 
     public void setMDATE(Date MDATE) {
         this.MDATE = MDATE;
+    }
+
+    public String getTARGET() {
+        return TARGET;
+    }
+
+    public void setTARGET(String TARGET) {
+        this.TARGET = TARGET;
+    }
+
+    public String getTARGETCODE() {
+        return TARGETCODE;
+    }
+
+    public void setTARGETCODE(String TARGETCODE) {
+        this.TARGETCODE = TARGETCODE;
+    }
+
+    public Boolean getACTIVE() {
+        return ACTIVE;
+    }
+
+    public void setACTIVE(Boolean ACTIVE) {
+        this.ACTIVE = ACTIVE;
     }
 }

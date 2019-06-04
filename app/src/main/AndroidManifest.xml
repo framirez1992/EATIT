@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.SEND_SMS"/>
+    <uses-permission android:name="android.permission.SEND_SMS" />
 
     <application
         android:allowBackup="true"
@@ -16,6 +16,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".MaintenanceUsersControl"></activity>
         <activity android:name=".Login">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -36,8 +37,7 @@
         <activity
             android:name=".MainOrders"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <!-- android:configChanges="keyboardHidden|orientation|screenSize" -->
+            android:theme="@style/AppTheme.NoActionBar" /> <!-- android:configChanges="keyboardHidden|orientation|screenSize" -->
         <activity
             android:name=".Main"
             android:theme="@style/AppTheme.NoActionBar" />
@@ -57,7 +57,7 @@
         <activity android:name=".MaintenanceTableFilter" />
         <activity android:name=".MainActualizationCenter" />
         <activity android:name=".MainReports" />
-        <activity android:name=".ReportsDetail"></activity>
+        <activity android:name=".ReportsDetail" />
     </application>
 
 </manifest>

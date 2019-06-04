@@ -338,6 +338,10 @@ public class Funciones {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         return preferences.getString(CODES.PREFERENCE_USERSKEY_CODE, "");
     }
+    public static String getRoleUserLogged(Context context){
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return preferences.getString(CODES.PREFERENCE_USERSKEY_USERTYPE, "");
+    }
     public static String getPreferences(Context context, String key){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
        return preferences.getString(key, "");
