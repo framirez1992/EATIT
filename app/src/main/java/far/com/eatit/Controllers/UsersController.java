@@ -4,6 +4,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -29,6 +31,7 @@ import far.com.eatit.Adapters.Models.UserRowModel;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.Users;
 import far.com.eatit.DataBase.DB;
+import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Globales.Tablas;
 import far.com.eatit.Utils.Funciones;
@@ -282,4 +285,15 @@ public class UsersController {
         return getUserByCode(Funciones.getCodeuserLogged(context)).getROLE().equals(role);
     }
 
+    public void fillSpnUser(Spinner spn, boolean addTodos){
+        ArrayList<Users> result = getUsers(null, null, USERNAME);
+        ArrayList<KV> spnList = new ArrayList<>();
+        if(addTodos){
+            spnList.add(new KV("0", "TODOS"));
+        }
+        for(Users u : result){
+            spnList.add(new KV(u.getCODE(), u.getUSERNAME()));
+        }
+        spn.setAdapter(new ArrayAdapter<KV>(context, android.R.layout.simple_list_item_1,spnList));
+    }
 }

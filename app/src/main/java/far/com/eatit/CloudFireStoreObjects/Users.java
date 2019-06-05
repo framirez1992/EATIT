@@ -52,7 +52,7 @@ public class Users {
         this.ENABLED = c.getString(c.getColumnIndex(UsersController.ENABLED)).equals("1");
         this.COMPANY = c.getString(c.getColumnIndex(UsersController.COMPANY));;
         this.DATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(UsersController.DATE)));
-        this.MDATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(UsersController.CODE)));
+        this.MDATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(UsersController.MDATE)));
     }
 
     public String getCODE() {

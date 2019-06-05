@@ -1,8 +1,13 @@
 package far.com.eatit.CloudFireStoreObjects;
 
+import android.database.Cursor;
+
 import com.google.firebase.firestore.IgnoreExtraProperties;
 
 import java.util.Date;
+
+import far.com.eatit.Controllers.CompanyController;
+import far.com.eatit.Utils.Funciones;
 
 @IgnoreExtraProperties
 public class Company {
@@ -15,6 +20,18 @@ public class Company {
         this.CODE = code; this.NAME = name; this.RNC = rnc;
         this.ADDRESS = address; this.ADDRESS2 = address2; this.PHONE = phone;
         this.PHONE2 = phone2; this.DATE = date; this.MDATE = mdate;
+    }
+
+    public Company(Cursor c){
+        this.CODE = c.getString(c.getColumnIndex(CompanyController.CODE));
+        this.NAME = c.getString(c.getColumnIndex(CompanyController.NAME));
+        this.RNC = c.getString(c.getColumnIndex(CompanyController.RNC));
+        this.ADDRESS = c.getString(c.getColumnIndex(CompanyController.ADDRESS));
+        this.ADDRESS2 = c.getString(c.getColumnIndex(CompanyController.ADDRESS2));
+        this.PHONE = c.getString(c.getColumnIndex(CompanyController.PHONE));
+        this.PHONE2 =c.getString(c.getColumnIndex(CompanyController.PHONE2));
+        this.DATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(CompanyController.DATE)));
+        this.MDATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(CompanyController.MDATE)));
     }
 
     public String getCODE() {

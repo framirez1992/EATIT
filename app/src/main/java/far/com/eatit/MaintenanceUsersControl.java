@@ -34,6 +34,7 @@ import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.UserControl;
 import far.com.eatit.Controllers.LicenseController;
 import far.com.eatit.Controllers.UserControlController;
+import far.com.eatit.Dialogs.UserControlDialogFragment;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Interfases.ListableActivity;
 
@@ -167,11 +168,11 @@ public class MaintenanceUsersControl extends AppCompatActivity implements Listab
             ft.remove(prev);
         }
         ft.addToBackStack(null);
-        DialogFragment newFragment = null;/*
+        DialogFragment newFragment = null;
         if(isNew)
-            newFragment = TableCodesDialogFragment.newInstance(null);
+            newFragment = UserControlDialogFragment.newInstance(null);
         else
-            newFragment = TableCodesDialogFragment.newInstance(userControl);*/
+            newFragment = UserControlDialogFragment.newInstance(userControl);
 
 
         // Create and show the dialog.
@@ -242,8 +243,8 @@ public class MaintenanceUsersControl extends AppCompatActivity implements Listab
     @Override
     public void onClick(Object obj) {
         userControl = null;
-        SimpleRowModel sr = (SimpleRowModel)obj;
-        userControl = userControlController.getUserControlByCode(sr.getId());
+        UserControlRowModel sr = (UserControlRowModel)obj;
+        userControl = userControlController.getUserControlByCode(sr.getCode());
 
     }
 

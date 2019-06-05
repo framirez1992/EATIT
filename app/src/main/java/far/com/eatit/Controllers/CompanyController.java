@@ -2,6 +2,9 @@ package far.com.eatit.Controllers;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -11,11 +14,13 @@ import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import far.com.eatit.CloudFireStoreObjects.Company;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.DataBase.DB;
+import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.Tablas;
 import far.com.eatit.Utils.Funciones;
 
@@ -24,14 +29,23 @@ public class CompanyController {
     public static  String CODE = "code", NAME = "name" ,
             RNC = "rnc",PHONE = "phone", PHONE2="phone2",
             ADDRESS="address", ADDRESS2="address2", DATE = "date", MDATE = "mdate";
+    String[] columns = new String[]{CODE, NAME, RNC, PHONE, PHONE2, ADDRESS, ADDRESS2, DATE, MDATE};
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+"("
             +CODE+" TEXT, "+NAME+" TEXT, "+RNC+" TEXT, "+PHONE+" TEXT, "+PHONE2+" TEXT, "+ADDRESS+" TEXT," +
             ADDRESS2+" TEXT, "+DATE+" TEXT, "+MDATE+" TEXT)";
     Context context;
     FirebaseFirestore db;
-    public CompanyController(Context c){
+    private static CompanyController instance;
+    private CompanyController(Context c){
         this.context = c;
         db = FirebaseFirestore.getInstance();
+    }
+
+    public static CompanyController getInstance(Context context){
+        if(instance == null){
+            instance = new CompanyController(context);
+        }
+        return instance;
     }
     public CollectionReference getReferenceFireStore(){
         Licenses l = LicenseController.getInstance(context).getLicense();
@@ -91,16 +105,14 @@ public class CompanyController {
 
     public void getAllDataFromFireBase(String key, OnFailureListener onFailureListener){
         try {
-            Task<QuerySnapshot> measureUnits =getReferenceFireStore().get();
-            measureUnits.addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            Task<QuerySnapshot> company =getReferenceFireStore().get();
+            company.addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                 @Override
                 public void onSuccess(QuerySnapshot querySnapshot) {
                     if(querySnapshot != null && querySnapshot.getDocumentChanges()!= null && !querySnapshot.getDocumentChanges().isEmpty()){
                         for(DocumentChange dc : querySnapshot.getDocumentChanges()) {
                             Company object = dc.getDocument().toObject(Company.class);
-                            String where = CODE+" = ?";
-                            String[]args = new String[]{object.getCODE()};
-                            delete(where, args);
+                            delete(null, null);
                             insert(object);
                         }
                     }
@@ -109,5 +121,30 @@ public class CompanyController {
         }catch(Exception e){
             e.printStackTrace();
         }
+    }
+
+    public ArrayList<Company> getCompanys(String where, String[]args, String orderBy){
+        ArrayList<Company> result = new ArrayList<>();
+        try{
+            Cursor c = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME,columns,where,args,null,null,orderBy);
+            while(c.moveToNext()){
+                result.add(new Company(c));
+            }c.close();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    public void fillSpnCompany(Spinner spn, boolean addTodos){
+        ArrayList<Company> result = getCompanys(null, null, NAME);
+        ArrayList<KV> spnList = new ArrayList<>();
+        if(addTodos){
+            spnList.add(new KV("0", "TODOS"));
+        }
+        for(Company u : result){
+            spnList.add(new KV(u.getCODE(), u.getNAME()));
+        }
+        spn.setAdapter(new ArrayAdapter<KV>(context, android.R.layout.simple_list_item_1,spnList));
     }
 }

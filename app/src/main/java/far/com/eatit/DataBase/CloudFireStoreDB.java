@@ -127,7 +127,7 @@ public class CloudFireStoreDB {
         userTypesController = UserTypesController.getInstance(context);
         licenseController = LicenseController.getInstance(context);
         combosController = new CombosController(context);
-        companyController = new CompanyController(context);
+        companyController =  CompanyController.getInstance(context);
         measureUnitsController =  MeasureUnitsController.getInstance(context);
         measureUnitsInvController = MeasureUnitsInvController.getInstance(context);
         priceListController = new PriceListController(context);

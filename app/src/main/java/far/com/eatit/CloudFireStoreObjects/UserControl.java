@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 
 import far.com.eatit.Controllers.UserControlController;
+import far.com.eatit.Utils.Funciones;
 
 public class UserControl {
     private String CODE,TARGET,TARGETCODE, CONTROL,VALUE;
@@ -25,6 +26,14 @@ public class UserControl {
     }
 
     public UserControl(Cursor c){
+        this.CODE = c.getString(c.getColumnIndex(UserControlController.CODE));
+        this.TARGET = c.getString(c.getColumnIndex(UserControlController.TARGET));
+        this.TARGETCODE = c.getString(c.getColumnIndex(UserControlController.TARGETCODE));
+        this.CONTROL = c.getString(c.getColumnIndex(UserControlController.CONTROL));
+        this.VALUE = c.getString(c.getColumnIndex(UserControlController.VALUE));
+        this.ACTIVE = c.getString(c.getColumnIndex(UserControlController.ACTIVE)).equals("1");
+        this.DATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(UserControlController.DATE)));
+        this.MDATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(UserControlController.MDATE)));
 
     }
 
