@@ -40,6 +40,7 @@ import far.com.eatit.Dialogs.ProductSubTypeDialogFragment;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Interfases.ListableActivity;
+import far.com.eatit.Utils.Funciones;
 
 public class MaintenanceProductSubTypes extends AppCompatActivity implements ListableActivity {
 
@@ -266,6 +267,13 @@ public class MaintenanceProductSubTypes extends AppCompatActivity implements Lis
         btnAceptar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                String msgDependency = getMsgDependency();
+                if(!msgDependency.isEmpty()) {
+                    Funciones.showAlertDependencies(MaintenanceProductSubTypes.this, msgDependency);
+                    d.dismiss();
+                    return;
+                }
                  if(productsSubType != null){
                      if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)) {
                          productsSubTypesController.deleteFromFireBase(productsSubType);
@@ -352,6 +360,18 @@ public class MaintenanceProductSubTypes extends AppCompatActivity implements Lis
         }
     };
 
+    public String getMsgDependency(){
+        String msgDependency ="";
+        if(productsSubType != null){
+            if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
+                msgDependency = productsSubTypesController.hasDependencies(productsSubType.getCODE());
+            }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY) ){
+                msgDependency = productsSubTypesInvController.hasDependencies(productsSubType.getCODE());
+            }
+
+        }
+        return msgDependency;
+    }
 
 }
 

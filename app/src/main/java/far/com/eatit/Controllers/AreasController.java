@@ -26,7 +26,7 @@ import far.com.eatit.Globales.Tablas;
 import far.com.eatit.Utils.Funciones;
 
 public class AreasController {
-    public static String TABLE_NAME = "AREAS";
+    public static final String TABLE_NAME = "AREAS";
     public static String CODE = "code", DESCRIPTION = "description", ORDER = "orden", DATE="date", MDATE="mdate";
     public static String[]colums = new String[]{CODE, DESCRIPTION, ORDER, DATE, MDATE};
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+" ("
@@ -223,6 +223,22 @@ public class AreasController {
 
         ArrayAdapter<KV> adapter = new ArrayAdapter<KV>(context,android.R.layout.simple_list_item_1, data);
         spn.setAdapter(adapter);
+    }
+
+    /**
+     * retorna true si el codigo tiene dependencias en otras tablas (llave foranea)
+     * @param code
+     * @return
+     */
+    public String hasDependencies(String code){
+        String msg = "";
+        ArrayList<String> tables = new ArrayList<>();
+        if(DB.getInstance(context).hasDependencies(AreasDetailController.TABLE_NAME,AreasDetailController.CODEAREA,code))
+            tables.add(AreasDetailController.TABLE_NAME);
+        for(String s: tables){
+            msg+= s+"\n";
+        }
+        return msg;
     }
 
 }

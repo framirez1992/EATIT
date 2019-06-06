@@ -1,5 +1,6 @@
 package far.com.eatit;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -40,6 +41,7 @@ import far.com.eatit.Dialogs.ProductTypeDialogFragment;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Interfases.ListableActivity;
+import far.com.eatit.Utils.Funciones;
 
 public class MaintenanceProductTypes extends AppCompatActivity implements ListableActivity {
 
@@ -210,6 +212,13 @@ public class MaintenanceProductTypes extends AppCompatActivity implements Listab
         btnAceptar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String msgDependency = getMsgDependency();
+                if(!msgDependency.isEmpty()) {
+                    Funciones.showAlertDependencies(MaintenanceProductTypes.this, msgDependency);
+                    d.dismiss();
+                    return;
+                }
+
                 if(productsType != null){
                     if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
                         productsTypesController.deleteFromFireBase(productsType);
@@ -296,4 +305,16 @@ public class MaintenanceProductTypes extends AppCompatActivity implements Listab
     };
 
 
+    public String getMsgDependency(){
+        String msgDependency ="";
+        if(productsType != null){
+            if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
+               msgDependency = productsTypesController.hasDependencies(productsType.getCODE());
+            }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY) ){
+               msgDependency = productsTypesInvController.hasDependencies(productsType.getCODE());
+            }
+
+        }
+       return msgDependency;
+    }
 }

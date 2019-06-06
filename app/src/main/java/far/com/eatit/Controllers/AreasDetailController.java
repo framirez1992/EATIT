@@ -26,7 +26,7 @@ import far.com.eatit.Globales.Tablas;
 import far.com.eatit.Utils.Funciones;
 
 public class AreasDetailController {
-    public static String TABLE_NAME = "AREASDETAIL";
+    public static final String TABLE_NAME = "AREASDETAIL";
     public static String CODE = "code", CODEAREA = "codearea", DESCRIPTION = "description", ORDER = "orden",
             DATE = "date", MDATE="mdate";
     private String[]colums = new String[]{CODE, CODEAREA, DESCRIPTION, ORDER, DATE, MDATE};

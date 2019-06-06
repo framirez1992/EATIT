@@ -24,7 +24,7 @@ import far.com.eatit.Utils.Funciones;
 
 public class StoreHouseDetailController {
 
-    public static String TABLE_NAME = "STOREHOUSEDETAIL";
+    public static final String TABLE_NAME = "STOREHOUSEDETAIL";
     public static String CODE = "code", CODESTOREHOUSE = "codestorehouse",CODEPRODUCT = "codeproduct",QUANTITY = "quantity",CODEMEASURE = "codemeasure",
             DATE = "date", MDATE="mdate";
     private String[]colums = new String[]{CODE, CODESTOREHOUSE, CODEPRODUCT, QUANTITY,CODEMEASURE, DATE, MDATE};

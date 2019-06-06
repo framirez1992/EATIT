@@ -11,6 +11,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.WriteBatch;
@@ -27,7 +28,7 @@ import far.com.eatit.Globales.Tablas;
 import far.com.eatit.Utils.Funciones;
 
 public class MeasureUnitsInvController {
-    public static String TABLE_NAME = "MEASUREUNITSINV";
+    public static final  String TABLE_NAME = "MEASUREUNITSINV";
     public static String CODE = "code", DESCRIPTION = "description", DATE = "date", MDATE = "mdate";
     public static String[]columns = new String[]{CODE, DESCRIPTION, DATE, MDATE};
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+" ("
@@ -234,5 +235,16 @@ public class MeasureUnitsInvController {
 
         return result;
 
+    }
+
+    public ArrayList<DocumentReference> getReferences(String field, String value){
+        ArrayList<DocumentReference> references = new ArrayList<>();
+        ArrayList<MeasureUnits> objs = getMeasureUnits(field+" = ? ", new String[]{value}, null);
+        if(objs != null){
+            for(MeasureUnits c: objs){
+                references.add(getReferenceFireStore().document(c.getCODE()));
+            }
+        }
+        return references;
     }
 }

@@ -31,7 +31,9 @@ import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.Controllers.AreasController;
 import far.com.eatit.Controllers.LicenseController;
 import far.com.eatit.Dialogs.AreasDialogFragment;
+import far.com.eatit.Globales.CODES;
 import far.com.eatit.Interfases.ListableActivity;
+import far.com.eatit.Utils.Funciones;
 
 public class MaintenanceAreas extends AppCompatActivity implements ListableActivity {
 
@@ -167,6 +169,13 @@ public class MaintenanceAreas extends AppCompatActivity implements ListableActiv
         btnAceptar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String msgDependency = getMsgDependency();
+                if(!msgDependency.isEmpty()) {
+                    Funciones.showAlertDependencies(MaintenanceAreas.this, msgDependency);
+                    d.dismiss();
+                    return;
+                }
+
                 if(areas != null){
                     areasController.deleteFromFireBase(areas);
                 }
@@ -232,5 +241,11 @@ public class MaintenanceAreas extends AppCompatActivity implements ListableActiv
         }
     };
 
-
+    public String getMsgDependency(){
+        String msgDependency ="";
+        if(areas != null){
+                msgDependency = areasController.hasDependencies(areas.getCODE());
+        }
+        return msgDependency;
+    }
 }

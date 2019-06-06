@@ -2,15 +2,20 @@ package far.com.eatit.Controllers;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
+import android.support.annotation.NonNull;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.WriteBatch;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import far.com.eatit.CloudFireStoreObjects.Licenses;
@@ -25,6 +30,7 @@ public class PriceListController {
             CODEUND = "codeund",PRICE = "price", DATE = "date", MDATE="mdate";
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+"("
             +CODE+" TEXT, "+CODEPRODUCT+" TEXT, "+CODEUND+" TEXT, "+PRICE+" DECIMAL(11,3), "+DATE+" TEXT, "+MDATE+" TEXT )";
+    public static String[] columns = {CODE, CODEPRODUCT, CODEUND, PRICE, DATE, MDATE};
     Context context;
     FirebaseFirestore db;
 
@@ -103,5 +109,30 @@ public class PriceListController {
         }catch(Exception e){
             e.printStackTrace();
         }
+    }
+
+    public ArrayList<PriceList> getPriceLists(String where, String[]args, String orderBy){
+        ArrayList<PriceList> result = new ArrayList<>();
+        try{
+            Cursor c = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME,columns,where,args,null,null,orderBy);
+            while(c.moveToNext()){
+                result.add(new PriceList(c));
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+
+    public ArrayList<DocumentReference> getReferences(String field, String value){
+        ArrayList<DocumentReference> references = new ArrayList<>();
+        ArrayList<PriceList> objs = getPriceLists(field+" = ? ", new String[]{value}, null);
+        if(objs != null){
+            for(PriceList c: objs){
+                references.add(getReferenceFireStore().document(c.getCODE()));
+            }
+        }
+        return references;
     }
 }

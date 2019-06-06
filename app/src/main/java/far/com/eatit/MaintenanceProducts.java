@@ -44,6 +44,7 @@ import far.com.eatit.Dialogs.ProductsDialogfragment;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Interfases.ListableActivity;
+import far.com.eatit.Utils.Funciones;
 
 public class MaintenanceProducts extends AppCompatActivity implements ListableActivity {
 
@@ -273,23 +274,17 @@ public class MaintenanceProducts extends AppCompatActivity implements ListableAc
         if(products != null){
             description = products.getDESCRIPTION();
         }
-
-        final Dialog d = new Dialog(MaintenanceProducts.this);
-        d.setTitle("Delete");
-        d.setContentView(R.layout.msg_2_buttons);
-        TextView tvMsg = d.findViewById(R.id.tvMsg);
+        final Dialog d = Funciones.getAlertDeleteAllDependencies(MaintenanceProducts.this,description,
+                (type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)?productsController.getDependencies(products.getCODE()):productsInvController.getDependencies(products.getCODE())));
         Button btnAceptar = d.findViewById(R.id.btnPositive);
-        Button btnCancelar = d.findViewById(R.id.btnNegative);
-
-        tvMsg.setText("Esta seguro que desea eliminar \'"+description+"\' permanentemente?");
         btnAceptar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(products != null){
                     if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
-                        productsController.deleteFromFireBase(products, productsMeasureController.getProductsMeasureByCodeProduct(products.getCODE()));
+                        productsController.deleteFromFireBase(products);
                     }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
-                        productsInvController.deleteFromFireBase(products, productsMeasureInvController.getProductsMeasureByCodeProduct(products.getCODE()));
+                        productsInvController.deleteFromFireBase(products);
                     }
 
                 }
@@ -297,14 +292,7 @@ public class MaintenanceProducts extends AppCompatActivity implements ListableAc
             }
         });
 
-        btnCancelar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                d.dismiss();
-            }
-        });
-
-        d.show();
+       d.show();
 
     }
 

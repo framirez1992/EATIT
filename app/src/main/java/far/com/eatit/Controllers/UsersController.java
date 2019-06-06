@@ -13,6 +13,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -30,8 +31,10 @@ import far.com.eatit.Adapters.Models.SimpleSeleccionRowModel;
 import far.com.eatit.Adapters.Models.UserRowModel;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.Users;
+import far.com.eatit.DataBase.CloudFireStoreDB;
 import far.com.eatit.DataBase.DB;
 import far.com.eatit.Generic.Objects.KV;
+import far.com.eatit.Generic.Objects.KV2;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Globales.Tablas;
 import far.com.eatit.Utils.Funciones;
@@ -155,14 +158,26 @@ public class UsersController {
 
     }
 
-    public void deleteFromFireBase(Users user){
+    public void deleteFromFireBase(Users u){
         try {
-            getReferenceFireStore().document(user.getCODE()).delete();
+            WriteBatch lote = db.batch();
+            lote.delete(getReferenceFireStore().document(u.getCODE()));
+            for(KV2 data: getDependencies(u.getCODE())){
+                for(DocumentReference dr : CloudFireStoreDB.getInstance(context, null, null).getDocumentsReferencesByTableName(data)){
+                    lote.delete(dr);
+                }
+            }
+
+            lote.commit().addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    e.printStackTrace();
+                }
+            });
         }catch(Exception e){
             e.printStackTrace();
         }
     }
-
 
     public ArrayList<Users> getUsers(String where, String[]args, String orderBy){
         ArrayList<Users> result = new ArrayList<>();
@@ -295,5 +310,21 @@ public class UsersController {
             spnList.add(new KV(u.getCODE(), u.getUSERNAME()));
         }
         spn.setAdapter(new ArrayAdapter<KV>(context, android.R.layout.simple_list_item_1,spnList));
+    }
+
+    /**
+     * retorna un arrayList con todas las  dependencias en otras tablas (llave foranea)
+     * @param code
+     * @return
+     */
+    public ArrayList<KV2> getDependencies(String code){
+        ArrayList<KV2> tables = new ArrayList<>();
+        if(DB.getInstance(context).hasDependencies(UserInboxController.TABLE_NAME,UserInboxController.CODESENDER,code))//enviados
+            tables.add(new KV2(UserInboxController.TABLE_NAME,UserInboxController.CODESENDER,code));
+        if(DB.getInstance(context).hasDependencies(UserInboxController.TABLE_NAME,UserInboxController.CODEUSER,code))//recibidos
+            tables.add(new KV2(UserInboxController.TABLE_NAME,UserInboxController.CODEUSER,code));
+
+        return tables;
+        //priceList,productsControl, productsMeasure,combos
     }
 }

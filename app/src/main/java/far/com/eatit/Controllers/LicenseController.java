@@ -32,7 +32,7 @@ import far.com.eatit.Utils.Funciones;
 import far.com.eatit.Utils.Receiver;
 
 public class LicenseController  {
-    public static String TABLE_NAME = "LICENSE";
+    public static final String TABLE_NAME = "LICENSE";
     public static String CODE = "code", DATEINI= "dateini", DATEEND = "dateend",DAYS = "days",COUNTER = "counter",
             UPDATED = "updated",STATUS = "status", LASTUPDATE ="lastupdate", PASSWORD = "password", DEVICES = "devices", ENABLED = "enabled";
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+" ("

@@ -34,7 +34,7 @@ import far.com.eatit.Globales.Tablas;
 import far.com.eatit.Utils.Funciones;
 
 public class ProductsTypesController {
-    public static String TABLE_NAME = "PRODUCTSTYPES";
+    public static final  String TABLE_NAME = "PRODUCTSTYPES";
     public static String CODE = "code", DESCRIPTION = "description", ORDER = "orden", DATE="date", MDATE="mdate";
     public static String[]colums = new String[]{CODE, DESCRIPTION, ORDER, DATE, MDATE};
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+" ("
@@ -270,5 +270,23 @@ public class ProductsTypesController {
         spn.setAdapter(adapter);
     }
 
+    /**
+     * retorna true si el codigo tiene dependencias en otras tablas (llave foranea)
+     * @param code
+     * @return
+     */
+    public String hasDependencies(String code){
+        String msg = "";
+        ArrayList<String> tables = new ArrayList<>();
+        if(DB.getInstance(context).hasDependencies(ProductsSubTypesController.TABLE_NAME,ProductsSubTypesController.CODETYPE,code))
+           tables.add(ProductsSubTypesInvController.TABLE_NAME);
+        if(DB.getInstance(context).hasDependencies(ProductsController.TABLE_NAME,ProductsController.TYPE,code))
+            tables.add(ProductsInvController.TABLE_NAME);
+
+        for(String s: tables){
+            msg+= s+"\n";
+        }
+        return msg;
+    }
 
 }

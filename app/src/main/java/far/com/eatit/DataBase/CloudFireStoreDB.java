@@ -12,6 +12,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
@@ -23,6 +24,7 @@ import far.com.eatit.CloudFireStoreObjects.Company;
 import far.com.eatit.CloudFireStoreObjects.MeasureUnits;
 import far.com.eatit.CloudFireStoreObjects.PriceList;
 import far.com.eatit.CloudFireStoreObjects.Products;
+import far.com.eatit.CloudFireStoreObjects.ProductsControl;
 import far.com.eatit.CloudFireStoreObjects.ProductsMeasure;
 import far.com.eatit.CloudFireStoreObjects.ProductsSubTypes;
 import far.com.eatit.CloudFireStoreObjects.ProductsTypes;
@@ -44,6 +46,7 @@ import far.com.eatit.Controllers.DevicesController;
 import far.com.eatit.Controllers.LicenseController;
 import far.com.eatit.Controllers.MeasureUnitsController;
 import far.com.eatit.Controllers.MeasureUnitsInvController;
+import far.com.eatit.Controllers.NotificationsController;
 import far.com.eatit.Controllers.PriceListController;
 import far.com.eatit.Controllers.ProductsControlController;
 import far.com.eatit.Controllers.ProductsController;
@@ -60,11 +63,14 @@ import far.com.eatit.Controllers.StoreHouseController;
 import far.com.eatit.Controllers.StoreHouseDetailController;
 import far.com.eatit.Controllers.TableCodeController;
 import far.com.eatit.Controllers.TableFilterController;
+import far.com.eatit.Controllers.TempOrdersController;
 import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Controllers.UserInboxController;
 import far.com.eatit.Controllers.UserTypesController;
 import far.com.eatit.Controllers.UsersController;
+import far.com.eatit.Controllers.UsersDevicesController;
 import far.com.eatit.Generic.Objects.KV;
+import far.com.eatit.Generic.Objects.KV2;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Globales.Tablas;
 import far.com.eatit.CloudFireStoreObjects.Devices;
@@ -603,5 +609,39 @@ public class CloudFireStoreDB {
 
 
         }
+    }
+
+    public ArrayList<DocumentReference> getDocumentsReferencesByTableName(KV2 data){
+        switch (data.getCode()){
+        case AreasController.TABLE_NAME: break;
+        case AreasDetailController.TABLE_NAME: break;
+        case CombosController.TABLE_NAME: return combosController.getReferences(data.getDescription(), data.getDescription2());
+        case CompanyController.TABLE_NAME: break;
+        case DevicesController.TABLE_NAME: break;
+        case LicenseController.TABLE_NAME: break;
+        case MeasureUnitsController.TABLE_NAME: break;
+        case MeasureUnitsInvController.TABLE_NAME: break;
+        case PriceListController.TABLE_NAME: break;
+        case ProductsControlController.TABLE_NAME: break;
+        case ProductsController.TABLE_NAME: break;
+        case ProductsInvController.TABLE_NAME: break;
+        case ProductsMeasureController.TABLE_NAME: return productsMeasureController.getReferences(data.getDescription(), data.getDescription2());
+        case ProductsMeasureInvController.TABLE_NAME: return productsMeasureInvController.getReferences(data.getDescription(), data.getDescription2());
+        case ProductsSubTypesController.TABLE_NAME: break;
+        case ProductsSubTypesInvController.TABLE_NAME: break;
+        case ProductsTypesController.TABLE_NAME: break;
+        case ProductsTypesInvController.TABLE_NAME: break;
+        case RolesController.TABLE_NAME: break;
+        case SalesController.TABLE_NAME: break;
+        case SalesController.TABLE_NAME_DETAIL: break;
+        case StoreHouseController.TABLE_NAME: break;
+        case StoreHouseDetailController.TABLE_NAME: break;
+        case TableCodeController.TABLE_NAME: break;
+        case TableFilterController.TABLE_NAME: break;
+        case UserControlController.TABLE_NAME: break;
+        //case UsersDevicesController.TABLE_NAME: break;
+        case UserTypesController.TABLE_NAME: break;
+        }
+        return null;
     }
 }

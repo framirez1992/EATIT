@@ -31,7 +31,7 @@ import far.com.eatit.Globales.Tablas;
 import far.com.eatit.Utils.Funciones;
 
 public class MeasureUnitsController {
-    public static String TABLE_NAME = "MEASUREUNITS";
+    public static final  String TABLE_NAME = "MEASUREUNITS";
     public static String CODE = "code", DESCRIPTION = "description", DATE = "date", MDATE = "mdate";
     public static String[]columns = new String[]{CODE, DESCRIPTION, DATE, MDATE};
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+" ("

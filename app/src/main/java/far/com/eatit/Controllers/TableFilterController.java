@@ -29,7 +29,7 @@ import far.com.eatit.Globales.Tablas;
 import far.com.eatit.Utils.Funciones;
 
 public class TableFilterController {
-        public static String TABLE_NAME = "TABLEFILTER";
+        public static final String TABLE_NAME = "TABLEFILTER";
         public static String CODE = "code", TABLES= "tables", USER = "user",USERTYPE = "usertype", PRODUCTTYPE = "producttype", PRODUCTSUBTYPE = "productsubtype", TASK = "task", FILTER = "filter",ENABLED = "enabled",  DATE = "date", MDATE = "mdate";
         public static String[]columns = new String[]{CODE, TABLES, USER, USERTYPE,PRODUCTTYPE, PRODUCTSUBTYPE,TASK,FILTER,ENABLED, DATE, MDATE};
         public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+" ("

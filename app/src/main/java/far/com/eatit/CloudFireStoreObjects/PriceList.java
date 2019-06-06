@@ -1,8 +1,13 @@
 package far.com.eatit.CloudFireStoreObjects;
 
+import android.database.Cursor;
+
 import com.google.firebase.firestore.IgnoreExtraProperties;
 
 import java.util.Date;
+
+import far.com.eatit.Controllers.PriceListController;
+import far.com.eatit.Utils.Funciones;
 
 @IgnoreExtraProperties
 public class PriceList {
@@ -16,6 +21,15 @@ public class PriceList {
     public PriceList(String code, String codeProduct, String codeUnd, double price, Object date, Object mdate){
         this.CODE = code; this.CODEPRODUCT = codeProduct; this.CODEUND = codeUnd;
         this.PRICE = price; this.DATE = date; this.MDATE = mdate;
+    }
+
+    public PriceList(Cursor c){
+        this.CODE = c.getString(c.getColumnIndex(PriceListController.CODE));
+        this.CODEPRODUCT = c.getString(c.getColumnIndex(PriceListController.CODEPRODUCT));
+        this.CODEUND = c.getString(c.getColumnIndex(PriceListController.CODEUND));
+        this.PRICE = c.getDouble(c.getColumnIndex(PriceListController.PRICE));
+        this.DATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(PriceListController.DATE)));
+        this.MDATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(PriceListController.MDATE)));
     }
 
     public String getCODE() {

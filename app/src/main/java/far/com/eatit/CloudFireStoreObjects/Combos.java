@@ -1,8 +1,13 @@
 package far.com.eatit.CloudFireStoreObjects;
 
+import android.database.Cursor;
+
 import com.google.firebase.firestore.IgnoreExtraProperties;
 
 import java.util.Date;
+
+import far.com.eatit.Controllers.CombosController;
+import far.com.eatit.Utils.Funciones;
 
 @IgnoreExtraProperties
 public class Combos {
@@ -15,6 +20,15 @@ public class Combos {
         this.CODE = code; this.CODEPRODUCTCOMBO = codeProductCombo;
         this.CODEPRODUCT = codeProduct; this.CODEUNDPRODUCT =codeUnd;
         this.DATE = date; this.MDATE = mdate;
+    }
+
+    public Combos(Cursor c){
+        this.CODE = c.getString(c.getColumnIndex(CombosController.CODE));
+        this.CODEPRODUCTCOMBO = c.getString(c.getColumnIndex(CombosController.CODEPRODUCTCOMBO));
+        this.CODEPRODUCT =c.getString(c.getColumnIndex(CombosController.CODEPRODUCT));
+        this.CODEUNDPRODUCT =c.getString(c.getColumnIndex(CombosController.CODEUNDPRODUCT));
+        this.DATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(CombosController.DATE)));
+        this.MDATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(CombosController.MDATE)));
     }
 
     public String getCODE() {

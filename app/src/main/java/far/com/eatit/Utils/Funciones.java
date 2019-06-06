@@ -2,6 +2,8 @@ package far.com.eatit.Utils;
 
 import android.app.Activity;
 import android.app.AlarmManager;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -15,6 +17,7 @@ import android.provider.Settings;
 import android.telephony.SmsManager;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -25,11 +28,13 @@ import org.jsoup.select.Elements;
 
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
 import far.com.eatit.DataBase.DB;
+import far.com.eatit.Generic.Objects.KV2;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Interfases.AsyncExecutor;
 import far.com.eatit.R;
@@ -380,5 +385,30 @@ public class Funciones {
 
         SmsManager manager = SmsManager.getDefault();
         manager.sendTextMessage(number,null,msg,null, null);
+    }
+
+    public static void showAlertDependencies(Context c, String msgDependency){
+        AlertDialog a = new AlertDialog.Builder(c).create();
+        a.setMessage("No se puede eliminar debido a las siguientes dependencias: \n"+msgDependency);
+        a.show();
+    }
+
+    public static Dialog getAlertDeleteAllDependencies(Context c,String itemName, ArrayList<KV2> tables){
+        String msgDependency = "";
+        for(KV2 s: tables){
+            msgDependency+= s.getCode()+"\n";
+        }
+        final Dialog d = new Dialog(c);
+        d.setContentView(R.layout.msg_2_buttons);
+        d.setTitle("Delete");
+        TextView tvMsg = d.findViewById(R.id.tvMsg);
+        tvMsg.setText("Esta seguro que desea eliminar ["+itemName+"]  permanentemente?\nTambien seran eliminadas todas las dependencias en: \n"+msgDependency);
+        d.findViewById(R.id.btnNegative).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                d.dismiss();
+            }
+        });
+        return d;
     }
 }

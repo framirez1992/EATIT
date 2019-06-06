@@ -28,7 +28,7 @@ import far.com.eatit.Globales.Tablas;
 import far.com.eatit.Utils.Funciones;
 
 public class UserControlController {
-    public static String TABLE_NAME = "USERCONTROL";
+    public static final String TABLE_NAME = "USERCONTROL";
     public static String CODE = "code",TARGET ="target", TARGETCODE = "targetcode",CONTROL = "control",VALUE = "value",ACTIVE = "active", DATE = "date", MDATE = "mdate";
     public static String[]columns = new String[]{CODE, TARGET, TARGETCODE, CONTROL,VALUE,ACTIVE, DATE, MDATE};
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+" ("

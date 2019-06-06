@@ -31,7 +31,7 @@ import far.com.eatit.Globales.Tablas;
 import far.com.eatit.Utils.Funciones;
 
 public class DevicesController {
-    public static String TABLE_NAME = "DEVICES";
+    public static final  String TABLE_NAME = "DEVICES";
     public static String CODE = "code", ENABLED = "enabled", DATE = "date", MDATE ="mdate";
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+" ("
             +CODE+" TEXT, "+ENABLED+" TEXT, "+DATE+" TEXT, "+MDATE+" TEXT)";

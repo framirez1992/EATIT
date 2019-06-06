@@ -12,6 +12,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.WriteBatch;
@@ -272,4 +273,15 @@ public class ProductsControlController {
         return toDelete;
     }
 
+
+    public ArrayList<DocumentReference> getReferences(String field, String value){
+        ArrayList<DocumentReference> references = new ArrayList<>();
+        ArrayList<ProductsControl> objs = getProductsControl(field+" = ? ", new String[]{value}, null);
+        if(objs != null){
+            for(ProductsControl c: objs){
+                references.add(getReferenceFireStore().document(c.getCODE()));
+            }
+        }
+        return references;
+    }
 }

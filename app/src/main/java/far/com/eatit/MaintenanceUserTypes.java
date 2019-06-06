@@ -30,8 +30,10 @@ import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.UserTypes;
 import far.com.eatit.Controllers.LicenseController;
 import far.com.eatit.Controllers.UserTypesController;
+import far.com.eatit.Controllers.UsersController;
 import far.com.eatit.Dialogs.UserTypesDialogFragment;
 import far.com.eatit.Interfases.ListableActivity;
+import far.com.eatit.Utils.Funciones;
 
 public class MaintenanceUserTypes extends AppCompatActivity implements ListableActivity{
 
@@ -159,6 +161,13 @@ public class MaintenanceUserTypes extends AppCompatActivity implements ListableA
         btnAceptar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String msgDependency = getMsgDependency();
+                if(!msgDependency.isEmpty()) {
+                    Funciones.showAlertDependencies(MaintenanceUserTypes.this, msgDependency);
+                    d.dismiss();
+                    return;
+                }
+
                 if(userTypes != null){
                     userTypesController.deleteFromFireBase(userTypes);
                 }
@@ -215,5 +224,15 @@ public class MaintenanceUserTypes extends AppCompatActivity implements ListableA
             return false;
         }
     };
+
+    public String getMsgDependency(){
+        UsersController.getInstance(MaintenanceUserTypes.this).getUsers(null, null, null);
+        String msgDependency ="";
+        if(userTypes != null){
+                msgDependency = userTypesController.hasDependencies(userTypes.getCODE());
+
+        }
+        return msgDependency;
+    }
 
 }

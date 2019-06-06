@@ -30,7 +30,7 @@ import far.com.eatit.Globales.Tablas;
 import far.com.eatit.Utils.Funciones;
 
 public class UserTypesController {
-    public static String TABLE_NAME = "USERTYPES";
+    public static final String TABLE_NAME = "USERTYPES";
     public static String CODE = "code", DESCRIPTION = "description", ORDEN = "orden", DATE="date", MDATE="mdate";
     public static String[]colums = new String[]{CODE, DESCRIPTION, ORDEN, DATE, MDATE};
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+" ("
@@ -250,5 +250,22 @@ public class UserTypesController {
             spnList.add(new KV(ut.getCODE(), ut.getDESCRIPTION()));
         }
         spn.setAdapter(new ArrayAdapter<KV>(context, android.R.layout.simple_list_item_1,spnList));
+    }
+
+    /**
+     * retorna true si el codigo tiene dependencias en otras tablas (llave foranea)
+     * @param code
+     * @return
+     */
+    public String hasDependencies(String code){
+        String msg = "";
+        ArrayList<String> tables = new ArrayList<>();
+        if(DB.getInstance(context).hasDependencies(UsersController.TABLE_NAME,UsersController.ROLE,code))
+            tables.add(UsersController.TABLE_NAME);
+
+        for(String s: tables){
+            msg+= s+"\n";
+        }
+        return msg;
     }
 }

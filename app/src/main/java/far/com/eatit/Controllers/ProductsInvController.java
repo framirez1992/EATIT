@@ -10,6 +10,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.WriteBatch;
@@ -21,7 +22,9 @@ import far.com.eatit.Adapters.Models.ProductRowModel;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.Products;
 import far.com.eatit.CloudFireStoreObjects.ProductsMeasure;
+import far.com.eatit.DataBase.CloudFireStoreDB;
 import far.com.eatit.DataBase.DB;
+import far.com.eatit.Generic.Objects.KV2;
 import far.com.eatit.Globales.Tablas;
 import far.com.eatit.Utils.Funciones;
 
@@ -219,21 +222,15 @@ public class ProductsInvController {
     }
 
 
-    public void deleteFromFireBase(Products product) {
-        deleteFromFireBase(product, null);
-    }
-    public void deleteFromFireBase(Products product, ArrayList<ProductsMeasure> measures){
+    public void deleteFromFireBase(Products product){
         try {
             WriteBatch lote = db.batch();
             lote.delete(getReferenceFireStore().document(product.getCODE()));
-
-            if(measures != null){
-                for(ProductsMeasure pm: measures){
-                    lote.delete(ProductsMeasureInvController.getInstance(context).getReferenceFireStore().document(pm.getCODE()));
+            for(KV2 data: getDependencies(product.getCODE())){
+                for(DocumentReference dr : CloudFireStoreDB.getInstance(context, null, null).getDocumentsReferencesByTableName(data)){
+                    lote.delete(dr);
                 }
             }
-
-
             lote.commit().addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
@@ -243,5 +240,18 @@ public class ProductsInvController {
         }catch(Exception e){
             e.printStackTrace();
         }
+    }
+
+    /**
+     * retorna un arrayList con todas las  dependencias en otras tablas (llave foranea)
+     * @param code
+     * @return
+     */
+    public ArrayList<KV2> getDependencies(String code){
+        ArrayList<KV2> tables = new ArrayList<>();
+        if(DB.getInstance(context).hasDependencies(ProductsMeasureInvController.TABLE_NAME,ProductsMeasureInvController.CODEPRODUCT,code))
+            tables.add(new KV2(ProductsMeasureInvController.TABLE_NAME,ProductsMeasureInvController.CODEPRODUCT,  code));
+
+        return tables;
     }
 }

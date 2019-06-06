@@ -28,7 +28,7 @@ import far.com.eatit.Utils.Funciones;
 
 public class TableCodeController {
 
-    public static String TABLE_NAME = "TABLECODE";
+    public static final String TABLE_NAME = "TABLECODE";
     public static String CODE = "code", CODETYPE= "codetype", CODECONTROL = "codecontrol",DESCRIPTION = "description", DATE = "date", MDATE = "mdate";
     public static String[]columns = new String[]{CODE, CODETYPE, CODECONTROL, DESCRIPTION, DATE, MDATE};
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+" ("

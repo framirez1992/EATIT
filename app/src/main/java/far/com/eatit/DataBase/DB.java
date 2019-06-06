@@ -1,6 +1,7 @@
 package far.com.eatit.DataBase;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -117,5 +118,14 @@ public class DB extends SQLiteOpenHelper {
             result+=(i == 0)?campos[i]+" = ? ":","+campos[i]+" = ?";
         }
         return result;
+    }
+    public boolean hasDependencies(String table, String field, String code){
+        boolean resutl= false;
+        String sql ="SELECT "+field+" from "+table+" WHERE "+field+" = ? ";
+        Cursor c = getReadableDatabase().rawQuery(sql, new String[]{code});
+        if(c.moveToFirst()){
+            resutl = true;
+        }c.close();
+        return resutl;
     }
 }

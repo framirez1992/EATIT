@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.Adapters.Models.SimpleSeleccionRowModel;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
+import far.com.eatit.CloudFireStoreObjects.ProductsControl;
 import far.com.eatit.CloudFireStoreObjects.ProductsSubTypes;
 import far.com.eatit.DataBase.DB;
 import far.com.eatit.Generic.Objects.KV;
@@ -27,7 +28,7 @@ import far.com.eatit.Globales.Tablas;
 import far.com.eatit.Utils.Funciones;
 
 public class ProductsSubTypesInvController {
-    public static String TABLE_NAME = "PRODUCTSSUBTYPESINV";
+    public static final  String TABLE_NAME = "PRODUCTSSUBTYPESINV";
     public static String CODE = "code", CODETYPE = "codetype", DESCRIPTION = "description", ORDER = "orden",
             DATE = "date", MDATE="mdate";
     private String[]colums = new String[]{CODE, CODETYPE, DESCRIPTION, ORDER, DATE, MDATE};
@@ -267,5 +268,20 @@ public class ProductsSubTypesInvController {
         spn.setAdapter(adapter);
     }
 
+    /**
+     * retorna true si el codigo tiene dependencias en otras tablas (llave foranea)
+     * @param code
+     * @return
+     */
+    public String hasDependencies(String code){
+        String msg = "";
+        ArrayList<String> tables = new ArrayList<>();
+        if(DB.getInstance(context).hasDependencies(ProductsInvController.TABLE_NAME,ProductsInvController.SUBTYPE,code))
+            tables.add(ProductsInvController.TABLE_NAME);
 
+        for(String s: tables){
+            msg+= s+"\n";
+        }
+        return msg;
+    }
 }

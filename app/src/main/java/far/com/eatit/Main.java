@@ -252,17 +252,14 @@ public class Main extends AppCompatActivity
         public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
 
             if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
+                usersController.delete(null, null);
                 for(DocumentSnapshot doc: querySnapshot){
                     Users u = doc.toObject(Users.class);
-                    if(u.getCODE().equals(Funciones.getCodeuserLogged(Main.this))) {
-                        usersController.delete(null, null);
-                        usersController.insert(u);
-
-                        break;
-                    }
+                    usersController.insert(u);
+                        //break;
                 }
-                validateUser();
             }
+            validateUser();
         }
     };
 
@@ -271,16 +268,15 @@ public class Main extends AppCompatActivity
         public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
 
             if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
+                devicesController.delete(null, null);
                 for(DocumentSnapshot doc: querySnapshot){
                     Devices d = doc.toObject(Devices.class);
                     if(d.getCODE().equals(Funciones.getPhoneID(Main.this))) {
-                        devicesController.delete(null, null);
                         devicesController.insert(d);
-                        break;
                     }
                 }
-                validateDevices();
             }
+            validateDevices();
         }
     };
 

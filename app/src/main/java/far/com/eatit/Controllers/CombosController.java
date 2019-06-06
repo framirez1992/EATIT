@@ -2,20 +2,26 @@ package far.com.eatit.Controllers;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
+import android.support.annotation.NonNull;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.WriteBatch;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import far.com.eatit.CloudFireStoreObjects.Combos;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.DataBase.DB;
+import far.com.eatit.Globales.CODES;
 import far.com.eatit.Globales.Tablas;
 import far.com.eatit.Utils.Funciones;
 
@@ -24,6 +30,7 @@ public class CombosController {
     public static  String CODE = "code", CODEPRODUCT = "codeproduct" ,
             CODEPRODUCTCOMBO = "codeproductcombo",CODEUNDPRODUCT = "codeundproduct",
             DATE = "date", MDATE= "mdate";
+    public static   String[] columns = {CODE, CODEPRODUCT, CODEPRODUCTCOMBO, CODEUNDPRODUCT, DATE, MDATE};
    public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+"("
            +CODE+" TEXT, "+CODEPRODUCT+" TEXT, "+CODEUNDPRODUCT+" TEXT, "+CODEPRODUCTCOMBO+" TEXT, "+DATE+" TEXT," +
            MDATE+" TEXT)";
@@ -73,6 +80,19 @@ public class CombosController {
         return result;
     }
 
+    public ArrayList<Combos> getCombos(String where, String[]args, String orderBy){
+        ArrayList<Combos> result = new ArrayList<>();
+        try{
+            Cursor c = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME,columns,where,args,null,null,orderBy);
+            while(c.moveToNext()){
+                result.add(new Combos(c));
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return result;
+    }
+
     public void getDataFromFireBase(String key, OnSuccessListener<QuerySnapshot> onSuccessListener,
                                      OnFailureListener onFailureListener){
         try {
@@ -104,5 +124,18 @@ public class CombosController {
         }catch(Exception e){
             e.printStackTrace();
         }
+    }
+
+
+
+    public ArrayList<DocumentReference> getReferences(String field, String value){
+        ArrayList<DocumentReference> references = new ArrayList<>();
+        ArrayList<Combos> objs = getCombos(field+" = ? ", new String[]{value}, null);
+        if(objs != null){
+            for(Combos c: objs){
+                references.add(getReferenceFireStore().document(c.getCODE()));
+            }
+        }
+        return references;
     }
 }

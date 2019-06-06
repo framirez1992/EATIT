@@ -221,6 +221,9 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
 
     public void login() {
         try {
+            findViewById(R.id.llProgress).setVisibility(View.VISIBLE);
+            btnLogin.setEnabled(false);
+
             Licenses l = licenseController.getLicense();
             if(l != null){
                // if(!validateDevice()){
@@ -230,12 +233,16 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
                 .addOnSuccessListener(onSuccessListenerLogin).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
+                        findViewById(R.id.llProgress).setVisibility(View.INVISIBLE);
+                        btnLogin.setEnabled(true);
                         Snackbar.make(findViewById(R.id.root), e.getMessage().toString(), Snackbar.LENGTH_LONG).show();
                         return;
                     }
                 });
 
             }else{
+                btnLogin.setEnabled(true);
+                findViewById(R.id.llProgress).setVisibility(View.INVISIBLE);
                 Snackbar.make(findViewById(R.id.root), Funciones.gerErrorMessage(CODES.CODE_LICENSE_NO_LICENSE), Snackbar.LENGTH_LONG).show();
                 return;
             }
@@ -365,6 +372,9 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
 
         @Override
         public void onSuccess(QuerySnapshot querySnapshot) {
+            btnLogin.setEnabled(true);
+            findViewById(R.id.llProgress).setVisibility(View.INVISIBLE);
+
             if(querySnapshot == null || querySnapshot.isEmpty()){
                 Snackbar.make(findViewById(R.id.root), "Error de autenticacion", Snackbar.LENGTH_LONG).show();
                 return;
@@ -372,24 +382,10 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
             for (DocumentSnapshot document : querySnapshot.getDocuments()) {
 
                 if(document != null){
-                    /*Licenses l = document.toObject(Licenses.class);
-                    licenseController.delete(null, null);
-                    licenseController.insert(l);*/
-
-                   /* int code =licenseController.validateLicense(LicenseController.getInstance(Login.this).getLicense());
-                    if(code != CODES.CODE_LICENSE_VALID){
-                        Snackbar.make(findViewById(R.id.root), Funciones.gerErrorMessage(code), Snackbar.LENGTH_LONG).show();
-                        return;
-                    }*/
-
-                    Users u = document.toObject(Users.class);
-                    //UsersController.getInstance(Login.this).getUserByCode(etUser.getText().toString().trim());
-                  /*  if(u == null || (u != null && !u.getPASSWORD().equals(etPassword.getText().toString().trim()))){
-                        Snackbar.make(findViewById(R.id.root), "Usuario o password invalidos", Snackbar.LENGTH_LONG).show();
-                        return;
-                    }*/
+                   Users u = document.toObject(Users.class);
                    usersController.delete(null, null);
                    usersController.insert(u);
+
                   if(!isValidUser(u)){
                      return;
                   }

@@ -56,14 +56,14 @@ import far.com.eatit.Globales.Tablas;
 import far.com.eatit.Utils.Funciones;
 
 public class SalesController {
-    public static String TABLE_NAME = Tablas.generalUsersSales;
+    public static final String TABLE_NAME = Tablas.generalUsersSales;
     public static String TABLE_NAME_HISTORY = Tablas.generalUsersSalesHistory;
     public static String CODE = "code",STATUS = "status",NOTES = "notes", DATE = "date",MDATE = "mdate", TOTAL="total",TOTALDISCOUNT = "totaldiscount",
             CODEUSER = "codeuser",CODEAREADETAIL = "codeareadetail", CODEREASON = "codereason" , REASONDESCRIPTION = "reasondescription",
             CODEPRODUCTTYPE = "codeproducttype", CODEPRODUCTSUBTYPE="codeproductsubtype", CODESALESORIGEN = "codesalesorigen" ;
     String[]columns = new String[]{CODE,STATUS, NOTES, DATE, MDATE, TOTAL, TOTALDISCOUNT, CODEUSER,CODEAREADETAIL, CODEREASON, REASONDESCRIPTION, CODEPRODUCTTYPE, CODEPRODUCTSUBTYPE, CODESALESORIGEN};
 
-    public static String TABLE_NAME_DETAIL = Tablas.generalUsersSalesDetails;
+    public static final String TABLE_NAME_DETAIL = Tablas.generalUsersSalesDetails;
     public static String TABLE_NAME_DETAIL_HISTORY = Tablas.generalUsersSalesDetailsHistory;
     public static String DETAIL_CODE = "code",DETAIL_CODESALES = "codesales", DETAIL_CODEPRODUCT = "codeproduct",
             DETAIL_DISCOUNT = "discount", DETAIL_POSITION = "position", DETAIL_PRICE = "price",
