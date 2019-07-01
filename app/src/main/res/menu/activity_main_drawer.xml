@@ -44,6 +44,12 @@
             android:id="@+id/goPendingOrders"
             android:icon="@drawable/ic_action_timelapse"
             android:title="Ordenes" />
+
+        <item
+            android:id="@+id/goReceip"
+            android:icon="@drawable/ic_receipt"
+            android:title="Facturar" />
+
         <item
             android:id="@+id/goReports"
             android:icon="@drawable/ic_menu_slideshow"

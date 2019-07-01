@@ -34,12 +34,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.annotation.meta.When;
 
 import far.com.eatit.Adapters.Models.OrderDetailModel;
 import far.com.eatit.Adapters.Models.OrderModel;
+import far.com.eatit.Adapters.Models.OrderReceiptModel;
 import far.com.eatit.Adapters.Models.PercentRowModel;
+import far.com.eatit.Adapters.Models.ReceiptResumeModel;
 import far.com.eatit.Adapters.Models.WorkedOrdersRowModel;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.Products;
@@ -1213,5 +1216,70 @@ public class SalesController {
         ArrayList<KV> spnList = new ArrayList<>();
         spnList.add(new KV("0", "Detalle")); spnList.add(new KV("1", "General"));
         spn.setAdapter(new ArrayAdapter<KV>(context, android.R.layout.simple_list_item_1,spnList));
+    }
+
+    public ArrayList<OrderReceiptModel> getOrderReceipt(String codeAreaDetail){
+
+        String status = CODES.CODE_ORDER_STATUS_DELIVERED+"";
+        ArrayList<OrderReceiptModel> result = new ArrayList<>();
+        String sql = "SELECT a."+AreasController.CODE+" AS CODEAREA, a."+AreasController.DESCRIPTION+" AS  DESCRIPTIONAREA, " +
+                "ad."+AreasDetailController.CODE+" AS CODEMESA, ad."+AreasDetailController.DESCRIPTION+" AS DESCRIPTIONMESA, " +
+                "sum(s."+SalesController.TOTAL+") AS SALESTOTAL " +
+                "FROM "+SalesController.TABLE_NAME+" s " +
+                "INNER JOIN "+AreasDetailController.TABLE_NAME+" ad ON s."+CODEAREADETAIL+" = ad."+AreasDetailController.CODE+" " +
+                "INNER JOIN "+AreasController.TABLE_NAME+" a ON ad."+AreasDetailController.CODEAREA+" = a."+AreasController.CODE+" " +
+                "WHERE s."+SalesController.STATUS+" = ? AND s."+SalesController.CODEAREADETAIL+" = ? " +
+                "GROUP BY a."+AreasController.CODE+", ad."+AreasDetailController.CODE;
+
+        Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, new String[]{status, codeAreaDetail});
+        while (c.moveToNext()){
+            result.add(new OrderReceiptModel(UUID.randomUUID().toString(),
+                    c.getString(c.getColumnIndex("CODEAREA")),
+                    c.getString(c.getColumnIndex("DESCRIPTIONAREA")),
+                    c.getString(c.getColumnIndex("CODEMESA")),
+                    c.getString(c.getColumnIndex("DESCRIPTIONMESA")),
+                    c.getDouble(c.getColumnIndex("SALESTOTAL"))));
+        }c.close();
+
+        return result;
+
+    }
+
+    public ArrayList<ReceiptResumeModel> getOrderReceiptResume(String codeAreaDetail){
+        String status = CODES.CODE_ORDER_STATUS_DELIVERED+"";
+        ArrayList<ReceiptResumeModel> result = new ArrayList<>();
+        String sql = "SELECT sd."+SalesController.DETAIL_CODEPRODUCT+" AS CODEPRODUCT, p."+ProductsController.DESCRIPTION+" AS  PRODUCTDESCRIPTION, " +
+                "sd."+SalesController.DETAIL_CODEUND+" AS CODEMEASURE, mu."+MeasureUnitsController.DESCRIPTION+" AS MEASUREDESCRIPTION, "+
+                "sd."+SalesController.DETAIL_QUANTITY+" AS QUANTITY, (sd."+SalesController.DETAIL_PRICE+" * SUM("+SalesController.DETAIL_QUANTITY+") ) AS SALESTOTAL "+
+                "FROM "+SalesController.TABLE_NAME+" s " +
+                "INNER JOIN "+SalesController.TABLE_NAME_DETAIL+" sd on s."+SalesController.CODE+" = sd."+SalesController.DETAIL_CODESALES+" "+
+                "INNER JOIN "+ProductsController.TABLE_NAME+" p on p."+ProductsController.CODE+" = sd."+SalesController.DETAIL_CODEPRODUCT+" "+
+                "LEFT JOIN "+MeasureUnitsController.TABLE_NAME+" mu on mu."+MeasureUnitsController.CODE+" = sd."+SalesController.DETAIL_CODEUND+" "+
+                "INNER JOIN "+AreasDetailController.TABLE_NAME+" ad ON s."+CODEAREADETAIL+" = ad."+AreasDetailController.CODE+" " +
+                "WHERE s."+SalesController.STATUS+" = ? AND s."+SalesController.CODEAREADETAIL+" = ? " +
+                "GROUP BY sd."+SalesController.DETAIL_CODEPRODUCT+",sd."+SalesController.DETAIL_CODEUND+", p."+ProductsController.DESCRIPTION+",mu."+MeasureUnitsController.DESCRIPTION;
+
+        Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, new String[]{status, codeAreaDetail});
+        while (c.moveToNext()){
+            result.add(new ReceiptResumeModel( codeAreaDetail,
+                    c.getString(c.getColumnIndex("CODEPRODUCT")),
+                    c.getString(c.getColumnIndex("PRODUCTDESCRIPTION")),
+                    c.getString(c.getColumnIndex("CODEMEASURE")),
+                    c.getString(c.getColumnIndex("MEASUREDESCRIPTION")),
+                    c.getString(c.getColumnIndex("QUANTITY")),
+                    c.getString(c.getColumnIndex("SALESTOTAL"))));
+        }c.close();
+
+        return result;
+    }
+
+    public ArrayList<Sales> getDeliveredOrdersByCodeAreadetail(String codeAreaDetail){
+        ArrayList<Sales> deliveredOrders = new ArrayList<>();
+        String where = SalesController.STATUS+" = ? AND "+SalesController.CODEAREADETAIL+" = ? ";
+        Cursor c = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME,columns, where,new String[]{CODES.CODE_ORDER_STATUS_DELIVERED+"", codeAreaDetail},null,null,null);
+        while(c.moveToNext()){
+            deliveredOrders.add(new Sales(c));
+        }
+        return deliveredOrders;
     }
 }

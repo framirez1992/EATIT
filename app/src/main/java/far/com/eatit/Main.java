@@ -219,6 +219,8 @@ public class Main extends AppCompatActivity
         } else if (id == R.id.goReports) {
             goToReports();
 
+        } else if(id == R.id.goReceip){
+            goToReceipts();
         } else  {
             changeModule(id);
         }
@@ -311,7 +313,9 @@ public class Main extends AppCompatActivity
     public void goToReports(){
         startActivity(new Intent(Main.this, MainReports.class));
     }
-
+    public void goToReceipts(){
+        startActivity(new Intent(Main.this, MainReceipt.class));
+    }
     public void notityUnreadMessages(){
         String where =UserInboxController.STATUS+" = ? ";
         String[] args = new String[]{CODES.CODE_USERINBOX_STATUS_NO_READ+""};

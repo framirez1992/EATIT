@@ -21,6 +21,7 @@ import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.Adapters.Models.UserControlRowModel;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.UserControl;
+import far.com.eatit.CloudFireStoreObjects.Users;
 import far.com.eatit.DataBase.DB;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
@@ -245,10 +246,11 @@ public class UserControlController {
         String sql = "SELECT "+VALUE+" " +
                 "FROM "+TABLE_NAME+" " +
                 "WHERE "+CONTROL+" = ? AND "+ACTIVE+" = ?  AND ( ("+TARGET+" = ? AND "+TARGETCODE+" = ? ) OR ("+TARGET+" = ? AND "+TARGETCODE+" = ? )  OR ("+TARGET+" = ? AND "+TARGETCODE+" = ? )    )  ";
+        Users u = UsersController.getInstance(context).getUserByCode(Funciones.getCodeuserLogged(context));
         String[]args = new String[]{control, "1",
-                CODES.USERSCONTROL_TARGET_USER,Funciones.getCodeuserLogged(context),
-                CODES.USERSCONTROL_TARGET_USER_ROL,Funciones.getRoleUserLogged(context),
-                CODES.USERSCONTROL_TARGET_COMPANY,UsersController.getInstance(context).getUserByCode(Funciones.getRoleUserLogged(context)).getCOMPANY() };
+                CODES.USERSCONTROL_TARGET_USER,u.getCODE(),
+                CODES.USERSCONTROL_TARGET_USER_ROL,u.getROLE(),
+                CODES.USERSCONTROL_TARGET_COMPANY,u.getCOMPANY() };
         try {
             Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, args);
             if (c.moveToFirst()) {
