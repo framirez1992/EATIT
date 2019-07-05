@@ -199,6 +199,7 @@ public class SalesController {
 
         }else {
             Sales s = TempOrdersController.getInstance(context).getTempSale();
+            s.setTOTAL(TempOrdersController.getInstance(context).getSumPrice());
             s.setSTATUS(CODES.CODE_ORDER_STATUS_OPEN);
             s.setNOTES(notes);
             s.setCODEAREADETAIL(codeAreaDetail);
@@ -1233,7 +1234,7 @@ public class SalesController {
 
         Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, new String[]{status, codeAreaDetail});
         while (c.moveToNext()){
-            result.add(new OrderReceiptModel(UUID.randomUUID().toString(),
+            result.add(new OrderReceiptModel(Funciones.generateCode(),
                     c.getString(c.getColumnIndex("CODEAREA")),
                     c.getString(c.getColumnIndex("DESCRIPTIONAREA")),
                     c.getString(c.getColumnIndex("CODEMESA")),

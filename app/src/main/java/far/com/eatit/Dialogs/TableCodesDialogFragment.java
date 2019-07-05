@@ -149,7 +149,7 @@ public class TableCodesDialogFragment extends DialogFragment implements OnFailur
 
     public void SaveTableCode(){
         try {
-            String code = UUID.randomUUID().toString();
+            String code = Funciones.generateCode();
             String codeType = ((KV)spnTabla.getSelectedItem()).getKey();
             String codeControl = code;
             String name = etName.getText().toString();

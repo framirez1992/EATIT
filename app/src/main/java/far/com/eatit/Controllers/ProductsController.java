@@ -161,7 +161,8 @@ public class ProductsController {
                     //COLOCANDO UNA UNIDAD DE MEDIDA POR DEFECTO A CADA PRODUCTO QUE VENGA EN EL QUERY. SI NO ESTA GUARDADO EN LA TABLA TEMPORAL TOMARA UNA UNIDAD CUALQUIERA DE LAS QUE EL PRODUCTO YA TIENE REGISTRADA.
                     "ifnull(toc."+TempOrdersController.DETAIL_CODEUND+", pmc."+ProductsMeasureController.CODEMEASURE+" ) as MEASURE," +
                     "ifnull(toc."+TempOrdersController.DETAIL_POSITION+", 0) as POSITION, pt."+ProductsTypesController.CODE+" as PTCODE, pt."+ProductsTypesController.DESCRIPTION+" as PTDESCRIPTION, " +
-                    "pst."+ProductsSubTypesController.CODE+" AS PSTCODE, pst."+ProductsSubTypesController.DESCRIPTION+" AS PSTDESCRIPTION, p."+MDATE+" AS MDATE, ifnull(pc."+ProductsControlController.BLOQUED+", 0) as BLOQUED " +
+                    "pst."+ProductsSubTypesController.CODE+" AS PSTCODE, pst."+ProductsSubTypesController.DESCRIPTION+" AS PSTDESCRIPTION, p."+MDATE+" AS MDATE, ifnull(pc."+ProductsControlController.BLOQUED+", 0) as BLOQUED, " +
+                    "pmc."+ProductsMeasureController.PRICE +" as PRICE "+
                     "FROM "+TABLE_NAME+" p " +
                     "INNER JOIN "+ProductsMeasureController.TABLE_NAME+" pmc on pmc."+ProductsMeasureController.CODEPRODUCT+" = p."+ProductsController.CODE+" "+
                     "INNER JOIN "+ProductsTypesController.TABLE_NAME+" pt ON pt."+ProductsTypesController.CODE+" = p."+TYPE+" "+
@@ -179,6 +180,7 @@ public class ProductsController {
                 String codeOrderdetail = c.getString(c.getColumnIndex("CODEORDERDETAIL"));
                 String code = c.getString(c.getColumnIndex("CODE"));
                 String desc = c.getString(c.getColumnIndex("DESCRIPTION"));
+                double price = c.getDouble(c.getColumnIndex("PRICE"));
                 String qty = String.valueOf(c.getInt(c.getColumnIndex("QUANTITY")));
                 String measure = c.getString(c.getColumnIndex("MEASURE"));
                 String position =  c.getString(c.getColumnIndex("POSITION"));
@@ -187,6 +189,7 @@ public class ProductsController {
                 result.add(new NewOrderProductModel(codeOrderdetail,
                         code,
                         desc,
+                        price,
                         qty,
                         measure,
                         blocked,

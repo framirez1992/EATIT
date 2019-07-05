@@ -7,55 +7,76 @@
         android:title="Pantalla principal"
         android:icon="@drawable/ic_users"/>
 
-    <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/goMantInventario"
-            android:icon="@drawable/ic_inventario"
-            android:title="Mantenimiento Inventario" />
+    <item android:title="Mantenimientos">
+        <menu>
 
-        <item
-            android:id="@+id/goMantProductos"
-            android:icon="@drawable/ic_fastfood"
-            android:title="Mantenimiento Productos" />
+            <item
+                android:id="@+id/goMantInventario"
+                android:icon="@drawable/ic_inventario"
+                android:title="Inventario" />
 
-        <item
-            android:id="@+id/goMantUsuarios"
-            android:icon="@drawable/ic_users"
-            android:title="Mantenimiento Usuarios" />
+            <item
+                android:id="@+id/goMantProductos"
+                android:icon="@drawable/ic_fastfood"
+                android:title="Productos" />
 
-        <item
-            android:id="@+id/goMantAreas"
-            android:icon="@drawable/ic_users"
-            android:title="Mantenimiento Areas" />
+            <item
+                android:id="@+id/goMantUsuarios"
+                android:icon="@drawable/ic_users"
+                android:title="Usuarios" />
 
-        <item
-            android:id="@+id/goMantControls"
-            android:icon="@drawable/ic_users"
-            android:title="Mantenimiento Controles" />
-    </group>
+            <item
+                android:id="@+id/goMantAreas"
+                android:icon="@drawable/ic_users"
+                android:title="Areas" />
 
-    <group android:checkableBehavior="single">
+            <item
+                android:id="@+id/goMantControls"
+                android:icon="@drawable/ic_users"
+                android:title="Controles" />
+        </menu>
+    </item>
 
-        <item
-            android:id="@+id/goMenu"
-            android:icon="@drawable/ic_action_list_alt"
-            android:title="Ordenar" />
-        <item
-            android:id="@+id/goPendingOrders"
-            android:icon="@drawable/ic_action_timelapse"
-            android:title="Ordenes" />
 
-        <item
-            android:id="@+id/goReceip"
-            android:icon="@drawable/ic_receipt"
-            android:title="Facturar" />
 
-        <item
-            android:id="@+id/goReports"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="Reportes"
-            android:visible="true"/>
-    </group>
+    <item android:title="Ordenes">
+        <menu>
+            <item
+                android:id="@+id/goMenu"
+                android:icon="@drawable/ic_action_list_alt"
+                android:title="Ordenar" />
+            <item
+                android:id="@+id/goPendingOrders"
+                android:icon="@drawable/ic_action_timelapse"
+                android:title="Ordenes" />
+
+        </menu>
+    </item>
+
+    <item android:title="Facturacion">
+        <menu>
+
+            <item
+                android:id="@+id/goReceip"
+                android:icon="@drawable/ic_receipt"
+                android:title="Facturar" />
+
+            <item
+                android:id="@+id/goSavedReceipts"
+                android:icon="@drawable/ic_action_timelapse"
+                android:title="Recibos" />
+        </menu>
+    </item>
+
+    <item android:title="Reportes">
+        <menu>
+            <item
+                android:id="@+id/goReports"
+                android:icon="@drawable/ic_menu_slideshow"
+                android:title="Reportes"
+                android:visible="true"/>
+        </menu>
+    </item>
 
 
 </menu>

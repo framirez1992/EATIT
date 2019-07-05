@@ -192,7 +192,7 @@ public class ProductsSubTypesInvController {
             where = "";
 
         if(campoOrderBy == null)
-            campoOrderBy=DESCRIPTION;
+            campoOrderBy="pst."+ORDER+" ASC, pst."+DESCRIPTION;
 
         try {
 
@@ -222,13 +222,14 @@ public class ProductsSubTypesInvController {
      */
     public ArrayList<SimpleSeleccionRowModel> getProductSubTypesSSRM(String where, String[] args, String campoOrder){
         ArrayList<SimpleSeleccionRowModel> result = new ArrayList<>();
-        if(campoOrder == null){campoOrder = DESCRIPTION;}
+        if(campoOrder == null){campoOrder = ORDER+" ASC, "+DESCRIPTION;}
         where=((where != null)? "WHERE "+where:"");
         try {
 
             String sql = "SELECT "+CODE+" as CODE, "+DESCRIPTION+" as DESCRIPTION " +
                     "FROM "+TABLE_NAME+"  " +
-                    where;
+                    where+" " +
+                    "ORDER BY "+campoOrder;
             Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, args);
             while(c.moveToNext()){
                 String code = c.getString(c.getColumnIndex("CODE"));
@@ -247,7 +248,7 @@ public class ProductsSubTypesInvController {
         fillSpinner(spn,addTodos, null);
     }
     public void fillSpinner(Spinner spn, boolean addTodos, String type){
-        String orderBy = /*ProductsSubTypesController.ORDER+" ASC, "+*/ProductsSubTypesController.DESCRIPTION;
+        String orderBy = ProductsSubTypesController.ORDER+" ASC, "+ProductsSubTypesController.DESCRIPTION;
         String[] camposFiltros = null;
         String[]args = null;
         if(type != null){

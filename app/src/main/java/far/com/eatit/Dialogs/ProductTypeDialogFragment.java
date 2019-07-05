@@ -33,6 +33,7 @@ public  class ProductTypeDialogFragment extends DialogFragment implements  OnFai
 
     LinearLayout llSave;
     TextInputEditText etName;
+    TextInputEditText etOrden;
 
 
     ProductsTypesController productsTypesController;
@@ -102,6 +103,7 @@ public  class ProductTypeDialogFragment extends DialogFragment implements  OnFai
     public void init(View view){
         llSave = view.findViewById(R.id.llSave);
         etName = view.findViewById(R.id.etName);
+        etOrden = view.findViewById(R.id.etOrden);
 
         llSave.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -139,10 +141,9 @@ public  class ProductTypeDialogFragment extends DialogFragment implements  OnFai
 
     public void SaveProductType(){
         try {
-            String code = UUID.randomUUID().toString();
+            String code = Funciones.generateCode();
             String name = etName.getText().toString();
-            String valueOrden = "0";//etOrden.getText().toString().trim().equals("")?productsTypesController.getNextOrden(destiny)+"":etOrden.getText().toString().trim();
-            int orden = Integer.parseInt(valueOrden);
+            int orden = etOrden.getText().toString().trim().equals("")?9999:Integer.parseInt(etOrden.getText().toString());
             ProductsTypes pt = new ProductsTypes(code, name, orden);
             if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)) {
                 productsTypesController.sendToFireBase(pt);
@@ -159,10 +160,10 @@ public  class ProductTypeDialogFragment extends DialogFragment implements  OnFai
 
     public void EditProductType(){
         try {
+            int orden = etOrden.getText().toString().trim().equals("")?9999:Integer.parseInt(etOrden.getText().toString());
             tempObj.setDESCRIPTION(etName.getText().toString());
-            String valueOrden = "0";//etOrden.getText().toString().trim().equals("")?productsTypesController.getNextOrden(pt.getDESTINY())+"":etOrden.getText().toString().trim();
-            tempObj.setORDEN(Integer.parseInt(valueOrden));
             tempObj.setMDATE(null);
+            tempObj.setORDEN(orden);
             if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)) {
                 productsTypesController.sendToFireBase(tempObj);
             }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
@@ -180,7 +181,7 @@ public  class ProductTypeDialogFragment extends DialogFragment implements  OnFai
 
     public void setUpToEditProductType(){
         etName.setText(tempObj.getDESCRIPTION());
-        //etOrden.setText(((ProductsTypes)tempObj).getORDEN()+"");
+        etOrden.setText(tempObj.getORDEN()+"");
 
     }
 

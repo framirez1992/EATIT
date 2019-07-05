@@ -22,6 +22,8 @@ import com.google.android.gms.tasks.OnFailureListener;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import far.com.eatit.Adapters.EditSelectionRowAdapter;
+import far.com.eatit.Adapters.Models.EditSelectionRowModel;
 import far.com.eatit.Adapters.Models.SimpleSeleccionRowModel;
 import far.com.eatit.Adapters.SimpleSelectionRowAdapter;
 import far.com.eatit.CloudFireStoreObjects.Products;
@@ -49,10 +51,11 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
     TextInputEditText etCode, etName;
     Spinner spnFamily, spnGroup;
     RecyclerView rvMeasures;
+    LinearLayout llMeasureScreen, llMainScreen, llNext;
 
     ProductsController productsController;
     ProductsInvController productsInvController;
-    ArrayList<SimpleSeleccionRowModel> selectedObjs = new ArrayList<>() ;
+    ArrayList<EditSelectionRowModel> selectedObjs = new ArrayList<>() ;
     boolean firstTime = true;
     String type;
 
@@ -117,6 +120,9 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
 
 
     public void init(View view){
+        llMainScreen = view.findViewById(R.id.llMainScreen);
+        llMeasureScreen = view.findViewById(R.id.llMeasureScreen);
+        llNext = view.findViewById(R.id.llNext);
         llSave = view.findViewById(R.id.llSave);
         etCode = view.findViewById(R.id.etCode);
         etName = view.findViewById(R.id.etName);
@@ -134,19 +140,27 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
         }
 
         etCode.setEnabled(false);
-        etCode.setText(UUID.randomUUID().toString());
+        etCode.setText(Funciones.generateCode());
 
         llSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 llSave.setEnabled(false);
-                selectedObjs = ((SimpleSelectionRowAdapter)rvMeasures.getAdapter()).getSelectedObjects();
+                selectedObjs = ((EditSelectionRowAdapter)rvMeasures.getAdapter()).getSelectedObjects();
                 if(tempObj == null){
                     Save();
                 }else{
                     EditProduct();
                 }
                 //Funciones.getDateOnline(ProductTypeDialogFragment.this);
+            }
+        });
+
+        llNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                llMainScreen.setVisibility((llMainScreen.getVisibility() == View.VISIBLE)?View.GONE:View.VISIBLE);
+                llMeasureScreen.setVisibility((llMeasureScreen.getVisibility() == View.GONE)?View.VISIBLE:View.GONE);
             }
         });
 
@@ -219,8 +233,8 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
             Products product = new Products(code, description, productType, productSubType, false);
 
             ArrayList<ProductsMeasure> list = new ArrayList<>();
-            for(SimpleSeleccionRowModel ssrm: selectedObjs){
-                list.add(new ProductsMeasure(UUID.randomUUID().toString(), code, ssrm.getCode(), null, null));
+            for(EditSelectionRowModel ssrm: selectedObjs){
+                list.add(new ProductsMeasure(Funciones.generateCode(), code, ssrm.getCode(),Double.parseDouble(ssrm.getText()), null, null));
             }
 
             if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
@@ -247,8 +261,8 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
             products.setMDATE(null);
 
             ArrayList<ProductsMeasure> list = new ArrayList<>();
-            for(SimpleSeleccionRowModel ssrm: selectedObjs){
-                list.add(new ProductsMeasure(UUID.randomUUID().toString(), products.getCODE(), ssrm.getCode(), null, null));
+            for(EditSelectionRowModel ssrm: selectedObjs){
+                list.add(new ProductsMeasure(Funciones.generateCode(), products.getCODE(), ssrm.getCode(),Double.parseDouble(ssrm.getText()), null, null));
             }
 
             if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
@@ -301,17 +315,17 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
             if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
                 selectedObjs.addAll(ProductsMeasureController.getInstance(getActivity()).getSSRMByCodeProduct(((Products) tempObj).getCODE()));
             }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
-                selectedObjs.addAll(ProductsMeasureInvController.getInstance(getActivity()).getSSRMByCodeProduct(((Products) tempObj).getCODE()));
+               // selectedObjs.addAll(ProductsMeasureInvController.getInstance(getActivity()).getSSRMByCodeProduct(((Products) tempObj).getCODE()));
             }
         }
-        ArrayList<SimpleSeleccionRowModel> arr = null;
+        ArrayList<EditSelectionRowModel> arr = null;
         if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
             arr =  MeasureUnitsController.getInstance(getActivity()).getUnitMeasuresSSRM(null, null, null);
         }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
-            arr = MeasureUnitsInvController.getInstance(getActivity()).getUnitMeasuresSSRM(null, null, null);
+            //arr = MeasureUnitsInvController.getInstance(getActivity()).getUnitMeasuresSSRM(null, null, null);
         }
 
-        rvMeasures.setAdapter(new SimpleSelectionRowAdapter(getActivity(),arr, selectedObjs));
+        rvMeasures.setAdapter(new EditSelectionRowAdapter(getActivity(),arr, selectedObjs));
         rvMeasures.getAdapter().notifyDataSetChanged();
         rvMeasures.invalidate();
     }

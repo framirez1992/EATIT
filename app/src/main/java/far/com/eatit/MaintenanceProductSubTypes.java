@@ -302,14 +302,18 @@ public class MaintenanceProductSubTypes extends AppCompatActivity implements Lis
         String where = "1 = 1 ";
         String[] args = null;
         ArrayList<String> x = new ArrayList<>();
+        String order = null;
 
         if(lastSearch != null){
             where+=" AND pst."+ProductsSubTypesController.DESCRIPTION+" like  ? ";
             x.add(lastSearch+"%");
         }
+
         if(spnFamily.getSelectedItem() != null && !((KV)spnFamily.getSelectedItem()).getKey().equals("0")){
             where+= "AND pt."+ ProductsTypesController.CODE+" = ? ";
             x.add(((KV)spnFamily.getSelectedItem()).getKey());
+        }else{
+            order = "pst."+ProductsTypesController.DESCRIPTION;
         }
 
         if(x.size() > 0){
@@ -317,9 +321,9 @@ public class MaintenanceProductSubTypes extends AppCompatActivity implements Lis
         }
 
         if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)) {
-            objects.addAll(productsSubTypesController.getAllProductSubTypesSRM(where, args, null));
+            objects.addAll(productsSubTypesController.getAllProductSubTypesSRM(where, args, order));
         }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
-            objects.addAll(productsSubTypesInvController.getAllProductSubTypesSRM(where, args, null));
+            objects.addAll(productsSubTypesInvController.getAllProductSubTypesSRM(where, args, order));
         }
         adapter.notifyDataSetChanged();
     }

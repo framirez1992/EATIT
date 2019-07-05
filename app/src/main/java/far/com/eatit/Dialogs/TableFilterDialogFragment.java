@@ -31,6 +31,7 @@ import far.com.eatit.Controllers.UsersController;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.R;
+import far.com.eatit.Utils.Funciones;
 
 public class TableFilterDialogFragment extends DialogFragment implements OnFailureListener {
 
@@ -283,7 +284,7 @@ public class TableFilterDialogFragment extends DialogFragment implements OnFailu
                     }
                     TableFilter tf = TableFilterController.getInstance(getActivity()).findTableFilterData(TABLES,TASK, USER, USERTYPE, PRODUCTTYPE, PRODUCTSUBTYPE);
                     if(tf == null){
-                        tf = new TableFilter(UUID.randomUUID().toString(), TABLES,USER, USERTYPE,PRODUCTTYPE, PRODUCTSUBTYPE,TASK, "", ((cbEnabled.isChecked())?"1":"0"));
+                        tf = new TableFilter(Funciones.generateCode(), TABLES,USER, USERTYPE,PRODUCTTYPE, PRODUCTSUBTYPE,TASK, "", ((cbEnabled.isChecked())?"1":"0"));
                     }
                     objects.add(tf);
                 }

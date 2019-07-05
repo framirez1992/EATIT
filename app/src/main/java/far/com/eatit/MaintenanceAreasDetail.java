@@ -47,7 +47,7 @@ public class MaintenanceAreasDetail extends AppCompatActivity implements Listabl
     AreasDetail areasDetail = null;
     Licenses licence;
     String lastSearch = null;
-    Spinner spnFamily;
+    Spinner spnAreas;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +58,7 @@ public class MaintenanceAreasDetail extends AppCompatActivity implements Listabl
 
 
         rvList = findViewById(R.id.rvList);
-        spnFamily = findViewById(R.id.spn);
+        spnAreas = findViewById(R.id.spn);
         ((TextView)findViewById(R.id.spnTitle)).setText("Area");
 
         objects = new ArrayList<>();
@@ -68,8 +68,8 @@ public class MaintenanceAreasDetail extends AppCompatActivity implements Listabl
         adapter = new SimpleRowEditionAdapter(this,this, objects);
         rvList.setAdapter(adapter);
 
-        AreasController.getInstance(MaintenanceAreasDetail.this).fillSpinner(spnFamily, true);
-        spnFamily.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        AreasController.getInstance(MaintenanceAreasDetail.this).fillSpinner(spnAreas, true);
+        spnAreas.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 refreshList();//DESCRIPCION
@@ -220,9 +220,9 @@ public class MaintenanceAreasDetail extends AppCompatActivity implements Listabl
             where+=" AND pst."+AreasDetailController.DESCRIPTION+" like  ? ";
             x.add(lastSearch+"%");
         }
-        if(spnFamily.getSelectedItem() != null && !((KV)spnFamily.getSelectedItem()).getKey().equals("-1")){
+        if(spnAreas.getSelectedItem() != null && !((KV)spnAreas.getSelectedItem()).getKey().equals("-1")){
             where+= "AND pt."+ AreasController.CODE+" = ? ";
-            x.add(((KV)spnFamily.getSelectedItem()).getKey());
+            x.add(((KV)spnAreas.getSelectedItem()).getKey());
         }
 
         if(x.size() > 0){

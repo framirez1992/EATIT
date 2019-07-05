@@ -143,7 +143,7 @@ public class OrderResumeAdapter extends RecyclerView.Adapter<OrderResumeHolder> 
     }
 
     public void saveOrderLine(OrderDetailModel opm){
-        String code = UUID.randomUUID().toString();
+        String code = Funciones.generateCode();
         String codeSale = ((MainOrders)activity).getOrderCode();
         String codeProduct = opm.getCodeProduct();
         String codeUnd = opm.getCodeMeasure();

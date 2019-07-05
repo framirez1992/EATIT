@@ -212,6 +212,7 @@ public class ResumenOrderFragment extends Fragment {
     public void editOrder(){
         try {
             Sales s = tempOrdersController.getTempSale();
+            s.setTOTAL(tempOrdersController.getSumPrice());
             s.setMDATE(null);
             s.setSTATUS(CODES.CODE_ORDER_STATUS_OPEN);
             s.setNOTES(etNotas.getText().toString());

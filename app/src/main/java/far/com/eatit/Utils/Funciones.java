@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Random;
 
 import far.com.eatit.DataBase.DB;
 import far.com.eatit.Generic.Objects.KV2;
@@ -410,5 +411,18 @@ public class Funciones {
             }
         });
         return d;
+    }
+
+    public static String generateCode(){
+        Calendar calendar = Calendar.getInstance();
+        String year =  String.format("%04d", calendar.get(Calendar.YEAR));
+        String month = String.format("%02d", calendar.get(Calendar.MONTH)+1);
+        String day = String.format("%02d", calendar.get(Calendar.DAY_OF_MONTH));
+        String hour =  String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY));
+        String minute =  String.format("%02d", calendar.get(Calendar.MINUTE));
+        String seconds = String.format("%02d", calendar.get(Calendar.SECOND));
+        String milliseconds = String.format("%03d", calendar.get(Calendar.MILLISECOND));
+        String data = year+month+day+hour+minute+seconds+milliseconds;
+        return data;
     }
 }

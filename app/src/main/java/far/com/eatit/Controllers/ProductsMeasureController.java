@@ -17,6 +17,7 @@ import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
 
+import far.com.eatit.Adapters.Models.EditSelectionRowModel;
 import far.com.eatit.Adapters.Models.SimpleSeleccionRowModel;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.MeasureUnits;
@@ -30,11 +31,11 @@ import far.com.eatit.Utils.Funciones;
 public class ProductsMeasureController {
 
     public static final String TABLE_NAME ="PRODUCTSMEASURE";
-    public static  String CODE = "code", CODEPRODUCT = "codeproduct", CODEMEASURE = "codemeasure" ,
+    public static  String CODE = "code", CODEPRODUCT = "codeproduct", CODEMEASURE = "codemeasure" ,PRICE="price",
             DATE = "date", MDATE= "mdate";
-    private static String[] columns = new String[]{CODE, CODEPRODUCT, CODEMEASURE, DATE, MDATE};
+    private static String[] columns = new String[]{CODE, CODEPRODUCT, CODEMEASURE,PRICE, DATE, MDATE};
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+"("
-            +CODE+" TEXT, "+CODEPRODUCT+" TEXT, "+CODEMEASURE+" TEXT,"+DATE+" TEXT," + MDATE+" TEXT)";
+            +CODE+" TEXT, "+CODEPRODUCT+" TEXT, "+CODEMEASURE+" TEXT,"+PRICE+" DECIMAL, "+DATE+" TEXT," + MDATE+" TEXT)";
     Context context;
     FirebaseFirestore db;
     private static  ProductsMeasureController instance;
@@ -73,6 +74,7 @@ public class ProductsMeasureController {
                        c.getString(c.getColumnIndex(CODE)),
                        c.getString(c.getColumnIndex(CODEPRODUCT)),
                        c.getString(c.getColumnIndex(CODEMEASURE)),
+                       c.getDouble(c.getColumnIndex(PRICE)),
                        c.getString(c.getColumnIndex(DATE)),
                        c.getString(c.getColumnIndex(MDATE))));
 
@@ -110,6 +112,7 @@ public class ProductsMeasureController {
         cv.put(CODE, p.getCODE());
         cv.put(CODEPRODUCT,p.getCODEPRODUCT() );
         cv.put(CODEMEASURE,p.getCODEMEASURE());
+        cv.put(PRICE,p.getPRICE());
         cv.put(DATE, Funciones.getFormatedDate(p.getDATE()));
         cv.put(MDATE, Funciones.getFormatedDate(p.getMDATE()));
 
@@ -122,6 +125,7 @@ public class ProductsMeasureController {
         cv.put(CODE, p.getCODE());
         cv.put(CODEPRODUCT,p.getCODEPRODUCT() );
         cv.put(CODEMEASURE,p.getCODEMEASURE());
+        cv.put(PRICE,p.getPRICE());
         cv.put(DATE, Funciones.getFormatedDate(p.getDATE()));
         cv.put(MDATE, Funciones.getFormatedDate(p.getMDATE()));
 
@@ -134,17 +138,19 @@ public class ProductsMeasureController {
         return result;
     }
 
-    public ArrayList<SimpleSeleccionRowModel> getSSRMByCodeProduct(String codeProduct){
-        ArrayList<SimpleSeleccionRowModel> result = new ArrayList<>();
+    public ArrayList<EditSelectionRowModel> getSSRMByCodeProduct(String codeProduct){
+        ArrayList<EditSelectionRowModel> result = new ArrayList<>();
         try {
-            String sql = "SELECT pm." + CODEMEASURE + " AS CODE, mu." + MeasureUnitsController.DESCRIPTION + " AS DESCRIPTION " +
+            String sql = "SELECT pm." + CODEMEASURE + " AS CODE, mu." + MeasureUnitsController.DESCRIPTION + " AS DESCRIPTION, ifnull(pm."+PRICE+", 0.0) as PRICE " +
                     "FROM " + TABLE_NAME + " pm " +
                     "INNER JOIN " + MeasureUnitsController.TABLE_NAME + " mu ON pm." + CODEMEASURE + " = mu." + MeasureUnitsController.CODE + " " +
                     "WHERE pm." + CODEPRODUCT + " = ? ";
             Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, new String[]{codeProduct});
             while (c.moveToNext()) {
-                result.add(new SimpleSeleccionRowModel(c.getString(c.getColumnIndex("CODE")),
-                        c.getString(c.getColumnIndex("DESCRIPTION")), true));
+                result.add(new EditSelectionRowModel(c.getString(c.getColumnIndex("CODE")),
+                        c.getString(c.getColumnIndex("DESCRIPTION")),
+                        c.getString(c.getColumnIndex("PRICE")),
+                        true));
             }
         }catch(Exception e){
             e.printStackTrace();
@@ -221,7 +227,7 @@ public class ProductsMeasureController {
         for(ProductsMeasure del: sdOriginal){
             boolean delete = true;
             for(ProductsMeasure update: newsalesDetails){
-                if(del.getCODE().equals(update.getCODE())){
+                if(del.getCODE().equals(update.getCODE()) && del.getPRICE() == update.getPRICE()){
                     delete = false;
                     break;
                 }

@@ -171,14 +171,14 @@ public class NewOrderProductRowAdapter extends RecyclerView.Adapter<NewOrderProd
 
 
     public void saveOrderLine(NewOrderProductModel opm){
-        String code = UUID.randomUUID().toString();
+        String code = Funciones.generateCode();
         String codeSale = ((MainOrders)activity).getOrderCode();
         String codeProduct = opm.getCodeProduct();
         String codeUnd = opm.getMeasure();
         int position = Integer.parseInt(Funciones.getSimpleTimeFormat().format(new Date()));
         double quantity = Double.parseDouble(opm.getQuantity());
         double unit = 0;
-        double price =0;
+        double price =opm.getPrice();
         double discount = 0;
         SalesDetails sd = new SalesDetails(code,codeSale, codeProduct, codeUnd, position, quantity, unit, price, discount);
         TempOrdersController.getInstance(activity).insert_Detail(sd);

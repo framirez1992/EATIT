@@ -13,12 +13,13 @@ import far.com.eatit.Utils.Funciones;
 @IgnoreExtraProperties
 public class ProductsMeasure {
         private String CODE, CODEPRODUCT,CODEMEASURE;
+        private Double PRICE;
         private Date DATE, MDATE;
         public ProductsMeasure(){
 
         }
-        public ProductsMeasure(String code, String codeProduct, String codeMeasure, String date, String mdate){
-            this.CODE = code; this.CODEPRODUCT = codeProduct; this.CODEMEASURE =codeMeasure;
+        public ProductsMeasure(String code, String codeProduct, String codeMeasure,double price, String date, String mdate){
+            this.CODE = code; this.CODEPRODUCT = codeProduct; this.CODEMEASURE =codeMeasure;this.PRICE = price;
             this.DATE = Funciones.parseStringToDate(date); this.MDATE = Funciones.parseStringToDate(mdate);
         }
 
@@ -27,6 +28,7 @@ public class ProductsMeasure {
             map.put(ProductsMeasureController.CODE,CODE);
             map.put(ProductsMeasureController.CODEPRODUCT, CODEPRODUCT);
             map.put(ProductsMeasureController.CODEMEASURE, CODEMEASURE);
+            map.put(ProductsMeasureController.PRICE, PRICE);
             map.put(ProductsMeasureController.DATE, (DATE == null)? FieldValue.serverTimestamp():DATE);
             map.put(ProductsMeasureController.MDATE,(MDATE == null)? FieldValue.serverTimestamp():MDATE);
 
@@ -71,5 +73,13 @@ public class ProductsMeasure {
 
     public void setMDATE(Date MDATE) {
         this.MDATE = MDATE;
+    }
+
+    public Double getPRICE() {
+        return PRICE;
+    }
+
+    public void setPRICE(Double PRICE) {
+        this.PRICE = PRICE;
     }
 }

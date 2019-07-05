@@ -56,7 +56,8 @@
                     android:layout_height="wrap_content"
                     android:text="Cerrar"
                     android:layout_weight="1"
-                    android:layout_margin="5dp"/>
+                    android:layout_margin="5dp"
+                    android:visibility="gone"/>
             </LinearLayout>
 
             <TextView android:id="@+id/tvOrderNumber"

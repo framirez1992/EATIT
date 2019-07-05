@@ -136,7 +136,7 @@ public class MeasureUnitDialogFragment extends DialogFragment implements OnFailu
 
     public void SaveMeasureUnit(){
         try {
-            String code = UUID.randomUUID().toString();
+            String code =Funciones.generateCode();
             String name = etName.getText().toString();
             MeasureUnits pt = new MeasureUnits(code, name);
             if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){

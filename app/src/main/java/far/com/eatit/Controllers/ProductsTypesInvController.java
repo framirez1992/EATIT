@@ -127,9 +127,9 @@ public class ProductsTypesInvController {
         return null;
     }
 
-    public int getNextOrden(String destiny){
-        int result = 0;
-        String sql = "SELECT MAX("+ORDER+" + 1) " +
+    public int getNextOrden(){
+        int result = 9999;
+       /* String sql = "SELECT MAX("+ORDER+" + 1) " +
                 "FROM "+TABLE_NAME;
         try{
             Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
@@ -139,7 +139,7 @@ public class ProductsTypesInvController {
             c.close();
         }catch (Exception e){
             e.printStackTrace();
-        }
+        }*/
         return result;
     }
 

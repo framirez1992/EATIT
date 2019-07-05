@@ -84,7 +84,6 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
         init();
         initDialog();
         if(getIntent().getExtras()!= null && getIntent().getExtras().containsKey(CODES.EXTRA_SECURITY_ERROR_CODE)){
@@ -372,10 +371,10 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
 
         @Override
         public void onSuccess(QuerySnapshot querySnapshot) {
-            btnLogin.setEnabled(true);
-            findViewById(R.id.llProgress).setVisibility(View.INVISIBLE);
 
             if(querySnapshot == null || querySnapshot.isEmpty()){
+                btnLogin.setEnabled(true);
+                findViewById(R.id.llProgress).setVisibility(View.INVISIBLE);
                 Snackbar.make(findViewById(R.id.root), "Error de autenticacion", Snackbar.LENGTH_LONG).show();
                 return;
             }
@@ -387,6 +386,8 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
                    usersController.insert(u);
 
                   if(!isValidUser(u)){
+                      btnLogin.setEnabled(true);
+                      findViewById(R.id.llProgress).setVisibility(View.INVISIBLE);
                      return;
                   }
 
@@ -403,6 +404,10 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
                     Snackbar.make(findViewById(R.id.root), "ERROR obteniendo Usuario", Snackbar.LENGTH_LONG).show();
                 }
             }
+
+            btnLogin.setEnabled(true);
+            findViewById(R.id.llProgress).setVisibility(View.INVISIBLE);
+
         }
 
     };

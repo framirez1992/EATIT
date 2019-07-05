@@ -207,12 +207,12 @@ public class MessageSendDialog extends DialogFragment {
     public void Send(){
         refreshSelected();
         ArrayList<UserInbox> mails = new ArrayList<>();
-        String msgID = UUID.randomUUID().toString();
-        UserInbox ui = new UserInbox(UUID.randomUUID().toString(),Funciones.getCodeuserLogged(getActivity()),Funciones.getCodeuserLogged(getActivity()),msgID,"Subject",etMessage.getText().toString(),CODES.CODE_TYPE_OPERATION_MESSAGE+"",CODES.CODE_ICON_MESSAGE_NEW,CODES.CODE_USERINBOX_STATUS_READ);
+        String msgID = Funciones.generateCode();
+        UserInbox ui = new UserInbox(Funciones.generateCode(),Funciones.getCodeuserLogged(getActivity()),Funciones.getCodeuserLogged(getActivity()),msgID,"Subject",etMessage.getText().toString(),CODES.CODE_TYPE_OPERATION_MESSAGE+"",CODES.CODE_ICON_MESSAGE_NEW,CODES.CODE_USERINBOX_STATUS_READ);
         mails.add(ui);//mensaje para mi mismo en status leido.
         for(SimpleSeleccionRowModel s: selected){
             if(s.isChecked()){
-             mails.add(new UserInbox(UUID.randomUUID().toString(),Funciones.getCodeuserLogged(getActivity()),s.getCode(),msgID,"Subject",etMessage.getText().toString(),CODES.CODE_TYPE_OPERATION_MESSAGE+"",CODES.CODE_ICON_MESSAGE_NEW,CODES.CODE_USERINBOX_STATUS_NO_READ));
+             mails.add(new UserInbox(Funciones.generateCode(),Funciones.getCodeuserLogged(getActivity()),s.getCode(),msgID,"Subject",etMessage.getText().toString(),CODES.CODE_TYPE_OPERATION_MESSAGE+"",CODES.CODE_ICON_MESSAGE_NEW,CODES.CODE_USERINBOX_STATUS_NO_READ));
             }
         }
 
@@ -226,21 +226,21 @@ public class MessageSendDialog extends DialogFragment {
         String msgID = "";
         if(userInbox != null){
             msgID = userInbox.getCODEMESSAGE();
-            UserInbox ui = new UserInbox(UUID.randomUUID().toString(),userInbox.getCODEUSER(),userInbox.getCODEUSER(),msgID,userInbox.getSUBJECT(),etMessage.getText().toString(),CODES.CODE_TYPE_OPERATION_MESSAGE+"",CODES.CODE_ICON_MESSAGE_NEW,CODES.CODE_USERINBOX_STATUS_READ);
+            UserInbox ui = new UserInbox(Funciones.generateCode(),userInbox.getCODEUSER(),userInbox.getCODEUSER(),msgID,userInbox.getSUBJECT(),etMessage.getText().toString(),CODES.CODE_TYPE_OPERATION_MESSAGE+"",CODES.CODE_ICON_MESSAGE_NEW,CODES.CODE_USERINBOX_STATUS_READ);
 
 
             mails.add(ui);//mensaje para mi mismo en status leido.
-            mails.add(new UserInbox(UUID.randomUUID().toString(),userInbox.getCODEUSER(),userInbox.getCODESENDER(),msgID,userInbox.getSUBJECT(),etMessage.getText().toString(),CODES.CODE_TYPE_OPERATION_MESSAGE+"",CODES.CODE_ICON_MESSAGE_NEW,CODES.CODE_USERINBOX_STATUS_NO_READ));
+            mails.add(new UserInbox(Funciones.generateCode(),userInbox.getCODEUSER(),userInbox.getCODESENDER(),msgID,userInbox.getSUBJECT(),etMessage.getText().toString(),CODES.CODE_TYPE_OPERATION_MESSAGE+"",CODES.CODE_ICON_MESSAGE_NEW,CODES.CODE_USERINBOX_STATUS_NO_READ));
 
         }else if(sales != null){
             msgID = sales.getCODE();
             String msg = etMessage.getText().toString();
             String subject = "Orden: "+sales.getCODE();
-            UserInbox ui = new UserInbox(UUID.randomUUID().toString(), Funciones.getCodeuserLogged(activity),Funciones.getCodeuserLogged(getActivity()),msgID,subject,msg,CODES.CODE_TYPE_OPERATION_SALES+"",CODES.CODE_ICON_MESSAGE_ALERT,CODES.CODE_USERINBOX_STATUS_READ);
+            UserInbox ui = new UserInbox(Funciones.generateCode(), Funciones.getCodeuserLogged(activity),Funciones.getCodeuserLogged(getActivity()),msgID,subject,msg,CODES.CODE_TYPE_OPERATION_SALES+"",CODES.CODE_ICON_MESSAGE_ALERT,CODES.CODE_USERINBOX_STATUS_READ);
 
 
             mails.add(ui);//mensaje para mi mismo en status leido.
-            mails.add(new UserInbox(UUID.randomUUID().toString(),Funciones.getCodeuserLogged(activity),sales.getCODEUSER(),msgID,subject,msg,CODES.CODE_TYPE_OPERATION_SALES+"",CODES.CODE_ICON_MESSAGE_ALERT,CODES.CODE_USERINBOX_STATUS_NO_READ));
+            mails.add(new UserInbox(Funciones.generateCode(),Funciones.getCodeuserLogged(activity),sales.getCODEUSER(),msgID,subject,msg,CODES.CODE_TYPE_OPERATION_SALES+"",CODES.CODE_ICON_MESSAGE_ALERT,CODES.CODE_USERINBOX_STATUS_NO_READ));
 
         }
 

@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnFailureListener;
 
@@ -32,10 +33,10 @@ public class AreasDetailDialogFragment extends DialogFragment implements OnFailu
 
     private static AreasDetail tempObj;
 
-    LinearLayout llFamilia;
-    Spinner spnFamilia;
+    LinearLayout llArea;
+    Spinner spnArea;
     LinearLayout llSave;
-    TextInputEditText etName;
+    TextInputEditText etName, etOrden;
 
     AreasDetailController areasDetailController;
 
@@ -102,10 +103,13 @@ public class AreasDetailDialogFragment extends DialogFragment implements OnFailu
 
 
     public void init(View view){
-        llFamilia = view.findViewById(R.id.llFamilia);
-        spnFamilia = view.findViewById(R.id.spnFamilia);
+        llArea = view.findViewById(R.id.llFamilia);
+        spnArea = view.findViewById(R.id.spnFamilia);
+        ((TextView)view.findViewById(R.id.tvFamilia)).setText("Area");
         llSave = view.findViewById(R.id.llSave);
         etName = view.findViewById(R.id.etName);
+        etOrden = view.findViewById(R.id.etOrden);
+        view.findViewById(R.id.tilOrden).setVisibility(View.VISIBLE);
 
         llSave.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -119,7 +123,7 @@ public class AreasDetailDialogFragment extends DialogFragment implements OnFailu
             }
         });
 
-        AreasController.getInstance(getActivity()).fillSpinner(spnFamilia, false);
+        AreasController.getInstance(getActivity()).fillSpinner(spnArea, false);
 
         if(tempObj != null) {//EDIT
             prepareForProductSubType();
@@ -128,7 +132,7 @@ public class AreasDetailDialogFragment extends DialogFragment implements OnFailu
 
 
     public boolean validateProductSubType(){
-        if(spnFamilia.getSelectedItem()== null){
+        if(spnArea.getSelectedItem()== null){
             Snackbar.make(getView(), "Seleccione una Area", Snackbar.LENGTH_SHORT).show();
             return false;
         } else if(etName.getText().toString().trim().equals("")){
@@ -150,10 +154,10 @@ public class AreasDetailDialogFragment extends DialogFragment implements OnFailu
 
     public void SaveProductSubType(){
         try {
-            String code = UUID.randomUUID().toString();
+            String code =Funciones.generateCode();
             String name = etName.getText().toString();
-            int orden = areasDetailController.getNextOrden();
-            String codeProductType = ((KV)spnFamilia.getSelectedItem()).getKey();
+            int orden = etOrden.getText().toString().trim().equals("")?9999:Integer.parseInt(etOrden.getText().toString());
+            String codeProductType = ((KV)spnArea.getSelectedItem()).getKey();
             AreasDetail pst = new AreasDetail(code,codeProductType,name, orden);
             areasDetailController.sendToFireBase(pst);
             this.dismiss();
@@ -164,9 +168,11 @@ public class AreasDetailDialogFragment extends DialogFragment implements OnFailu
 
     public void EditProductSubType(){
         try {
-            AreasDetail pst = (AreasDetail)tempObj;
+            AreasDetail pst = tempObj;
+            int orden = etOrden.getText().toString().trim().equals("")?9999:Integer.parseInt(etOrden.getText().toString());
+            pst.setORDEN(orden);
             pst.setDESCRIPTION(etName.getText().toString());
-            pst.setCODEAREA(((KV)spnFamilia.getSelectedItem()).getKey());
+            pst.setCODEAREA(((KV)spnArea.getSelectedItem()).getKey());
             pst.setMDATE(null);
             areasDetailController.sendToFireBase(pst);
             this.dismiss();
@@ -179,11 +185,12 @@ public class AreasDetailDialogFragment extends DialogFragment implements OnFailu
     public void prepareForProductSubType(){
         setFamilia();
         etName.setText(tempObj.getDESCRIPTION());
+        etOrden.setText(tempObj.getORDEN()+"");
     }
     public void setFamilia(){
-        for(int i = 0; i< spnFamilia.getAdapter().getCount(); i++){
-            if(((KV)spnFamilia.getAdapter().getItem(i)).getKey().equals(tempObj.getCODEAREA())){
-                spnFamilia.setSelection(i);
+        for(int i = 0; i< spnArea.getAdapter().getCount(); i++){
+            if(((KV)spnArea.getAdapter().getItem(i)).getKey().equals(tempObj.getCODEAREA())){
+                spnArea.setSelection(i);
                 break;
             }
         }

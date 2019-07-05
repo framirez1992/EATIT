@@ -33,7 +33,7 @@ public class ProductSubTypeDialogFragment extends DialogFragment implements OnFa
     LinearLayout llFamilia;
     Spinner spnFamilia;
     LinearLayout llSave;
-    TextInputEditText etName;
+    TextInputEditText etName, etOrden;
     String type;
 
     ProductsSubTypesController productsSubTypesController;
@@ -107,6 +107,9 @@ public class ProductSubTypeDialogFragment extends DialogFragment implements OnFa
         spnFamilia = view.findViewById(R.id.spnFamilia);
         llSave = view.findViewById(R.id.llSave);
         etName = view.findViewById(R.id.etName);
+        etOrden = view.findViewById(R.id.etOrden);
+        view.findViewById(R.id.tilOrden).setVisibility(View.VISIBLE);
+
 
         if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
             ProductsTypesController.getInstance(getActivity()).fillSpinner(spnFamilia, false);
@@ -157,10 +160,10 @@ public class ProductSubTypeDialogFragment extends DialogFragment implements OnFa
 
     public void SaveProductSubType(){
         try {
-            String code = UUID.randomUUID().toString();
+            String code = Funciones.generateCode();
             String name = etName.getText().toString();
-            int orden = productsSubTypesController.getNextOrden();
             String codeProductType = ((KV)spnFamilia.getSelectedItem()).getKey();
+            int orden = (etOrden.getText().toString().trim().equals(""))?9999:Integer.parseInt(etOrden.getText().toString());
             ProductsSubTypes pst = new ProductsSubTypes(code,codeProductType,name, orden);
             if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
                 productsSubTypesController.sendToFireBase(pst);
@@ -176,10 +179,12 @@ public class ProductSubTypeDialogFragment extends DialogFragment implements OnFa
 
     public void EditProductSubType(){
         try {
-            ProductsSubTypes pst = (ProductsSubTypes)tempObj;
+            ProductsSubTypes pst = tempObj;
+            int orden = (etOrden.getText().toString().trim().equals(""))?9999:Integer.parseInt(etOrden.getText().toString());
             pst.setDESCRIPTION(etName.getText().toString());
             pst.setCODETYPE(((KV)spnFamilia.getSelectedItem()).getKey());
             pst.setMDATE(null);
+            pst.setORDEN(orden);
             if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
             productsSubTypesController.sendToFireBase(pst);
             }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
@@ -196,6 +201,7 @@ public class ProductSubTypeDialogFragment extends DialogFragment implements OnFa
     public void prepareForProductSubType(){
         setFamilia();
         etName.setText(tempObj.getDESCRIPTION());
+        etOrden.setText(tempObj.getORDEN()+"");
     }
     public void setFamilia(){
         for(int i = 0; i< spnFamilia.getAdapter().getCount(); i++){

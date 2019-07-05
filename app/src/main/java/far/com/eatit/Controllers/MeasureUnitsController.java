@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import far.com.eatit.Adapters.Models.EditSelectionRowModel;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.Adapters.Models.SimpleSeleccionRowModel;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
@@ -217,8 +218,8 @@ public class MeasureUnitsController {
      * @param campoOrder
      * @return
      */
-    public ArrayList<SimpleSeleccionRowModel> getUnitMeasuresSSRM(String where, String[] args, String campoOrder){
-        ArrayList<SimpleSeleccionRowModel> result = new ArrayList<>();
+    public ArrayList<EditSelectionRowModel> getUnitMeasuresSSRM(String where, String[] args, String campoOrder){
+        ArrayList<EditSelectionRowModel> result = new ArrayList<>();
         if(campoOrder == null){campoOrder = DESCRIPTION;}
         where=((where != null)? "WHERE "+where:"");
         try {
@@ -230,7 +231,7 @@ public class MeasureUnitsController {
             while(c.moveToNext()){
                 String code = c.getString(c.getColumnIndex("CODE"));
                 String name = c.getString(c.getColumnIndex("DESCRIPTION"));
-                result.add(new SimpleSeleccionRowModel(code,name ,false));
+                result.add(new EditSelectionRowModel(code,name ,"", false));
             }
         }catch(Exception e){
             e.printStackTrace();

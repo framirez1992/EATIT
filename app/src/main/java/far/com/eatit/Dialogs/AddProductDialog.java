@@ -149,7 +149,7 @@ public class AddProductDialog  extends DialogFragment {
     }
 
     public void saveOrderLine(){
-        String code = UUID.randomUUID().toString();
+        String code = Funciones.generateCode();
         String codeSale = ((MainOrders)getActivity()).getOrderCode();
         String codeProduct = tempObj.getCODE();
         String codeUnd =((KV)spnUnidad.getSelectedItem()).getKey();

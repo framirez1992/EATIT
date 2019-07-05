@@ -180,7 +180,7 @@ public class UserControlDialogFragment extends DialogFragment implements OnFailu
 
     public void SaveUserControl(){
         try {
-            String code = UUID.randomUUID().toString();
+            String code = Funciones.generateCode();
             String control = etControl.getText().toString();
             String target = ((KV)spnTarget.getSelectedItem()).getKey();
             String destiny = ((KV)spnDestiny.getSelectedItem()).getKey();

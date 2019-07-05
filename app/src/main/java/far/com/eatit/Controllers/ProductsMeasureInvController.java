@@ -70,6 +70,7 @@ public class ProductsMeasureInvController {
                         c.getString(c.getColumnIndex(CODE)),
                         c.getString(c.getColumnIndex(CODEPRODUCT)),
                         c.getString(c.getColumnIndex(CODEMEASURE)),
+                        0.0,
                         c.getString(c.getColumnIndex(DATE)),
                         c.getString(c.getColumnIndex(MDATE))));
 

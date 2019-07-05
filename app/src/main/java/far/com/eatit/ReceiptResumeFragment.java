@@ -53,7 +53,6 @@ public class ReceiptResumeFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 mainReceipt.closeOrders(currentOrders);
-
                 codeAreaDetail = null;
                 currentOrders = null;
                 mainReceipt.showReceiptFragment();

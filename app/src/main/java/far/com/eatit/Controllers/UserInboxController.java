@@ -313,7 +313,7 @@ public class UserInboxController{
                 String subject = c.getString(c.getColumnIndex("PRODUCT")) + " No disponible";
                 String msg = "El producto " + c.getString(c.getColumnIndex("PRODUCT")) + " se encuentra temporalmente desabilitado. Edite la orden";
                 String codeIcon = CODES.CODE_ICON_MESSAGE_ALERT;
-                userInboxes.add(new UserInbox(UUID.randomUUID().toString(),
+                userInboxes.add(new UserInbox(Funciones.generateCode(),
                         sender,
                         destiny,
                         msgID,

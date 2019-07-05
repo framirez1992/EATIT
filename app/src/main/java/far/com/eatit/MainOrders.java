@@ -393,7 +393,7 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
     public void prepareNewOrder(){
         tempOrdersController.delete(null, null);
         tempOrdersController.delete_Detail(null, null);
-        orderCode  = UUID.randomUUID().toString();
+        orderCode  = Funciones.generateCode();
         double totalDiscount = 0.0;
         double total = 0.0;
         String codeUser = Funciones.getCodeuserLogged(MainOrders.this);

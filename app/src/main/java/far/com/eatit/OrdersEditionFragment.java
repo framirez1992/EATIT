@@ -320,20 +320,20 @@ public class OrdersEditionFragment extends Fragment {
        if(sales.getSTATUS() == CODES.CODE_ORDER_STATUS_READY || sales.getSTATUS() == CODES.CODE_ORDER_STATUS_OPEN || sales.getSTATUS() == CODES.CODE_ORDER_STATUS_DELIVERED) {
            btnEditar.setVisibility(View.VISIBLE);
            btnAnular.setVisibility(View.VISIBLE);
-           btnCerrar.setVisibility((sales.getSTATUS() == CODES.CODE_ORDER_STATUS_DELIVERED)?View.VISIBLE:View.GONE);
+          // btnCerrar.setVisibility((sales.getSTATUS() == CODES.CODE_ORDER_STATUS_DELIVERED)?View.VISIBLE:View.GONE);
            btnEntregar.setVisibility((sales.getSTATUS() == CODES.CODE_ORDER_STATUS_READY)?View.VISIBLE:View.GONE);
 
        }else if(sales.getSTATUS() == CODES.CODE_ORDER_STATUS_CANCELED || sales.getSTATUS() == CODES.CODE_ORDER_STATUS_CLOSED ){
            btnEditar.setVisibility(View.GONE);
            btnAnular.setVisibility(View.GONE);
            btnEntregar.setVisibility(View.GONE);
-           btnCerrar.setVisibility(View.GONE);
+           //btnCerrar.setVisibility(View.GONE);
 
        }else {//En caso de que este nul o algo asi
            btnEditar.setVisibility(View.GONE);
            btnAnular.setVisibility(View.GONE);
            btnEntregar.setVisibility(View.GONE);
-           btnCerrar.setVisibility(View.GONE);
+          // btnCerrar.setVisibility(View.GONE);
        }
     }
 

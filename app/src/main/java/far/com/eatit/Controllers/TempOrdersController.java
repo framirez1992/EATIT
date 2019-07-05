@@ -255,7 +255,7 @@ public class TempOrdersController{
                 int lastIndex = -1;
                 for (String spl : ArraySplit) {
                     String codeSalesOrigen =originalSale.getCODE();
-                    String code = UUID.randomUUID().toString();
+                    String code = Funciones.generateCode();
                     String codeuser = originalSale.getCODEUSER();
                     String codeAreaDet = originalSale.getCODEAREADETAIL();
                     double totalDiscount = originalSale.getTOTALDISCOUNT();
@@ -382,5 +382,20 @@ public class TempOrdersController{
         }
     }
 
+    public double getSumPrice(){
+            double result = 0.0;
+             String sql = "SELECT  SUM("+DETAIL_PRICE+" * "+DETAIL_QUANTITY+") AS TOTAL " +
+                "FROM "+TABLE_NAME_DETAIL+" ";
+        try {
+            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
+            if(c.moveToFirst()){
+                result =c.getDouble(0);
+            }c.close();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
+        return result;
+    }
 
 }

@@ -190,7 +190,7 @@ public class AreasDetailController {
             where = "";
 
         if(campoOrderBy == null)
-            campoOrderBy=DESCRIPTION;
+            campoOrderBy="pst."+ORDER+" ASC, pst."+DESCRIPTION;
 
         try {
 

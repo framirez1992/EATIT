@@ -136,7 +136,7 @@ public class AreasDialogFragment  extends DialogFragment implements OnFailureLis
 
     public void SaveProductType(){
         try {
-            String code = UUID.randomUUID().toString();
+            String code = Funciones.generateCode();
             String name = etName.getText().toString();
             String valueOrden = etOrden.getText().toString().trim().equals("")?areasController.getNextOrden()+"":etOrden.getText().toString().trim();
             int orden = Integer.parseInt(valueOrden);

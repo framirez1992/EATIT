@@ -168,7 +168,7 @@ public class CloudFireStoreDB {
 
         ////////////////////////////////////////////////////////////////////////
         ////////  JERARQUIA DE LICENCIAS         //////////////////////////////
-        String client = UUID.randomUUID().toString();
+        String client =Funciones.generateCode();
         Licenses licencia = new Licenses(client,client ,/*Funciones.getFormatedDate()*/new Date(),Funciones.sumaDiasFecha(370), 0, 370, 5, true,true,new Date(),1);
 
         //creando documento con el key del nuevo cliente en la coleccion GENERAL_LICENSES
