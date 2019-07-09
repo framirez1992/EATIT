@@ -289,11 +289,13 @@ public class UsersController {
     }
 
     public boolean isAdmin(){
-       return getUserByCode(Funciones.getCodeuserLogged(context)).getSYSTEMCODE().equals(CODES.USER_SYSTEM_CODE_ADMIN);
+        Users u = getUserByCode(Funciones.getCodeuserLogged(context));
+       return u!= null && u.getSYSTEMCODE() != null && u.getSYSTEMCODE().equals(CODES.USER_SYSTEM_CODE_ADMIN);
     }
 
     public boolean isSuperUser(){
-        return getUserByCode(Funciones.getCodeuserLogged(context)).getSYSTEMCODE().equals(CODES.USER_SYSTEM_CODE_SU);
+        Users u = getUserByCode(Funciones.getCodeuserLogged(context));
+        return u != null && u.getSYSTEMCODE()!= null && u.getSYSTEMCODE().equals(CODES.USER_SYSTEM_CODE_SU);
     }
 
     public boolean isUserRole(String role){

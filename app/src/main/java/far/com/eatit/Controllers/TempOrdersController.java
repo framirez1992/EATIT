@@ -398,4 +398,18 @@ public class TempOrdersController{
         return result;
     }
 
+    public void updatePrices(){
+            String sql = "SELECT sd."+DETAIL_CODEPRODUCT+" as CODEPRODUCT, sd."+DETAIL_CODEUND+" as CODEUND, pm."+ProductsMeasureController.PRICE+" as PRICE " +
+                    "FROM "+TABLE_NAME_DETAIL+" sd " +
+                    "INNER JOIN "+ProductsMeasureController.TABLE_NAME+" pm on sd."+DETAIL_CODEPRODUCT+" = pm."+ProductsMeasureController.CODEPRODUCT+" " +
+                    "AND sd."+DETAIL_CODEUND+" = pm."+ProductsMeasureController.CODEMEASURE+" ";
+            Cursor c = sqlite.getReadableDatabase().rawQuery(sql,null);
+            while(c.moveToNext()){
+                ContentValues cv = new ContentValues();
+                cv.put(DETAIL_PRICE, c.getDouble(c.getColumnIndex("PRICE")));
+                        String where = DETAIL_CODEPRODUCT+" = ? AND "+DETAIL_CODEUND+" = ?";
+                sqlite.getWritableDatabase().update(TABLE_NAME_DETAIL,cv,where,new String[]{c.getString(c.getColumnIndex("CODEPRODUCT")), c.getString(c.getColumnIndex("CODEUND"))});
+            }c.close();
+    }
+
 }

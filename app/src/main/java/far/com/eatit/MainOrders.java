@@ -40,16 +40,20 @@ import java.security.Key;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import far.com.eatit.Adapters.Models.NotificationRowModel;
 import far.com.eatit.Adapters.Models.OrderDetailModel;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.Adapters.Models.WorkedOrdersRowModel;
 import far.com.eatit.CloudFireStoreObjects.Products;
+import far.com.eatit.CloudFireStoreObjects.ProductsMeasure;
 import far.com.eatit.CloudFireStoreObjects.Sales;
 import far.com.eatit.CloudFireStoreObjects.SalesDetails;
 import far.com.eatit.CloudFireStoreObjects.UserInbox;
 import far.com.eatit.Controllers.AreasController;
 import far.com.eatit.Controllers.ProductsController;
+import far.com.eatit.Controllers.ProductsMeasureController;
 import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Controllers.TempOrdersController;
 import far.com.eatit.Controllers.UserInboxController;
@@ -65,10 +69,12 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
 
     SalesController salesController;
     UserInboxController userInboxController;
+    ProductsMeasureController productsMeasureController;
 
     CollectionReference sales;
     CollectionReference salesDetails;
     CollectionReference userInbox;
+    CollectionReference productsMeasure;
 
     NewOrderFragment newOrderFragment;
     ResumenOrderFragment resumenOrderFragment;
@@ -99,10 +105,12 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
         tempOrdersController = TempOrdersController.getInstance(MainOrders.this);
         salesController = SalesController.getInstance(MainOrders.this);
         userInboxController = UserInboxController.getInstance(MainOrders.this);
+        productsMeasureController = ProductsMeasureController.getInstance(MainOrders.this);
 
         sales = salesController.getReferenceFireStore();
         salesDetails = salesController.getReferenceDetailFireStore();
         userInbox = userInboxController.getReferenceFireStore();
+        productsMeasure = productsMeasureController.getReferenceFireStore();
 
         rlNotifications = findViewById(R.id.rlNotifications);
         cvNotificacions = findViewById(R.id.cvNotifications);
@@ -210,8 +218,12 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
         super.onStart();
         sales.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
-            public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) { salesController.delete(null, null);
-                for(DocumentSnapshot dc: querySnapshot){
+            public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
+                if(querySnapshot == null || querySnapshot.isEmpty()){
+                    return;
+                }
+                salesController.delete(null, null);
+            for(DocumentSnapshot dc: querySnapshot){
                     Sales s = dc.toObject(Sales.class);
                     salesController.insert(s);
                 }
@@ -224,6 +236,10 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
         salesDetails.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
+                if(querySnapshot == null || querySnapshot.isEmpty()){
+                    return;
+                }
+
                 salesController.delete_Detail(null, null);
                 for(DocumentSnapshot dc: querySnapshot){
                     SalesDetails sd = dc.toObject(SalesDetails.class);
@@ -237,6 +253,10 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
         userInbox.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
+                if(querySnapshot == null || querySnapshot.isEmpty()){
+                    return;
+                }
+
                 userInboxController.delete(null, null);
                 for(DocumentSnapshot dc: querySnapshot){
                     UserInbox ui = dc.toObject(UserInbox.class);
@@ -246,6 +266,22 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
                 }
 
                 refreshInterface();
+            }
+        });
+
+        productsMeasure.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
+                if(querySnapshot == null || querySnapshot.isEmpty()){
+                    return;
+                }
+                productsMeasureController.delete(null, null);
+                for(DocumentSnapshot dc: querySnapshot){
+                    ProductsMeasure pm = dc.toObject(ProductsMeasure.class);
+                    productsMeasureController.insert(pm);
+                }
+
+                updateTempSalesDetail();
             }
         });
     }
@@ -522,6 +558,10 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
         ImageViewCompat.setImageTintList(imgSeach, ColorStateList.valueOf(getResources().getColor(android.R.color.white)));
         ImageViewCompat.setImageTintList(imgHideSearch, ColorStateList.valueOf(getResources().getColor(android.R.color.white)));
         ImageViewCompat.setImageTintList(imgBell, ColorStateList.valueOf(getResources().getColor(android.R.color.white)));
+    }
+
+    public void updateTempSalesDetail(){
+        TempOrdersController.getInstance(MainOrders.this).updatePrices();
     }
 
 }

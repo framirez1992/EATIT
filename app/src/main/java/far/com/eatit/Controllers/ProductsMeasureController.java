@@ -32,10 +32,10 @@ public class ProductsMeasureController {
 
     public static final String TABLE_NAME ="PRODUCTSMEASURE";
     public static  String CODE = "code", CODEPRODUCT = "codeproduct", CODEMEASURE = "codemeasure" ,PRICE="price",
-            DATE = "date", MDATE= "mdate";
-    private static String[] columns = new String[]{CODE, CODEPRODUCT, CODEMEASURE,PRICE, DATE, MDATE};
+            ENABLED = "enabled", DATE = "date", MDATE= "mdate";
+    private static String[] columns = new String[]{CODE, CODEPRODUCT, CODEMEASURE,PRICE,ENABLED, DATE, MDATE};
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+"("
-            +CODE+" TEXT, "+CODEPRODUCT+" TEXT, "+CODEMEASURE+" TEXT,"+PRICE+" DECIMAL, "+DATE+" TEXT," + MDATE+" TEXT)";
+            +CODE+" TEXT, "+CODEPRODUCT+" TEXT, "+CODEMEASURE+" TEXT,"+PRICE+" DECIMAL,"+ENABLED+" TEXT, "+DATE+" TEXT," + MDATE+" TEXT)";
     Context context;
     FirebaseFirestore db;
     private static  ProductsMeasureController instance;
@@ -61,8 +61,8 @@ public class ProductsMeasureController {
     }
 
     public ArrayList<ProductsMeasure>getProductsMeasureByCodeProduct(String codeProduct){
-        String where = CODEPRODUCT+" = ? ";
-        String[] args = new String[]{codeProduct};
+        String where = CODEPRODUCT+" = ? AND "+ENABLED+" = ?";
+        String[] args = new String[]{codeProduct, "1"};
         return  getProductsMeasure(where, args);
     }
     public ArrayList<ProductsMeasure>getProductsMeasure(String where, String[] args){
@@ -75,6 +75,7 @@ public class ProductsMeasureController {
                        c.getString(c.getColumnIndex(CODEPRODUCT)),
                        c.getString(c.getColumnIndex(CODEMEASURE)),
                        c.getDouble(c.getColumnIndex(PRICE)),
+                       c.getString(c.getColumnIndex(ENABLED)).equals("1"),
                        c.getString(c.getColumnIndex(DATE)),
                        c.getString(c.getColumnIndex(MDATE))));
 
@@ -92,8 +93,8 @@ public class ProductsMeasureController {
             String sql = "select um."+MeasureUnitsController.CODE+" as CODE, um."+MeasureUnitsController.DESCRIPTION+" as DESCRIPTION " +
                     "FROM "+MeasureUnitsController.TABLE_NAME+" um " +
                     "INNER JOIN "+TABLE_NAME+" pm on pm."+CODEMEASURE+" = um."+MeasureUnitsController.CODE+" "+
-                    "WHERE "+CODEPRODUCT+" = ?";
-            String[] args = new String[]{codeProduct};
+                    "WHERE "+CODEPRODUCT+" = ? AND "+ENABLED+" = ?";
+            String[] args = new String[]{codeProduct, "1"};
 
             Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql,args );
             while(c.moveToNext()){
@@ -113,6 +114,7 @@ public class ProductsMeasureController {
         cv.put(CODEPRODUCT,p.getCODEPRODUCT() );
         cv.put(CODEMEASURE,p.getCODEMEASURE());
         cv.put(PRICE,p.getPRICE());
+        cv.put(ENABLED, p.getENABLED());
         cv.put(DATE, Funciones.getFormatedDate(p.getDATE()));
         cv.put(MDATE, Funciones.getFormatedDate(p.getMDATE()));
 
@@ -126,6 +128,7 @@ public class ProductsMeasureController {
         cv.put(CODEPRODUCT,p.getCODEPRODUCT() );
         cv.put(CODEMEASURE,p.getCODEMEASURE());
         cv.put(PRICE,p.getPRICE());
+        cv.put(ENABLED, p.getENABLED());
         cv.put(DATE, Funciones.getFormatedDate(p.getDATE()));
         cv.put(MDATE, Funciones.getFormatedDate(p.getMDATE()));
 
@@ -141,16 +144,16 @@ public class ProductsMeasureController {
     public ArrayList<EditSelectionRowModel> getSSRMByCodeProduct(String codeProduct){
         ArrayList<EditSelectionRowModel> result = new ArrayList<>();
         try {
-            String sql = "SELECT pm." + CODEMEASURE + " AS CODE, mu." + MeasureUnitsController.DESCRIPTION + " AS DESCRIPTION, ifnull(pm."+PRICE+", 0.0) as PRICE " +
+            String sql = "SELECT pm." + CODEMEASURE + " AS CODE, mu." + MeasureUnitsController.DESCRIPTION + " AS DESCRIPTION, ifnull(pm."+PRICE+", 0.0) as PRICE, pm."+ENABLED+" AS ENABLED " +
                     "FROM " + TABLE_NAME + " pm " +
                     "INNER JOIN " + MeasureUnitsController.TABLE_NAME + " mu ON pm." + CODEMEASURE + " = mu." + MeasureUnitsController.CODE + " " +
-                    "WHERE pm." + CODEPRODUCT + " = ? ";
-            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, new String[]{codeProduct});
+                    "WHERE pm." + CODEPRODUCT + " = ? AND pm.ENABLED = ?";
+            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, new String[]{codeProduct, "1"});
             while (c.moveToNext()) {
                 result.add(new EditSelectionRowModel(c.getString(c.getColumnIndex("CODE")),
                         c.getString(c.getColumnIndex("DESCRIPTION")),
                         c.getString(c.getColumnIndex("PRICE")),
-                        true));
+                        c.getString(c.getColumnIndex("ENABLED")).equals("1")));
             }
         }catch(Exception e){
             e.printStackTrace();

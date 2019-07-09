@@ -55,7 +55,7 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
 
     ProductsController productsController;
     ProductsInvController productsInvController;
-    ArrayList<EditSelectionRowModel> selectedObjs = new ArrayList<>() ;
+    ArrayList<EditSelectionRowModel> selected = new ArrayList<>() ;
     boolean firstTime = true;
     String type;
 
@@ -146,7 +146,7 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
             @Override
             public void onClick(View v) {
                 llSave.setEnabled(false);
-                selectedObjs = ((EditSelectionRowAdapter)rvMeasures.getAdapter()).getSelectedObjects();
+                selected = ((EditSelectionRowAdapter)rvMeasures.getAdapter()).getSelectedObjects();
                 if(tempObj == null){
                     Save();
                 }else{
@@ -206,7 +206,7 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
         }else if(spnGroup.getSelectedItem()== null){
             Snackbar.make(getView(), "Seleccione un grupo.", Snackbar.LENGTH_SHORT).show();
             return false;
-        }else if(selectedObjs.size() == 0){
+        }else if(selected.size() == 0){
             Snackbar.make(getView(), "Seleccione por lo menos 1 unidad de medida", Snackbar.LENGTH_LONG).show();
             return false;
         }
@@ -233,8 +233,8 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
             Products product = new Products(code, description, productType, productSubType, false);
 
             ArrayList<ProductsMeasure> list = new ArrayList<>();
-            for(EditSelectionRowModel ssrm: selectedObjs){
-                list.add(new ProductsMeasure(Funciones.generateCode(), code, ssrm.getCode(),Double.parseDouble(ssrm.getText()), null, null));
+            for(EditSelectionRowModel ssrm: selected){
+               // list.add(new ProductsMeasure(Funciones.generateCode(), code, ssrm.getCode(),Double.parseDouble(ssrm.getText()), null, null));
             }
 
             if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
@@ -261,8 +261,8 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
             products.setMDATE(null);
 
             ArrayList<ProductsMeasure> list = new ArrayList<>();
-            for(EditSelectionRowModel ssrm: selectedObjs){
-                list.add(new ProductsMeasure(Funciones.generateCode(), products.getCODE(), ssrm.getCode(),Double.parseDouble(ssrm.getText()), null, null));
+            for(EditSelectionRowModel ssrm: selected){
+                list.add(new ProductsMeasure(Funciones.generateCode(), products.getCODE(), ssrm.getCode(),Double.parseDouble(ssrm.getText()),true, null, null));
             }
 
             if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
@@ -313,7 +313,7 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
 
         if(tempObj != null) {
             if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
-                selectedObjs.addAll(ProductsMeasureController.getInstance(getActivity()).getSSRMByCodeProduct(((Products) tempObj).getCODE()));
+                selected.addAll(ProductsMeasureController.getInstance(getActivity()).getSSRMByCodeProduct((tempObj).getCODE()));
             }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
                // selectedObjs.addAll(ProductsMeasureInvController.getInstance(getActivity()).getSSRMByCodeProduct(((Products) tempObj).getCODE()));
             }
@@ -325,7 +325,7 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
             //arr = MeasureUnitsInvController.getInstance(getActivity()).getUnitMeasuresSSRM(null, null, null);
         }
 
-        rvMeasures.setAdapter(new EditSelectionRowAdapter(getActivity(),arr, selectedObjs));
+        rvMeasures.setAdapter(new EditSelectionRowAdapter(getActivity(),arr, selected));
         rvMeasures.getAdapter().notifyDataSetChanged();
         rvMeasures.invalidate();
     }

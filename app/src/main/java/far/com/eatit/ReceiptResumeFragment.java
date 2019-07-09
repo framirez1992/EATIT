@@ -26,7 +26,6 @@ public class ReceiptResumeFragment extends Fragment {
 
     RecyclerView rvList;
     MainReceipt mainReceipt;
-    ArrayList<Sales> currentOrders;
     String codeAreaDetail;
     Button btnCollect;
 
@@ -52,9 +51,12 @@ public class ReceiptResumeFragment extends Fragment {
         btnCollect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainReceipt.closeOrders(currentOrders);
+                ArrayList<Sales> sales = SalesController.getInstance(mainReceipt).getDeliveredOrdersByCodeAreadetail(codeAreaDetail);
+                if(sales.size() == 0){
+                    return;
+                }
+                mainReceipt.closeOrders(sales);
                 codeAreaDetail = null;
-                currentOrders = null;
                 mainReceipt.showReceiptFragment();
             }
         });
@@ -67,7 +69,6 @@ public class ReceiptResumeFragment extends Fragment {
     }
     public void setCodeAreaDetail(String codeAreaDetail){
         this.codeAreaDetail = codeAreaDetail;
-        this.currentOrders = SalesController.getInstance(mainReceipt).getDeliveredOrdersByCodeAreadetail(codeAreaDetail);
     }
     public void refreshList(){
         ReceiptResumeAdapter adapter = new ReceiptResumeAdapter(mainReceipt, mainReceipt, SalesController.getInstance(mainReceipt).getOrderReceiptResume(codeAreaDetail));

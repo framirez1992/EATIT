@@ -15,12 +15,13 @@ public class ProductsMeasure {
         private String CODE, CODEPRODUCT,CODEMEASURE;
         private Double PRICE;
         private Date DATE, MDATE;
+        private Boolean ENABLED;
         public ProductsMeasure(){
 
         }
-        public ProductsMeasure(String code, String codeProduct, String codeMeasure,double price, String date, String mdate){
+        public ProductsMeasure(String code, String codeProduct, String codeMeasure,double price,boolean enabled, String date, String mdate){
             this.CODE = code; this.CODEPRODUCT = codeProduct; this.CODEMEASURE =codeMeasure;this.PRICE = price;
-            this.DATE = Funciones.parseStringToDate(date); this.MDATE = Funciones.parseStringToDate(mdate);
+            this.ENABLED = enabled;this.DATE = Funciones.parseStringToDate(date); this.MDATE = Funciones.parseStringToDate(mdate);
         }
 
         public HashMap<String, Object> toMap(){
@@ -29,6 +30,7 @@ public class ProductsMeasure {
             map.put(ProductsMeasureController.CODEPRODUCT, CODEPRODUCT);
             map.put(ProductsMeasureController.CODEMEASURE, CODEMEASURE);
             map.put(ProductsMeasureController.PRICE, PRICE);
+            map.put(ProductsMeasureController.ENABLED, ENABLED);
             map.put(ProductsMeasureController.DATE, (DATE == null)? FieldValue.serverTimestamp():DATE);
             map.put(ProductsMeasureController.MDATE,(MDATE == null)? FieldValue.serverTimestamp():MDATE);
 
@@ -81,5 +83,13 @@ public class ProductsMeasure {
 
     public void setPRICE(Double PRICE) {
         this.PRICE = PRICE;
+    }
+
+    public Boolean getENABLED() {
+        return ENABLED;
+    }
+
+    public void setENABLED(Boolean ENABLED) {
+        this.ENABLED = ENABLED;
     }
 }

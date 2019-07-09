@@ -161,8 +161,7 @@ public class ProductsController {
                     //COLOCANDO UNA UNIDAD DE MEDIDA POR DEFECTO A CADA PRODUCTO QUE VENGA EN EL QUERY. SI NO ESTA GUARDADO EN LA TABLA TEMPORAL TOMARA UNA UNIDAD CUALQUIERA DE LAS QUE EL PRODUCTO YA TIENE REGISTRADA.
                     "ifnull(toc."+TempOrdersController.DETAIL_CODEUND+", pmc."+ProductsMeasureController.CODEMEASURE+" ) as MEASURE," +
                     "ifnull(toc."+TempOrdersController.DETAIL_POSITION+", 0) as POSITION, pt."+ProductsTypesController.CODE+" as PTCODE, pt."+ProductsTypesController.DESCRIPTION+" as PTDESCRIPTION, " +
-                    "pst."+ProductsSubTypesController.CODE+" AS PSTCODE, pst."+ProductsSubTypesController.DESCRIPTION+" AS PSTDESCRIPTION, p."+MDATE+" AS MDATE, ifnull(pc."+ProductsControlController.BLOQUED+", 0) as BLOQUED, " +
-                    "pmc."+ProductsMeasureController.PRICE +" as PRICE "+
+                    "pst."+ProductsSubTypesController.CODE+" AS PSTCODE, pst."+ProductsSubTypesController.DESCRIPTION+" AS PSTDESCRIPTION, p."+MDATE+" AS MDATE, ifnull(pc."+ProductsControlController.BLOQUED+", 0) as BLOQUED " +
                     "FROM "+TABLE_NAME+" p " +
                     "INNER JOIN "+ProductsMeasureController.TABLE_NAME+" pmc on pmc."+ProductsMeasureController.CODEPRODUCT+" = p."+ProductsController.CODE+" "+
                     "INNER JOIN "+ProductsTypesController.TABLE_NAME+" pt ON pt."+ProductsTypesController.CODE+" = p."+TYPE+" "+
@@ -180,7 +179,6 @@ public class ProductsController {
                 String codeOrderdetail = c.getString(c.getColumnIndex("CODEORDERDETAIL"));
                 String code = c.getString(c.getColumnIndex("CODE"));
                 String desc = c.getString(c.getColumnIndex("DESCRIPTION"));
-                double price = c.getDouble(c.getColumnIndex("PRICE"));
                 String qty = String.valueOf(c.getInt(c.getColumnIndex("QUANTITY")));
                 String measure = c.getString(c.getColumnIndex("MEASURE"));
                 String position =  c.getString(c.getColumnIndex("POSITION"));
@@ -189,7 +187,6 @@ public class ProductsController {
                 result.add(new NewOrderProductModel(codeOrderdetail,
                         code,
                         desc,
-                        price,
                         qty,
                         measure,
                         blocked,
@@ -252,7 +249,44 @@ public class ProductsController {
 
             if (newMeasures != null && !newMeasures.isEmpty()){
 
-                ArrayList<ProductsMeasure> old = ProductsMeasureController.getInstance(context).getProductsMeasureByCodeProduct(product.getCODE());
+                String notIn=" NOT IN ('1'";
+                for(ProductsMeasure pm: newMeasures){
+                    String where = ProductsMeasureController.CODEMEASURE+" = ? AND "+ProductsMeasureController.CODEPRODUCT+" = ?";
+                    String[]args = new String[]{pm.getCODEMEASURE(), pm.getCODEPRODUCT()};
+                    ArrayList<ProductsMeasure> existingPM = ProductsMeasureController.getInstance(context).getProductsMeasure(where, args);
+
+                    if(existingPM.size() >0){//ACTUALIZAR
+                        pm.setCODE(existingPM.get(0).getCODE());//sustituye el codigo nuevo por el existente en la base de datos
+                        pm.setDATE(existingPM.get(0).getDATE());//permanecer la fecha de creacion.
+                        pm.setMDATE(null);
+
+                        //ENVIAR A FIRE BASE
+                        lote.update(ProductsMeasureController.getInstance(context).getReferenceFireStore().document(pm.getCODE()), pm.toMap());
+
+                        //ACTUALIZAR LOCAL
+                        where = ProductsMeasureController.CODE+" = ?";
+                        ProductsMeasureController.getInstance(context).update(pm,where, new String[]{pm.getCODE()});
+
+                        notIn+=",'"+pm.getCODE()+"'";
+                    }else{//INSERTAR
+                        lote.set(ProductsMeasureController.getInstance(context).getReferenceFireStore().document(pm.getCODE()), pm.toMap());
+                        ProductsMeasureController.getInstance(context).insert(pm);
+                    }
+                }
+
+                notIn+=")";
+                String where = ProductsMeasureController.CODEPRODUCT+" = ? AND "+ProductsMeasureController.ENABLED+" = ? AND  "+ProductsMeasureController.CODE+notIn;
+                ArrayList<ProductsMeasure> toDisable = ProductsMeasureController.getInstance(context).getProductsMeasure(where, new String[]{product.getCODE(), "1"});
+                for(ProductsMeasure pm: toDisable){
+                    pm.setENABLED(false);
+                    pm.setMDATE(null);
+                    where = ProductsMeasureController.CODE+" = ?";
+                    ProductsMeasureController.getInstance(context).update(pm,where, new String[]{pm.getCODE()});
+
+                    lote.update(ProductsMeasureController.getInstance(context).getReferenceFireStore().document(pm.getCODE()), pm.toMap());
+                }
+
+               /* ArrayList<ProductsMeasure> old = ProductsMeasureController.getInstance(context).getProductsMeasureByCodeProduct(product.getCODE());
                 ArrayList<ProductsMeasure> diferentes = ProductsMeasureController.getInstance(context).getdifference(old, newMeasures);
 
                 for(ProductsMeasure del: diferentes){//ELIMINANDO
@@ -266,7 +300,7 @@ public class ProductsController {
                         lote.update(ProductsMeasureController.getInstance(context).getReferenceFireStore().document(obj.getCODE()), obj.toMap());
                     }
 
-                }
+                }*/
             }
 
             lote.commit().addOnFailureListener(new OnFailureListener() {

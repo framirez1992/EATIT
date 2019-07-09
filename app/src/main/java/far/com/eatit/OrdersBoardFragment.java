@@ -33,6 +33,8 @@ import far.com.eatit.CloudFireStoreObjects.SalesDetails;
 import far.com.eatit.Controllers.LicenseController;
 import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Controllers.TableFilterController;
+import far.com.eatit.Controllers.UserControlController;
+import far.com.eatit.Controllers.UsersController;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Globales.Tablas;
 
@@ -80,7 +82,7 @@ public class OrdersBoardFragment extends Fragment {
     public void reloadList(){
 
         String where = " ("+SalesController.STATUS+" = "+ CODES.CODE_ORDER_STATUS_OPEN+" OR "+ SalesController.STATUS+" = "+ CODES.CODE_ORDER_STATUS_CANCELED+") ";
-        where += TableFilterController.getInstance(parentActivity).getConditionsByTableTask(Tablas.generalUsersSales, CODES.TABLE_FILTER_CODETASK_WORKORDER);
+        //where += TableFilterController.getInstance(parentActivity).getConditionsByTableTask(Tablas.generalUsersSales, CODES.TABLE_FILTER_CODETASK_WORKORDER);
 
         ArrayList<OrderModel> orders = salesController.getOrderModels(where);
         OrdersBoardAdapter adapter = new OrdersBoardAdapter(parentActivity,parentActivity, orders);

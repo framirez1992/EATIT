@@ -20,7 +20,9 @@ import java.util.UUID;
 import far.com.eatit.Adapters.Holders.NewOrderProductHolder;
 import far.com.eatit.Adapters.Models.NewOrderProductModel;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
+import far.com.eatit.CloudFireStoreObjects.ProductsMeasure;
 import far.com.eatit.CloudFireStoreObjects.SalesDetails;
+import far.com.eatit.Controllers.ProductsMeasureController;
 import far.com.eatit.Controllers.TempOrdersController;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Interfases.ListableActivity;
@@ -171,6 +173,9 @@ public class NewOrderProductRowAdapter extends RecyclerView.Adapter<NewOrderProd
 
 
     public void saveOrderLine(NewOrderProductModel opm){
+        ProductsMeasure pm = ProductsMeasureController.getInstance(activity).getProductsMeasure(ProductsMeasureController.CODEMEASURE+"=? AND "+ProductsMeasureController.CODEPRODUCT+" = ?",
+                new String[]{opm.getMeasure(), opm.getCodeProduct()})
+                .get(0);
         String code = Funciones.generateCode();
         String codeSale = ((MainOrders)activity).getOrderCode();
         String codeProduct = opm.getCodeProduct();
@@ -178,7 +183,7 @@ public class NewOrderProductRowAdapter extends RecyclerView.Adapter<NewOrderProd
         int position = Integer.parseInt(Funciones.getSimpleTimeFormat().format(new Date()));
         double quantity = Double.parseDouble(opm.getQuantity());
         double unit = 0;
-        double price =opm.getPrice();
+        double price =pm.getPRICE();
         double discount = 0;
         SalesDetails sd = new SalesDetails(code,codeSale, codeProduct, codeUnd, position, quantity, unit, price, discount);
         TempOrdersController.getInstance(activity).insert_Detail(sd);

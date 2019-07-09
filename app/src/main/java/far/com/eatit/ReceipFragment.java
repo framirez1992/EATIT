@@ -27,6 +27,7 @@ public class ReceipFragment extends Fragment {
     Spinner spnAreas, spnMesas;
     RecyclerView rvList;
     MainReceipt mainReceipt;
+    KV area, mesa;
 
     public ReceipFragment() {
         // Required empty public constructor
@@ -52,8 +53,8 @@ public class ReceipFragment extends Fragment {
         spnAreas.setOnItemSelectedListener(new  AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                KV value = (KV)parent.getSelectedItem();
-                AreasDetailController.getInstance(mainReceipt).fillSpinner(spnMesas,false, value.getKey());
+                area = (KV)parent.getSelectedItem();
+                AreasDetailController.getInstance(mainReceipt).fillSpinner(spnMesas,false, area.getKey());
             }
 
             @Override
@@ -65,8 +66,8 @@ public class ReceipFragment extends Fragment {
         spnMesas.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                KV value = (KV)parent.getSelectedItem();
-                refreshList(value.getKey());
+               mesa = (KV)parent.getSelectedItem();
+                refreshList();
             }
 
             @Override
@@ -80,9 +81,11 @@ public class ReceipFragment extends Fragment {
     public void setMainactivityReference(MainReceipt mainReceipt){
         this.mainReceipt = mainReceipt;
     }
-    public void refreshList(String mesaID){
-
-        OrdersReceipAdapter adapter = new OrdersReceipAdapter(mainReceipt, mainReceipt, SalesController.getInstance(getActivity()).getOrderReceipt(mesaID));
+    public void refreshList(){
+        if(mesa == null){
+            return;
+        }
+        OrdersReceipAdapter adapter = new OrdersReceipAdapter(mainReceipt, mainReceipt, SalesController.getInstance(getActivity()).getOrderReceipt(mesa.getKey()));
         rvList.setAdapter(adapter);
         rvList.getAdapter().notifyDataSetChanged();
         rvList.invalidate();

@@ -11,12 +11,11 @@ public class NewOrderProductModel {
     String quantity;
     String measure;
     boolean blocked;
-    double price;
     ArrayList<KV> measures;
 
-    public NewOrderProductModel(String codeOrderDetail, String codeProduct, String name,double price, String quantity, String measure,String bloqued, ArrayList<KV> measures){
+    public NewOrderProductModel(String codeOrderDetail, String codeProduct, String name, String quantity, String measure,String bloqued, ArrayList<KV> measures){
         this.codeOrderDetail = codeOrderDetail; this.codeProduct = codeProduct;
-        this.name = name;this.price = price; this.quantity = quantity; this.measure = measure;
+        this.name = name; this.quantity = quantity; this.measure = measure;
         this.measures = measures;this.blocked = (bloqued.equals("1"));
     }
 
@@ -76,11 +75,4 @@ public class NewOrderProductModel {
         this.blocked = blocked;
     }
 
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
-    }
 }
