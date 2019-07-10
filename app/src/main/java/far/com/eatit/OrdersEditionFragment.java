@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import far.com.eatit.Adapters.Models.OrderDetailModel;
+import far.com.eatit.Adapters.OrderDetailAdapter;
 import far.com.eatit.Adapters.OrdersBoardAdapter;
 import far.com.eatit.CloudFireStoreObjects.AreasDetail;
 import far.com.eatit.CloudFireStoreObjects.Sales;
@@ -52,7 +53,7 @@ public class OrdersEditionFragment extends Fragment {
 
     DialogFragment parent;
     Sales sales = null;
-    ListView rvList;
+    RecyclerView rvList;
     TextView tvOrderNumber,tvArea, tvMesa, tvTime, tvNotes;
     LinearLayout llEdition;
     Button btnCerrar, btnEntregar, btnEditar, btnAnular;
@@ -87,6 +88,7 @@ public class OrdersEditionFragment extends Fragment {
 
     public void init(View v){
         rvList = v.findViewById(R.id.rvList);
+        rvList.setLayoutManager(new LinearLayoutManager(parent.getContext()));
         tvOrderNumber = v.findViewById(R.id.tvOrderNumber);
         tvArea = v.findViewById(R.id.tvArea);
         tvMesa = v.findViewById(R.id.tvMesa);
@@ -166,7 +168,6 @@ public class OrdersEditionFragment extends Fragment {
             }
         });
 
-      //  rvList.setLayoutManager(new LinearLayoutManager(getActivity()));
     }
 
     public void setSales(Sales s){
@@ -182,17 +183,8 @@ public class OrdersEditionFragment extends Fragment {
             tvTime.setText("Listo hace " + Funciones.calcularMinutos(new Date(), sales.getMDATE()) + " Mins");
             tvNotes.setText("Notas: " + ((sales.getNOTES() != null) ? sales.getNOTES() : ""));
 
-            ArrayList<String> result = new ArrayList<>();
-            for (OrderDetailModel odm : SalesController.getInstance(getActivity()).getOrderDetailModels(sales.getCODE())) {
-                result.add(odm.getProduct_name());
-            }
-
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(parent.getActivity(), android.R.layout.simple_list_item_1, result);
-            //String where = SalesController.CODE + " = '" + s.getCODE() + "' ";
-            //OrdersBoardAdapter adapter = new OrdersBoardAdapter(getActivity(), (MainOrders)getActivity(),
-            //      SalesController.getInstance(getActivity()).getOrderModels(where));
+            OrderDetailAdapter adapter = new OrderDetailAdapter(parent.getActivity(),SalesController.getInstance(getActivity()).getOrderDetailModels(sales.getCODE()));
             rvList.setAdapter(adapter);
-            //rvList.getAdapter().notifyDataSetChanged();
             rvList.invalidate();
         }
 
@@ -308,9 +300,7 @@ public class OrdersEditionFragment extends Fragment {
         tvMesa.setText("");
         tvTime.setText("");
         tvNotes.setText("");
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, new ArrayList<String>());
-        rvList.setAdapter(adapter);
+        rvList.setAdapter(null);
         rvList.invalidate();
     }
 

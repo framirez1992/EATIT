@@ -102,6 +102,9 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
             Snackbar.make(findViewById(R.id.root), "Realize una carga inicial", Snackbar.LENGTH_LONG).show();
         }
 
+        if(Funciones.getPreferencesInt(Login.this, CODES.PREFERENCE_SCREEN_HEIGHT) <=0){
+            Funciones.saveScreenMetrics(Login.this);
+        }
     }
 
 

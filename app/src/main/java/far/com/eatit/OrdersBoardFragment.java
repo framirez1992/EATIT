@@ -44,10 +44,8 @@ import far.com.eatit.Globales.Tablas;
 public class OrdersBoardFragment extends Fragment {
 
     RecyclerView rvOrders;
-    LicenseController licenseController;
-    Licenses license;
     SalesController salesController;
-    int lastIndex = 0;
+
     public OrderBoard parentActivity;
 
     public OrdersBoardFragment() {

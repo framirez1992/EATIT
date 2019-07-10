@@ -67,9 +67,8 @@ public class OrderHolder extends RecyclerView.ViewHolder {
        if(gvOrderContent.getChildCount() > 0)
             gvOrderContent.removeAllViews();
 
-        gvOrderContent.removeAllViews();
         for(OrderDetailModel o: om.getDetail()){
-           TableRow tr = (TableRow) inflater.inflate(R.layout.line_order_card, gvOrderContent, false);
+           LinearLayout tr = (LinearLayout) inflater.inflate(R.layout.line_order_card, gvOrderContent, false);
            TextView tvProductName = tr.findViewById(R.id.tvDescription);
            EditText etQuantity = tr.findViewById(R.id.etQuantity);
 

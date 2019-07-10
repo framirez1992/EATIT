@@ -15,6 +15,7 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.telephony.SmsManager;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -333,10 +334,19 @@ public class Funciones {
         return code;
     }
 
-    public static void savePreferences(Context context, String key, String value){
+    public static void savePreferences(Context context, String key, Object value){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor edit = preferences.edit();
-        edit.putString(key, value);
+        if(value instanceof String){
+            edit.putString(key, String.valueOf(value));
+        }else if(value instanceof Integer){
+            edit.putInt(key, (Integer) value);
+        }else if(value instanceof Long){
+            edit.putLong(key, (Long) value);
+        }else if(value instanceof Boolean){
+            edit.putBoolean(key, (Boolean) value);
+        }
+
         edit.commit();
     }
 
@@ -351,6 +361,10 @@ public class Funciones {
     public static String getPreferences(Context context, String key){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
        return preferences.getString(key, "");
+    }
+    public static int getPreferencesInt(Context context, String key){
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return preferences.getInt(key, -1);
     }
 
     public static void clearPreference(Context context){
@@ -424,5 +438,15 @@ public class Funciones {
         String milliseconds = String.format("%03d", calendar.get(Calendar.MILLISECOND));
         String data = year+month+day+hour+minute+seconds+milliseconds;
         return data;
+    }
+
+    public static void saveScreenMetrics(Activity activity){
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        activity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int height = displayMetrics.heightPixels;
+        int width = displayMetrics.widthPixels;
+
+        savePreferences(activity,CODES.PREFERENCE_SCREEN_HEIGHT,height);
+        savePreferences(activity,CODES.PREFERENCE_SCREEN_WIDTH,width);
     }
 }

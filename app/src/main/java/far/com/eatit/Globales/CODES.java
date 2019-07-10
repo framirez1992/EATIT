@@ -61,6 +61,10 @@ public class CODES {
     public static final String PREFERENCE_LOGIN_BLOQUED = "LOGIN_BLOQUED";
     public static final String PREFERENCE_LOGIN_BLOQUED_REASON = "LOGIN_BLOQUED_REASON";
     public static final String PREFERENCE_LOGIN_BLOQUED_TOKEN_ATTEMPS = "LOGIN_BLOQUED_TOKEN_ATTEMPS";
+
+    //PANTALLA
+    public static final String PREFERENCE_SCREEN_HEIGHT = "SCREEN_HEIGHT";
+    public static final String PREFERENCE_SCREEN_WIDTH = "SCREEN_WIDTH";
     //PREFERENCES FIN
 
     //TABLAS Y TABLAS_CODE

@@ -514,7 +514,7 @@ public class SalesController {
                     "LEFT JOIN " + MeasureUnitsController.TABLE_NAME + " m on m." + MeasureUnitsController.CODE + " = sd." + DETAIL_CODEUND + " " +
                     "LEFT JOIN "+ProductsControlController.TABLE_NAME+" pc on pc."+ProductsControlController.CODEPRODUCT+ " = p." + ProductsController.CODE + " " +
                     "WHERE " + where+" " +
-                    "GROUP BY p."+ProductsController.CODE;
+                    "GROUP BY p."+ProductsController.CODE+", m."+MeasureUnitsController.CODE ;
             Cursor c = sqlite.getReadableDatabase().rawQuery(sql, null);
             while (c.moveToNext()) {
 
