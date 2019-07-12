@@ -11,12 +11,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
 import far.com.eatit.Adapters.ReceiptResumeAdapter;
+import far.com.eatit.CloudFireStoreObjects.Receipts;
 import far.com.eatit.CloudFireStoreObjects.Sales;
 import far.com.eatit.Controllers.SalesController;
+import far.com.eatit.Utils.Funciones;
 
 
 /**
@@ -28,6 +31,7 @@ public class ReceiptResumeFragment extends Fragment {
     MainReceipt mainReceipt;
     String codeAreaDetail;
     Button btnCollect;
+    TextView tvTotal, tvSubTotal, tvItbis;
 
     public ReceiptResumeFragment() {
         // Required empty public constructor
@@ -44,6 +48,10 @@ public class ReceiptResumeFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        tvTotal = view.findViewById(R.id.tvTotal);
+        tvSubTotal = view.findViewById(R.id.tvSubTotal);
+        tvItbis = view.findViewById(R.id.tvItbis);
+
         btnCollect = view.findViewById(R.id.btnCollect);
         rvList = view.findViewById(R.id.rvList);
         rvList.setLayoutManager(new LinearLayoutManager(mainReceipt));
@@ -55,7 +63,11 @@ public class ReceiptResumeFragment extends Fragment {
                 if(sales.size() == 0){
                     return;
                 }
-                mainReceipt.closeOrders(sales);
+                Receipts receipt = SalesController.getInstance(mainReceipt).getReceiptByCodeAreadetail(codeAreaDetail);
+                if(receipt == null){
+                    return;
+                }
+                mainReceipt.closeOrders(receipt, sales);
                 codeAreaDetail = null;
                 mainReceipt.showReceiptFragment();
             }
@@ -75,6 +87,13 @@ public class ReceiptResumeFragment extends Fragment {
         rvList.setAdapter(adapter);
         rvList.getAdapter().notifyDataSetChanged();
         rvList.invalidate();
+
+        Receipts receipt = SalesController.getInstance(mainReceipt).getReceiptByCodeAreadetail(codeAreaDetail);
+        if(receipt != null){
+            tvSubTotal.setText("$"+receipt.getSubTotal());
+            tvItbis.setText("$"+receipt.getTaxes());
+            tvTotal.setText("$"+receipt.getTotal());
+        }
 
     }
 }

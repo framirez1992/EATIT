@@ -268,4 +268,8 @@ public class ResumenOrderFragment extends Fragment {
         ((MainOrders)getActivity()).showMenu();
         ((MainOrders)getActivity()).refreshProductsSearch(0);
     }
+
+    public void setSelection(int pos){
+        rvList.scrollToPosition(pos);
+    }
 }

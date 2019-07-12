@@ -48,6 +48,7 @@ import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.Products;
 import far.com.eatit.CloudFireStoreObjects.ProductsControl;
 import far.com.eatit.CloudFireStoreObjects.ProductsTypes;
+import far.com.eatit.CloudFireStoreObjects.Receipts;
 import far.com.eatit.CloudFireStoreObjects.Sales;
 import far.com.eatit.CloudFireStoreObjects.SalesDetails;
 import far.com.eatit.CloudFireStoreObjects.UserControl;
@@ -63,8 +64,8 @@ public class SalesController {
     public static String TABLE_NAME_HISTORY = Tablas.generalUsersSalesHistory;
     public static String CODE = "code",STATUS = "status",NOTES = "notes", DATE = "date",MDATE = "mdate", TOTAL="total",TOTALDISCOUNT = "totaldiscount",
             CODEUSER = "codeuser",CODEAREADETAIL = "codeareadetail", CODEREASON = "codereason" , REASONDESCRIPTION = "reasondescription",
-            CODEPRODUCTTYPE = "codeproducttype", CODEPRODUCTSUBTYPE="codeproductsubtype", CODESALESORIGEN = "codesalesorigen" ;
-    String[]columns = new String[]{CODE,STATUS, NOTES, DATE, MDATE, TOTAL, TOTALDISCOUNT, CODEUSER,CODEAREADETAIL, CODEREASON, REASONDESCRIPTION, CODEPRODUCTTYPE, CODEPRODUCTSUBTYPE, CODESALESORIGEN};
+            CODEPRODUCTTYPE = "codeproducttype", CODEPRODUCTSUBTYPE="codeproductsubtype", CODESALESORIGEN = "codesalesorigen", CODERECEIPT = "codereceipt" ;
+    String[]columns = new String[]{CODE,STATUS, NOTES, DATE, MDATE, TOTAL, TOTALDISCOUNT, CODEUSER,CODEAREADETAIL, CODEREASON, REASONDESCRIPTION, CODEPRODUCTTYPE, CODEPRODUCTSUBTYPE, CODESALESORIGEN, CODERECEIPT};
 
     public static final String TABLE_NAME_DETAIL = Tablas.generalUsersSalesDetails;
     public static String TABLE_NAME_DETAIL_HISTORY = Tablas.generalUsersSalesDetailsHistory;
@@ -108,7 +109,7 @@ public class SalesController {
               String QUERY_CREATE = "CREATE TABLE "+((history)?TABLE_NAME_HISTORY:TABLE_NAME)+" ("
                 +CODE+" TEXT,"+STATUS+" TEXT,"+NOTES+" TEXT, "+DATE+" TEXT,"+MDATE+" TEXT, "+TOTAL+" DECIMAL(11, 3), "+TOTALDISCOUNT+" DECIMAL(11, 3), " +
                 CODEUSER+" TEXT,"+CODEAREADETAIL+" TEXT, "+CODEREASON+" TEXT, "+REASONDESCRIPTION+" TEXT, "+CODEPRODUCTTYPE+" TEXT, "+CODEPRODUCTSUBTYPE+" TEXT, " +
-                CODESALESORIGEN+" TEXT)";
+                CODESALESORIGEN+" TEXT,"+CODERECEIPT+" TEXT )";
               return QUERY_CREATE;
     }
 
@@ -234,6 +235,7 @@ public class SalesController {
         cv.put(CODEPRODUCTTYPE, s.getCODEPRODUCTTYPE());
         cv.put(CODEPRODUCTSUBTYPE, s.getCODEPRODUCTSUBTYPE());
         cv.put(CODESALESORIGEN, s.getCODEPRODUCTSUBTYPE());
+        cv.put(CODERECEIPT, s.getCODERECEIPT());
 
         long result = DB.getInstance(context).getWritableDatabase().insert(table,null,cv);
         return result;
@@ -261,6 +263,7 @@ public class SalesController {
         cv.put(CODEPRODUCTTYPE, s.getCODEPRODUCTTYPE());
         cv.put(CODEPRODUCTSUBTYPE, s.getCODEPRODUCTSUBTYPE());
         cv.put(CODESALESORIGEN, s.getCODEPRODUCTSUBTYPE());
+        cv.put(CODERECEIPT, s.getCODERECEIPT());
 
         String where = CODE+" = ? ";
         String table = (history)?TABLE_NAME_HISTORY:TABLE_NAME;
@@ -1251,14 +1254,15 @@ public class SalesController {
         ArrayList<ReceiptResumeModel> result = new ArrayList<>();
         String sql = "SELECT sd."+SalesController.DETAIL_CODEPRODUCT+" AS CODEPRODUCT, p."+ProductsController.DESCRIPTION+" AS  PRODUCTDESCRIPTION, " +
                 "sd."+SalesController.DETAIL_CODEUND+" AS CODEMEASURE, mu."+MeasureUnitsController.DESCRIPTION+" AS MEASUREDESCRIPTION, "+
-                "sd."+SalesController.DETAIL_QUANTITY+" AS QUANTITY, (sd."+SalesController.DETAIL_PRICE+" * SUM("+SalesController.DETAIL_QUANTITY+") ) AS SALESTOTAL "+
+                "SUM(sd."+SalesController.DETAIL_QUANTITY+") AS QUANTITY, SUM(sd."+SalesController.DETAIL_PRICE+" * "+SalesController.DETAIL_QUANTITY+" ) AS SALESTOTAL "+
                 "FROM "+SalesController.TABLE_NAME+" s " +
                 "INNER JOIN "+SalesController.TABLE_NAME_DETAIL+" sd on s."+SalesController.CODE+" = sd."+SalesController.DETAIL_CODESALES+" "+
                 "INNER JOIN "+ProductsController.TABLE_NAME+" p on p."+ProductsController.CODE+" = sd."+SalesController.DETAIL_CODEPRODUCT+" "+
                 "LEFT JOIN "+MeasureUnitsController.TABLE_NAME+" mu on mu."+MeasureUnitsController.CODE+" = sd."+SalesController.DETAIL_CODEUND+" "+
                 "INNER JOIN "+AreasDetailController.TABLE_NAME+" ad ON s."+CODEAREADETAIL+" = ad."+AreasDetailController.CODE+" " +
                 "WHERE s."+SalesController.STATUS+" = ? AND s."+SalesController.CODEAREADETAIL+" = ? " +
-                "GROUP BY sd."+SalesController.DETAIL_CODEPRODUCT+",sd."+SalesController.DETAIL_CODEUND+", p."+ProductsController.DESCRIPTION+",mu."+MeasureUnitsController.DESCRIPTION;
+                "GROUP BY sd."+SalesController.DETAIL_CODEPRODUCT+",sd."+SalesController.DETAIL_CODEUND+" " +
+                "ORDER BY p."+ProductsController.DESCRIPTION+",  mu."+MeasureUnitsController.DESCRIPTION;
 
         Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, new String[]{status, codeAreaDetail});
         while (c.moveToNext()){
@@ -1282,5 +1286,21 @@ public class SalesController {
             deliveredOrders.add(new Sales(c));
         }
         return deliveredOrders;
+    }
+
+
+    public Receipts getReceiptByCodeAreadetail(String codeAreaDetail){
+        Receipts receipt = null;
+        String where = "s."+SalesController.STATUS+" = ? AND s."+SalesController.CODEAREADETAIL+" = ? ";
+        String sql = "SELECT SUM(sd."+SalesController.DETAIL_PRICE+" * sd."+SalesController.DETAIL_QUANTITY+" ) AS TOTAL " +
+                "FROM "+SalesController.TABLE_NAME+" s " +
+                "INNER JOIN "+SalesController.TABLE_NAME_DETAIL+" sd on s."+SalesController.CODE+" = sd."+SalesController.DETAIL_CODESALES+" "+
+                " WHERE "+where;
+        Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql,new String[]{CODES.CODE_ORDER_STATUS_DELIVERED+"", codeAreaDetail});
+        if(c.moveToFirst()){
+            double total = c.getDouble(0);
+            receipt = new Receipts(Funciones.generateCode(),null,total,0.0,0.0,total);
+        }c.close();
+        return receipt;
     }
 }

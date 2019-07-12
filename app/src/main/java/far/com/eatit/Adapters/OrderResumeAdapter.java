@@ -80,7 +80,7 @@ public class OrderResumeAdapter extends RecyclerView.Adapter<OrderResumeHolder> 
                 }else{
                     objects.get(position).setQuantity(""+newQuantity);
                     sd.setQUANTITY(newQuantity);
-                    updateOrderLine(sd);
+                    updateOrderLine(sd, position);
                 }
 
             }
@@ -99,7 +99,7 @@ public class OrderResumeAdapter extends RecyclerView.Adapter<OrderResumeHolder> 
                 double newQuantity = sd.getQUANTITY() + 1;
                 if(newQuantity > 0){
                     sd.setQUANTITY(newQuantity);
-                    updateOrderLine(sd);
+                    updateOrderLine(sd, position);
                 }
             }
         });
@@ -120,7 +120,7 @@ public class OrderResumeAdapter extends RecyclerView.Adapter<OrderResumeHolder> 
 
                 sd.setCODEUND(newMeasure);
                 objects.get(position).setCodeMeasure(newMeasure);
-                updateOrderLine(sd);
+                updateOrderLine(sd, position);
 
 
             }
@@ -160,22 +160,13 @@ public class OrderResumeAdapter extends RecyclerView.Adapter<OrderResumeHolder> 
 
     }
 
-    public void updateOrderLine(SalesDetails sd){
-       /* String code = sd.getCODE();
-        String codeSale = sd.getCODESALES();
-        String codeProduct = sd.getCODEPRODUCT();
-        String codeUnd = sd.getCODEUND();
-        int position = sd.getPOSITION();
-        double quantity = Double.parseDouble(opm.getQuantity());
-        double unit = sd.getUNIT();
-        double price =sd.getPRICE();
-        double discount = sd.getDISCOUNT();
-        SalesDetails sd2 = new SalesDetails(code,codeSale, codeProduct, codeUnd, position, quantity, unit, price, discount);
-        */
+    public void updateOrderLine(SalesDetails sd, int lastPos){
         sd.setPOSITION(Integer.parseInt(Funciones.getSimpleTimeFormat().format(new Date())));
         TempOrdersController.getInstance(activity).update_Detail(sd);
 
+
         ((MainOrders)activity).refreshResume();
+        ((MainOrders)activity).setResumeSelection(lastPos);
         ((MainOrders)activity).refreshProductsSearch(0);
     }
 

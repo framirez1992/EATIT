@@ -358,4 +358,31 @@ public class UserInboxController{
         uiArray.add(ui);
         sendToFireBase(uiArray);
     }
+
+    public void deleteOldReadedMessages(){
+        ArrayList<UserInbox> list = new ArrayList<>();
+        String lastDate ="";
+        String sql = "Select "+DATE+" " +
+                "FROM "+TABLE_NAME+" " +
+                "ORDER BY "+DATE+" DESC " +
+                "LIMIT 1";
+        Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
+        if(c.moveToFirst()){
+            lastDate = c.getString(0);
+        }c.close();
+        if(!lastDate.isEmpty()){
+            lastDate = lastDate.substring(0,4)+"-"+lastDate.substring(4,6)+"-"+lastDate.substring(6);
+            String date = "substr("+DATE+", 0,5)||'-'||substr("+DATE+", 5,2)||'-'||substr("+DATE+", 7,length("+DATE+"))";
+            String where = "Cast ((JulianDay('"+lastDate+"') - JulianDay("+date+")) * 24 As Integer) > ? AND "+STATUS+" = ? " +
+                    "AND ("+CODESENDER+" = ? OR "+CODEUSER+" = ? )";
+            c = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME,columns,where, new String[]{"1", CODES.CODE_USERINBOX_STATUS_READ+"", Funciones.getCodeuserLogged(context), Funciones.getCodeuserLogged(context)},null,null,DATE);
+            while(c.moveToNext()){
+                list.add(new UserInbox(c));
+            }c.close();
+
+        }
+
+       massiveDelete(list);
+
+    }
 }

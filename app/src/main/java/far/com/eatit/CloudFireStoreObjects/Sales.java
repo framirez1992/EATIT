@@ -19,7 +19,7 @@ import far.com.eatit.Utils.Funciones;
 
 @IgnoreExtraProperties
 public class Sales {
-    private String CODE, NOTES, CODEUSER,CODEAREADETAIL, CODEREASON, REASONDESCRIPTION, CODEPRODUCTTYPE, CODEPRODUCTSUBTYPE, CODESALESORIGEN;
+    private String CODE, NOTES, CODEUSER,CODEAREADETAIL, CODEREASON, REASONDESCRIPTION, CODEPRODUCTTYPE, CODEPRODUCTSUBTYPE, CODESALESORIGEN, CODERECEIPT;
     private int STATUS;
     private double TOTALDISCOUNT, TOTAL;
     private @ServerTimestamp Date DATE, MDATE;
@@ -29,11 +29,11 @@ public class Sales {
 
     }
 
-    public Sales(String code,String codeuser,String codeAreaDetail, double totalDiscount, double total, int status, String notes, String codeReason, String reasonDescription, String codeProductType, String codeProductSubType, String codeSalesOrigen){
+    public Sales(String code,String codeuser,String codeAreaDetail, double totalDiscount, double total, int status, String notes, String codeReason, String reasonDescription, String codeProductType, String codeProductSubType, String codeSalesOrigen, String codeReceipt){
         this.CODE = code; this.TOTALDISCOUNT = totalDiscount;this.TOTAL = total;this.STATUS = status;
         this.NOTES = notes;this.CODEUSER = codeuser; this.CODEREASON = codeReason; this.REASONDESCRIPTION = reasonDescription;
         this.CODEAREADETAIL = codeAreaDetail;this.CODEPRODUCTTYPE = codeProductType; this.CODEPRODUCTSUBTYPE = codeProductSubType;
-        this.CODESALESORIGEN = codeSalesOrigen;
+        this.CODESALESORIGEN = codeSalesOrigen;this.CODERECEIPT = codeReceipt;
     }
     public Sales(Cursor c){
         this.CODE = c.getString(c.getColumnIndex(SalesController.CODE));
@@ -50,6 +50,7 @@ public class Sales {
         this.CODEPRODUCTTYPE = c.getString(c.getColumnIndex(SalesController.CODEPRODUCTTYPE));
         this.CODEPRODUCTSUBTYPE = c.getString(c.getColumnIndex(SalesController.CODEPRODUCTSUBTYPE));
         this.CODESALESORIGEN = c.getString(c.getColumnIndex(SalesController.CODESALESORIGEN));
+        this.CODERECEIPT = c.getString(c.getColumnIndex(SalesController.CODERECEIPT));
     }
 
 
@@ -70,6 +71,7 @@ public class Sales {
         data.put(SalesController.CODEPRODUCTTYPE, CODEPRODUCTTYPE);
         data.put(SalesController.CODEPRODUCTSUBTYPE, CODEPRODUCTSUBTYPE);
         data.put(SalesController.CODESALESORIGEN, CODESALESORIGEN);
+        data.put(SalesController.CODERECEIPT, CODERECEIPT);
         if(salesdetails != null){
         data.put("salesdetails", salesdetails);
         }
@@ -188,6 +190,14 @@ public class Sales {
 
     public void setCODESALESORIGEN(String CODESALESORIGEN) {
         this.CODESALESORIGEN = CODESALESORIGEN;
+    }
+
+    public String getCODERECEIPT() {
+        return CODERECEIPT;
+    }
+
+    public void setCODERECEIPT(String CODERECEIPT) {
+        this.CODERECEIPT = CODERECEIPT;
     }
 
     public void setDetails(ArrayList<SalesDetails> details){

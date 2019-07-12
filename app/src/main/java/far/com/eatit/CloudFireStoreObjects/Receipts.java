@@ -1,8 +1,25 @@
 package far.com.eatit.CloudFireStoreObjects;
 
+import android.database.Cursor;
+
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.ServerTimestamp;
+
+import java.util.Date;
+import java.util.HashMap;
+
+import far.com.eatit.Controllers.ReceiptController;
+import far.com.eatit.Utils.Funciones;
+
 public class Receipts {
     String code,ncf;
     double subTotal, taxes, discount, total;
+    private @ServerTimestamp
+    Date date, mdate;
+
+    public Receipts(){
+
+    }
     public Receipts(String code, String ncf, double subTotal, double taxes, double discount, double total){
         this.code = code;
         this.ncf = ncf;
@@ -10,6 +27,34 @@ public class Receipts {
         this.taxes = taxes;
         this.discount = discount;
         this.total = total;
+    }
+
+    public Receipts(Cursor c){
+        this.code = c.getString(c.getColumnIndex(ReceiptController.CODE));
+        this.ncf = c.getString(c.getColumnIndex(ReceiptController.NCF));
+        this.subTotal = c.getDouble(c.getColumnIndex(ReceiptController.SUBTOTAL));
+        this.taxes = c.getDouble(c.getColumnIndex(ReceiptController.TAXES));
+        this.discount = c.getDouble(c.getColumnIndex(ReceiptController.DISCOUNT));
+        this.date = Funciones.parseStringToDate(c.getString(c.getColumnIndex(ReceiptController.DATE)));
+        this.mdate = Funciones.parseStringToDate(c.getString(c.getColumnIndex(ReceiptController.MDATE)));
+    }
+
+
+    public HashMap<String, Object> toMap(){
+
+        HashMap<String, Object> data = new HashMap<>();
+        data.put(ReceiptController.CODE,code);
+        data.put(ReceiptController.NCF,ncf);
+        data.put(ReceiptController.SUBTOTAL, subTotal);
+        data.put(ReceiptController.TAXES, taxes);
+        data.put(ReceiptController.DISCOUNT, discount);
+        data.put(ReceiptController.TOTAL, total);
+        data.put(ReceiptController.DATE, (date == null)? FieldValue.serverTimestamp(): date);
+        data.put(ReceiptController.MDATE, (mdate == null)? FieldValue.serverTimestamp():mdate);
+
+
+        return  data;
+
     }
 
     public String getCode() {
@@ -58,5 +103,21 @@ public class Receipts {
 
     public void setTotal(double total) {
         this.total = total;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public Date getMdate() {
+        return mdate;
+    }
+
+    public void setMdate(Date mdate) {
+        this.mdate = mdate;
     }
 }

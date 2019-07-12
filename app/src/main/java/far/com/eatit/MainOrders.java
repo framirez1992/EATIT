@@ -265,6 +265,7 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
                     }
                 }
 
+                userInboxController.deleteOldReadedMessages();
                 refreshInterface();
             }
         });
@@ -317,9 +318,7 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
 
          if (id == R.id.openOrders) {
             callWorkedOrdersDialog();
-        }else if (id == R.id.nav_gallery) {
-             // goToOrders();
-         }
+        }
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -331,7 +330,7 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
         // Save UI state changes to the savedInstanceState.
         // This bundle will be passed to onCreate if the process is
         // killed and restarted.
-        savedInstanceState.putString(KEY_ORDERCODE, orderCode);
+        savedInstanceState .putString(KEY_ORDERCODE, orderCode);
 
     }
 
@@ -370,7 +369,6 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
         }else if(obj instanceof WorkedOrdersRowModel){
             workedOrdersDialog.showDetail((WorkedOrdersRowModel) obj);
         }
-
     }
 
     public void callAddDialog(Object object){
@@ -434,7 +432,7 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
         double total = 0.0;
         String codeUser = Funciones.getCodeuserLogged(MainOrders.this);
 
-        Sales s = new Sales(orderCode,codeUser,null, totalDiscount, total, CODES.CODE_ORDER_STATUS_OPEN,"", null, null, null, null, orderCode);
+        Sales s = new Sales(orderCode,codeUser,null, totalDiscount, total, CODES.CODE_ORDER_STATUS_OPEN,"", null, null, null, null, orderCode, null);
         tempOrdersController.insert(s);//
     }
 
@@ -453,6 +451,10 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
     public void refreshProductsSearch(int goToPosition){
         newOrderFragment.search();
         newOrderFragment.setSelection(goToPosition);
+    }
+
+    public void setResumeSelection(int pos){
+        resumenOrderFragment.setSelection(pos);
     }
 
     public void notityOrdersReady(){

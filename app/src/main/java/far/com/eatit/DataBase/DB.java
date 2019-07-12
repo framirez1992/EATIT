@@ -25,6 +25,7 @@ import far.com.eatit.Controllers.ProductsSubTypesController;
 import far.com.eatit.Controllers.ProductsSubTypesInvController;
 import far.com.eatit.Controllers.ProductsTypesController;
 import far.com.eatit.Controllers.ProductsTypesInvController;
+import far.com.eatit.Controllers.ReceiptController;
 import far.com.eatit.Controllers.RolesController;
 import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Controllers.StoreHouseController;
@@ -74,6 +75,7 @@ public class DB extends SQLiteOpenHelper {
             db.execSQL(ProductsTypesInvController.QUERY_CREATE);
             db.execSQL(ProductsSubTypesController.QUERY_CREATE);
             db.execSQL(ProductsSubTypesInvController.QUERY_CREATE);
+            db.execSQL(ReceiptController.QUERY_CREATE);
             db.execSQL(SalesController.getQueryCreateSales());
             db.execSQL(SalesController.getQueryCreateSalesDetail());
             db.execSQL(SalesController.getQueryCreateSalesHistory());

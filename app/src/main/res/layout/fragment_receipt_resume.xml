@@ -38,7 +38,8 @@
                 android:layout_weight="1"
                 android:text="Sub Total" />
 
-            <TextView android:layout_width="0dp"
+            <TextView android:id="@+id/tvSubTotal"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="0.00"
@@ -52,7 +53,8 @@
                 android:layout_weight="1"
                 android:text="Itbis" />
 
-            <TextView android:layout_width="0dp"
+            <TextView android:id="@+id/tvItbis"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="0.00"
@@ -68,7 +70,8 @@
                 android:text="Total"
                 android:textStyle="bold"/>
 
-            <TextView android:layout_width="0dp"
+            <TextView android:id="@+id/tvTotal"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="0.00"

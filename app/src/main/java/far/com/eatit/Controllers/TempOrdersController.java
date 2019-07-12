@@ -20,15 +20,15 @@ import far.com.eatit.Utils.Funciones;
 
 public class TempOrdersController{
         public static String TABLE_NAME = Tablas.tempOrders;
-    String[]columns = new String[]{CODE,STATUS, NOTES, DATE, MDATE, TOTAL, TOTALDISCOUNT, CODEUSER,CODEAREADETAIL, CODEREASON, REASONDESCRIPTION, CODEPRODUCTTYPE, CODEPRODUCTSUBTYPE, CODESALESORIGEN};
+    String[]columns = new String[]{CODE,STATUS, NOTES, DATE, MDATE, TOTAL, TOTALDISCOUNT, CODEUSER,CODEAREADETAIL, CODEREASON, REASONDESCRIPTION, CODEPRODUCTTYPE, CODEPRODUCTSUBTYPE, CODESALESORIGEN, CODERECEIPT};
 
     public static String CODE = "code",STATUS = "status",NOTES = "notes", DATE = "date",MDATE = "mdate", TOTAL="total",TOTALDISCOUNT = "totaldiscount",
             CODEUSER = "codeuser",CODEAREADETAIL = "codeareadetail", CODEREASON = "codereason" , REASONDESCRIPTION = "reasondescription",
-            CODEPRODUCTTYPE = "codeproducttype", CODEPRODUCTSUBTYPE="codeproductsubtype", CODESALESORIGEN = "codesalesorigen" ;
+            CODEPRODUCTTYPE = "codeproducttype", CODEPRODUCTSUBTYPE="codeproductsubtype", CODESALESORIGEN = "codesalesorigen", CODERECEIPT = "codereceipt" ;
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+" ("
             +CODE+" TEXT,"+STATUS+" TEXT,"+NOTES+" TEXT, "+DATE+" TEXT,"+MDATE+" TEXT, "+TOTAL+" DECIMAL(11, 3), "+TOTALDISCOUNT+" DECIMAL(11, 3), " +
             CODEUSER+" TEXT,"+CODEAREADETAIL+" TEXT, "+CODEREASON+" TEXT, "+REASONDESCRIPTION+" TEXT, "+CODEPRODUCTTYPE+" TEXT, "+CODEPRODUCTSUBTYPE+" TEXT, " +
-            CODESALESORIGEN+" TEXT)";
+            CODESALESORIGEN+" TEXT, "+CODERECEIPT+" TEXT)";
 
     public static String TABLE_NAME_DETAIL = Tablas.tempOrdersDetails;
     String[]columnsDetails = new String[]{DETAIL_CODE,DETAIL_CODESALES, DETAIL_CODEPRODUCT,DETAIL_CODEUND,DETAIL_DISCOUNT,DETAIL_POSITION,DETAIL_QUANTITY,DETAIL_UNIT,DETAIL_PRICE, DATE, MDATE};
@@ -71,6 +71,7 @@ public class TempOrdersController{
             cv.put(CODEPRODUCTTYPE, s.getCODEPRODUCTTYPE());
             cv.put(CODEPRODUCTSUBTYPE, s.getCODEPRODUCTSUBTYPE());
             cv.put(CODESALESORIGEN, s.getCODEPRODUCTSUBTYPE());
+            cv.put(CODERECEIPT, s.getCODERECEIPT());
 
             long result = DB.getInstance(context).getWritableDatabase().insert(TABLE_NAME,null,cv);
             return result;
@@ -92,7 +93,7 @@ public class TempOrdersController{
             cv.put(CODEPRODUCTTYPE, s.getCODEPRODUCTTYPE());
             cv.put(CODEPRODUCTSUBTYPE, s.getCODEPRODUCTSUBTYPE());
             cv.put(CODESALESORIGEN, s.getCODESALESORIGEN());
-
+            cv.put(CODERECEIPT, s.getCODERECEIPT());
 
             long result = DB.getInstance(context).getWritableDatabase().update(TABLE_NAME,cv,where, args );
             return result;
@@ -268,7 +269,7 @@ public class TempOrdersController{
                     String codeProductSubType = (splitBy.equals(CODES.VAL_USERCONTROL_ORDERSPLITTYPE_GROUP))?spl: null;
 
 
-                    Sales s = new Sales(code, codeuser, codeAreaDet, totalDiscount, total, status, note, codeReason, reasonDescription, codeProductType, codeProductSubType,codeSalesOrigen );
+                    Sales s = new Sales(code, codeuser, codeAreaDet, totalDiscount, total, status, note, codeReason, reasonDescription, codeProductType, codeProductSubType,codeSalesOrigen, null );
                     sales.add(s);
                     c.moveToPosition(lastIndex);
                     while (c.moveToNext()) {

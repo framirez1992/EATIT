@@ -18,8 +18,10 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 
 import far.com.eatit.Adapters.Models.OrderReceiptModel;
+import far.com.eatit.CloudFireStoreObjects.Receipts;
 import far.com.eatit.CloudFireStoreObjects.Sales;
 import far.com.eatit.CloudFireStoreObjects.SalesDetails;
+import far.com.eatit.Controllers.ReceiptController;
 import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Interfases.ListableActivity;
@@ -113,11 +115,13 @@ public class MainReceipt extends AppCompatActivity implements ListableActivity {
         showReceiptResumeFragment();
     }
 
-    public void closeOrders(ArrayList<Sales> deliveredSales){
+    public void closeOrders(Receipts receipt, ArrayList<Sales> deliveredSales){
+
         if(deliveredSales != null && deliveredSales.size() > 0) {
 
             for(Sales sales : deliveredSales){
             sales.setSTATUS(CODES.CODE_ORDER_STATUS_CLOSED);
+            sales.setCODERECEIPT(receipt.getCode());
             sales.setMDATE(null);//actualizar fecha de ultima actualizacion.
 
 
@@ -138,6 +142,11 @@ public class MainReceipt extends AppCompatActivity implements ListableActivity {
             //////////  ELIMINANDOLA EN EL MOVIL   ///////////////////////////
             SalesController.getInstance(MainReceipt.this).deleteHeadDetail(sales);//esto es porque la lista se actualizara antes de que el server retorne la actualizacion.
             //////////////////////////////////////////////////////////////////
+
+            //////////////////////////////////////////////////////////////////
+            //////////  GUARDANDO RECIBO          ////////////////////////////
+            ReceiptController.getInstance(MainReceipt.this).sendToFireBase(receipt);
+            /////////////////////////////////////////////////////////////////
 
         }
         }

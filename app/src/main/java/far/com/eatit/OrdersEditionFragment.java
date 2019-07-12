@@ -256,11 +256,19 @@ public class OrdersEditionFragment extends Fragment {
 
     public void anularOrden(KV motivo){
         if(sales!= null){
+            boolean wasOpen = sales.getSTATUS() == CODES.CODE_ORDER_STATUS_OPEN;//INDICA SI LA ORDEN AUN ESTABA ABIERTA CUANDO LA ANULARON
+
             sales.setSTATUS(CODES.CODE_ORDER_STATUS_CANCELED);
             sales.setCODEREASON(motivo.getKey());
             sales.setREASONDESCRIPTION(motivo.getValue());
 
-            SalesController.getInstance(getActivity()).sendToFireBase(sales);
+            /////////////////////////////////////////////////////////////////
+            ////////   ELIMINANDO DE LA TABLA SALES           //////////////
+            //SalesController.getInstance(getActivity()).sendToFireBase(sales);
+            ArrayList<Sales> del = new ArrayList<>();
+            del.add(sales);
+            SalesController.getInstance(getActivity()).massiveDelete(del);
+            ////////////////////////////////////////////////////////////////
 
             ///////////////////////////////////////////////////////////////////
             ///////////   ENVIANDO AL HISTORICO     ///////////////////////////
@@ -269,14 +277,16 @@ public class OrdersEditionFragment extends Fragment {
             SalesController.getInstance(parent.getContext()).sendToHistory(s);
             ///////////////////////////////////////////////////////////////////
 
-             String where = UserInboxController.CODEMESSAGE+" = ? AND "+UserInboxController.STATUS+" = ?";
-             String[]args = new String[]{sales.getCODE(), CODES.CODE_USERINBOX_STATUS_NO_READ+""};
-            ArrayList<UserInbox> inbox = UserInboxController.getInstance(parent.getContext()).getUserInbox(where, args, null);
-            if(inbox != null && inbox.size() > 0){
-                for(UserInbox ui: inbox){
-                    UserInboxController.getInstance(parent.getContext()).update(ui);
-                }
-                UserInboxController.getInstance(parent.getContext()).sendToFireBase(inbox);
+            if(wasOpen) {
+               /* String where = UserInboxController.CODEMESSAGE + " = ? AND " + UserInboxController.STATUS + " = ?";
+                String[] args = new String[]{sales.getCODE(), CODES.CODE_USERINBOX_STATUS_NO_READ + ""};
+                ArrayList<UserInbox> inbox = UserInboxController.getInstance(parent.getContext()).getUserInbox(where, args, null);
+                if (inbox != null && inbox.size() > 0) {
+                    for (UserInbox ui : inbox) {
+                        UserInboxController.getInstance(parent.getContext()).update(ui);
+                    }
+                    UserInboxController.getInstance(parent.getContext()).sendToFireBase(inbox);
+                }*/
             }
 
 

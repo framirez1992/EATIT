@@ -26,6 +26,8 @@ public class Tablas {
     public static final String generalUsersProductsTypesInv = "ProductsTypesInv";
     public static final String generalUsersProductsSubTypes = "ProductsSubTypes";
     public static final String generalUsersProductsSubTypesInv = "ProductsSubTypesInv";
+    public static final String generalUsersReceipts = "Receipts";
+    public static final String generalUsersReceiptsHistory = "ReceiptsHistory";
     public static final String generalUsersSales = "Sales";
     public static final String generalUsersSalesDetails = "SalesDetails";
     public static final String generalUsersSalesHistory = "SalesHistory";
