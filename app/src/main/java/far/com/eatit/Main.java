@@ -221,6 +221,8 @@ public class Main extends AppCompatActivity
 
         } else if(id == R.id.goReceip){
             goToReceipts();
+        }else if(id == R.id.goSavedReceipts){
+            goToSavedReceipts();
         } else  {
             changeModule(id);
         }
@@ -316,6 +318,10 @@ public class Main extends AppCompatActivity
     public void goToReceipts(){
         startActivity(new Intent(Main.this, MainReceipt.class));
     }
+    public void goToSavedReceipts(){
+        startActivity(new Intent(Main.this, MainReceiptsSaved.class));
+    }
+
     public void notityUnreadMessages(){
         String where =UserInboxController.STATUS+" = ? ";
         String[] args = new String[]{CODES.CODE_USERINBOX_STATUS_NO_READ+""};

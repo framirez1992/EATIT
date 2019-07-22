@@ -12,7 +12,7 @@ import far.com.eatit.Controllers.ReceiptController;
 import far.com.eatit.Utils.Funciones;
 
 public class Receipts {
-    String code,ncf;
+    String code,ncf, codeuser, codeareadetail, status;
     double subTotal, taxes, discount, total;
     private @ServerTimestamp
     Date date, mdate;
@@ -20,8 +20,11 @@ public class Receipts {
     public Receipts(){
 
     }
-    public Receipts(String code, String ncf, double subTotal, double taxes, double discount, double total){
+    public Receipts(String code,String codeUser,String codeAreaDetail,String status,  String ncf, double subTotal, double taxes, double discount, double total){
         this.code = code;
+        this.codeuser = codeUser;
+        this.codeareadetail = codeAreaDetail;
+        this.status = status;
         this.ncf = ncf;
         this.subTotal = subTotal;
         this.taxes = taxes;
@@ -31,6 +34,9 @@ public class Receipts {
 
     public Receipts(Cursor c){
         this.code = c.getString(c.getColumnIndex(ReceiptController.CODE));
+        this.codeuser =c.getString(c.getColumnIndex(ReceiptController.CODEUSER));
+        this.codeareadetail = c.getString(c.getColumnIndex(ReceiptController.CODEAREADETAIL));
+        this.status = c.getString(c.getColumnIndex(ReceiptController.STATUS));
         this.ncf = c.getString(c.getColumnIndex(ReceiptController.NCF));
         this.subTotal = c.getDouble(c.getColumnIndex(ReceiptController.SUBTOTAL));
         this.taxes = c.getDouble(c.getColumnIndex(ReceiptController.TAXES));
@@ -44,6 +50,9 @@ public class Receipts {
 
         HashMap<String, Object> data = new HashMap<>();
         data.put(ReceiptController.CODE,code);
+        data.put(ReceiptController.CODEUSER, codeuser);
+        data.put(ReceiptController.CODEAREADETAIL, codeareadetail);
+        data.put(ReceiptController.STATUS, status);
         data.put(ReceiptController.NCF,ncf);
         data.put(ReceiptController.SUBTOTAL, subTotal);
         data.put(ReceiptController.TAXES, taxes);
@@ -71,6 +80,30 @@ public class Receipts {
 
     public void setNcf(String ncf) {
         this.ncf = ncf;
+    }
+
+    public String getCodeuser() {
+        return codeuser;
+    }
+
+    public void setCodeuser(String codeuser) {
+        this.codeuser = codeuser;
+    }
+
+    public String getCodeareadetail() {
+        return codeareadetail;
+    }
+
+    public void setCodeareadetail(String codeareadetail) {
+        this.codeareadetail = codeareadetail;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public double getSubTotal() {

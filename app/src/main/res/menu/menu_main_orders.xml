@@ -3,10 +3,27 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
+        <item android:title="Orders">
+            <menu>
+            <item
+                android:id="@+id/goMenu"
+                android:icon="@drawable/ic_menu"
+                android:title="Menu" />
         <item
             android:id="@+id/openOrders"
             android:icon="@drawable/ic_action_timelapse"
             android:title="Open orders" />
+            </menu>
+        </item>
+
+        <item android:title="Receipt">
+                <menu>
+                        <item
+                            android:id="@+id/goReceip"
+                            android:icon="@drawable/ic_receipt"
+                            android:title="Facturar" />
+                </menu>
+        </item>
 
 
 

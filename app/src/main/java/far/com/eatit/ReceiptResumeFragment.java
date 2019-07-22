@@ -1,6 +1,7 @@
 package far.com.eatit;
 
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -11,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -19,6 +21,8 @@ import far.com.eatit.Adapters.ReceiptResumeAdapter;
 import far.com.eatit.CloudFireStoreObjects.Receipts;
 import far.com.eatit.CloudFireStoreObjects.Sales;
 import far.com.eatit.Controllers.SalesController;
+import far.com.eatit.Interfases.ListableActivity;
+import far.com.eatit.Interfases.ReceiptableActivity;
 import far.com.eatit.Utils.Funciones;
 
 
@@ -28,10 +32,11 @@ import far.com.eatit.Utils.Funciones;
 public class ReceiptResumeFragment extends Fragment {
 
     RecyclerView rvList;
-    MainReceipt mainReceipt;
+    Activity activity;
     String codeAreaDetail;
     Button btnCollect;
     TextView tvTotal, tvSubTotal, tvItbis;
+    LinearLayout llBack;
 
     public ReceiptResumeFragment() {
         // Required empty public constructor
@@ -51,44 +56,55 @@ public class ReceiptResumeFragment extends Fragment {
         tvTotal = view.findViewById(R.id.tvTotal);
         tvSubTotal = view.findViewById(R.id.tvSubTotal);
         tvItbis = view.findViewById(R.id.tvItbis);
+        llBack = view.findViewById(R.id.llBack);
 
         btnCollect = view.findViewById(R.id.btnCollect);
         rvList = view.findViewById(R.id.rvList);
-        rvList.setLayoutManager(new LinearLayoutManager(mainReceipt));
+        rvList.setLayoutManager(new LinearLayoutManager(activity));
+
+        llBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((ReceiptableActivity)activity).showReceiptFragment();
+            }
+        });
 
         btnCollect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ArrayList<Sales> sales = SalesController.getInstance(mainReceipt).getDeliveredOrdersByCodeAreadetail(codeAreaDetail);
+                ArrayList<Sales> sales = SalesController.getInstance(activity).getDeliveredOrdersByCodeAreadetail(codeAreaDetail);
                 if(sales.size() == 0){
                     return;
                 }
-                Receipts receipt = SalesController.getInstance(mainReceipt).getReceiptByCodeAreadetail(codeAreaDetail);
+                Receipts receipt = SalesController.getInstance(activity).getReceiptByCodeAreadetail(codeAreaDetail);
                 if(receipt == null){
                     return;
                 }
-                mainReceipt.closeOrders(receipt, sales);
+
+                llBack.setEnabled(false);
+                ((ReceiptableActivity)activity).closeOrders(receipt, sales);
                 codeAreaDetail = null;
-                mainReceipt.showReceiptFragment();
+                ((ReceiptableActivity)activity).showReceiptFragment();
+                llBack.setEnabled(true);
             }
         });
 
         refreshList();
     }
 
-    public void setMainactivityReference(MainReceipt mainReceipt){
-        this.mainReceipt = mainReceipt;
+    public void setMainActivityReference(Activity activity){
+        this.activity = activity;
     }
     public void setCodeAreaDetail(String codeAreaDetail){
         this.codeAreaDetail = codeAreaDetail;
     }
     public void refreshList(){
-        ReceiptResumeAdapter adapter = new ReceiptResumeAdapter(mainReceipt, mainReceipt, SalesController.getInstance(mainReceipt).getOrderReceiptResume(codeAreaDetail));
+        ReceiptResumeAdapter adapter = new ReceiptResumeAdapter(activity, (ListableActivity) activity, SalesController.getInstance(activity).getOrderReceiptResume(codeAreaDetail));
         rvList.setAdapter(adapter);
         rvList.getAdapter().notifyDataSetChanged();
         rvList.invalidate();
 
-        Receipts receipt = SalesController.getInstance(mainReceipt).getReceiptByCodeAreadetail(codeAreaDetail);
+        Receipts receipt = SalesController.getInstance(activity).getReceiptByCodeAreadetail(codeAreaDetail);
         if(receipt != null){
             tvSubTotal.setText("$"+receipt.getSubTotal());
             tvItbis.setText("$"+receipt.getTaxes());
@@ -96,4 +112,6 @@ public class ReceiptResumeFragment extends Fragment {
         }
 
     }
+
+
 }

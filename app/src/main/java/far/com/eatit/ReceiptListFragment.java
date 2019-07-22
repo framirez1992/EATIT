@@ -1,8 +1,11 @@
 package far.com.eatit;
 
-
 import android.app.Activity;
+import android.content.Context;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -13,27 +16,28 @@ import android.widget.AdapterView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import far.com.eatit.Adapters.OrdersReceipAdapter;
+import far.com.eatit.Adapters.ReceiptSavedAdapter;
 import far.com.eatit.Controllers.AreasController;
 import far.com.eatit.Controllers.AreasDetailController;
-import far.com.eatit.Controllers.SalesController;
+import far.com.eatit.Controllers.ReceiptController;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Interfases.ListableActivity;
 
-
 /**
  * A simple {@link Fragment} subclass.
+ * Activities that contain this fragment must implement the
+ * {@link ReceiptListFragment.OnFragmentInteractionListener} interface
+ * to handle interaction events.
  */
-public class ReceipFragment extends Fragment {
-
-    Spinner spnAreas, spnMesas;
-    RecyclerView rvList;
+public class ReceiptListFragment extends Fragment implements ListableActivity {
     Activity activity;
+    RecyclerView rvList;
+    Spinner spnAreas, spnMesas;
     KV area, mesa;
-
-    public ReceipFragment() {
+    public ReceiptListFragment() {
         // Required empty public constructor
     }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -42,7 +46,7 @@ public class ReceipFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         rvList = view.findViewById(R.id.rvList);
         rvList.setLayoutManager(new LinearLayoutManager(activity));
@@ -68,7 +72,7 @@ public class ReceipFragment extends Fragment {
         spnMesas.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-               mesa = (KV)parent.getSelectedItem();
+                mesa = (KV)parent.getSelectedItem();
                 refreshList();
             }
 
@@ -77,20 +81,25 @@ public class ReceipFragment extends Fragment {
 
             }
         });
+    }
+
+    @Override
+    public void onClick(Object obj) {
+
+    }
+
+    public void refreshList(){
+        if(mesa == null){
+            return;
+        }
+        ReceiptSavedAdapter adapter = new ReceiptSavedAdapter(activity, (ListableActivity) activity, ReceiptController.getInstance(activity).getReceiptsSM(mesa.getKey()));
+        rvList.setAdapter(adapter);
+        rvList.getAdapter().notifyDataSetChanged();
+        rvList.invalidate();
 
     }
 
     public void setMainActivityReference(Activity activity){
         this.activity = activity;
-    }
-    public void refreshList(){
-        if(mesa == null){
-            return;
-        }
-        OrdersReceipAdapter adapter = new OrdersReceipAdapter(activity, (ListableActivity) activity, SalesController.getInstance(getActivity()).getOrderReceipt(mesa.getKey()));
-        rvList.setAdapter(adapter);
-        rvList.getAdapter().notifyDataSetChanged();
-        rvList.invalidate();
-
     }
 }

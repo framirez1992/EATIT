@@ -1299,8 +1299,41 @@ public class SalesController {
         Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql,new String[]{CODES.CODE_ORDER_STATUS_DELIVERED+"", codeAreaDetail});
         if(c.moveToFirst()){
             double total = c.getDouble(0);
-            receipt = new Receipts(Funciones.generateCode(),null,total,0.0,0.0,total);
+            receipt = new Receipts(Funciones.generateCode(),Funciones.getCodeuserLogged(context),codeAreaDetail,null,null,total,0.0,0.0,total);
         }c.close();
         return receipt;
+    }
+
+    public void closeOrders(Receipts receipt, ArrayList<Sales> deliveredSales){
+        if(deliveredSales != null && deliveredSales.size() > 0) {
+
+            for(Sales sales : deliveredSales){
+                sales.setSTATUS(CODES.CODE_ORDER_STATUS_CLOSED);
+                sales.setCODERECEIPT(receipt.getCode());
+                sales.setMDATE(null);//actualizar fecha de ultima actualizacion.
+
+
+                ArrayList<Sales> s = new ArrayList<>();
+                s.add(sales);
+                ///////////////////////////////////////////////////////////////////
+                ///////////   ENVIANDO AL HISTORICO     ///////////////////////////
+
+                sendToHistory(s);
+                ///////////////////////////////////////////////////////////////////
+
+                ///////////////////////////////////////////////////////////////////
+                //////      ELIMINANDO DE LA TABLA SALES Y SALES_DETAIL EN FIREBASE   ////////
+                massiveDelete(s);
+                //////////////////////////////////////////////////////////////////
+
+                ///////////////////////////////////////////////////////////////////
+                //////////  ELIMINANDOLA EN EL MOVIL   ///////////////////////////
+                deleteHeadDetail(sales);//esto es porque la lista se actualizara antes de que el server retorne la actualizacion.
+                //////////////////////////////////////////////////////////////////
+
+
+            }
+
+        }
     }
 }

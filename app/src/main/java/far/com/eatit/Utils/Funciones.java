@@ -71,6 +71,10 @@ public class Funciones {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         return sdf.format(date);
     }
+    public static String getFormatedDateRepDomHour(Date date){
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss a");
+        return sdf.format(date);
+    }
     public static String sumaDiasFecha(String formatedDated, int dias){
         Calendar c = GregorianCalendar.getInstance();
         c.add(Calendar.DAY_OF_MONTH, dias);

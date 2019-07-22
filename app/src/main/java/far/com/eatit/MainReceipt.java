@@ -25,8 +25,9 @@ import far.com.eatit.Controllers.ReceiptController;
 import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Interfases.ListableActivity;
+import far.com.eatit.Interfases.ReceiptableActivity;
 
-public class MainReceipt extends AppCompatActivity implements ListableActivity {
+public class MainReceipt extends AppCompatActivity implements ListableActivity, ReceiptableActivity {
 
     SalesController salesController;
     CollectionReference sales;
@@ -47,8 +48,8 @@ public class MainReceipt extends AppCompatActivity implements ListableActivity {
         receipFragment = new ReceipFragment();
         receiptResumeFragment = new ReceiptResumeFragment();
 
-        receipFragment.setMainactivityReference(this);
-        receiptResumeFragment.setMainactivityReference(this);
+        receipFragment.setMainActivityReference(this);
+        receiptResumeFragment.setMainActivityReference(this);
 
 
         showReceiptFragment();
@@ -92,6 +93,7 @@ public class MainReceipt extends AppCompatActivity implements ListableActivity {
         });
     }
 
+    @Override
     public void showReceiptFragment(){
         changeFragment(receipFragment, R.id.details);
     }
@@ -115,40 +117,17 @@ public class MainReceipt extends AppCompatActivity implements ListableActivity {
         showReceiptResumeFragment();
     }
 
+    @Override
     public void closeOrders(Receipts receipt, ArrayList<Sales> deliveredSales){
 
         if(deliveredSales != null && deliveredSales.size() > 0) {
-
-            for(Sales sales : deliveredSales){
-            sales.setSTATUS(CODES.CODE_ORDER_STATUS_CLOSED);
-            sales.setCODERECEIPT(receipt.getCode());
-            sales.setMDATE(null);//actualizar fecha de ultima actualizacion.
-
-
-            ArrayList<Sales> s = new ArrayList<>();
-            s.add(sales);
-            ///////////////////////////////////////////////////////////////////
-            ///////////   ENVIANDO AL HISTORICO     ///////////////////////////
-
-            SalesController.getInstance(MainReceipt.this).sendToHistory(s);
-            ///////////////////////////////////////////////////////////////////
-
-            ///////////////////////////////////////////////////////////////////
-            //////      ELIMINANDO DE LA TABLA SALES Y SALES_DETAIL EN FIREBASE   ////////
-            SalesController.getInstance(MainReceipt.this).massiveDelete(s);
             //////////////////////////////////////////////////////////////////
-
-            ///////////////////////////////////////////////////////////////////
-            //////////  ELIMINANDOLA EN EL MOVIL   ///////////////////////////
-            SalesController.getInstance(MainReceipt.this).deleteHeadDetail(sales);//esto es porque la lista se actualizara antes de que el server retorne la actualizacion.
-            //////////////////////////////////////////////////////////////////
-
+            ////////// CERRANDO ORDENES            ///////////////////////////
+            SalesController.getInstance(MainReceipt.this).closeOrders(receipt,deliveredSales);
             //////////////////////////////////////////////////////////////////
             //////////  GUARDANDO RECIBO          ////////////////////////////
             ReceiptController.getInstance(MainReceipt.this).sendToFireBase(receipt);
             /////////////////////////////////////////////////////////////////
-
-        }
         }
     }
 

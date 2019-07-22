@@ -16,6 +16,7 @@ import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
 
+import far.com.eatit.Adapters.Models.ReceiptSavedModel;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.Receipts;
 import far.com.eatit.DataBase.DB;
@@ -25,12 +26,12 @@ import far.com.eatit.Utils.Funciones;
 public class ReceiptController {
     public static final String TABLE_NAME ="RECEIPTS";
     //public static final String TABLE_NAME_HISTORY ="RECEIPTS_HISTORY";
-    public static  String CODE = "code", NCF = "ncf" ,SUBTOTAL="subtotal",TAXES = "taxes", DISCOUNT="discount", TOTAL = "total",
+    public static  String CODE = "code",CODEUSER = "codeuser",CODEAREADETAIL = "codeareadetail",STATUS = "status",  NCF = "ncf" ,SUBTOTAL="subtotal",TAXES = "taxes", DISCOUNT="discount", TOTAL = "total",
             DATE = "date", MDATE = "mdate";
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+"("
-            +CODE+" TEXT, "+NCF+" TEXT,"+SUBTOTAL+" NUMERIC,"+TAXES+" NUMERIC,"+DISCOUNT+" NUMERIC, "+TOTAL+", " +
+            +CODE+" TEXT,"+CODEUSER+" TEXT,"+CODEAREADETAIL+" TEXT,"+STATUS+" TEXT, "+NCF+" TEXT,"+SUBTOTAL+" NUMERIC,"+TAXES+" NUMERIC,"+DISCOUNT+" NUMERIC, "+TOTAL+", " +
             ""+DATE+" TEXT, "+MDATE+" TEXT)";
-    public static String[] columns = new String[]{CODE, NCF,SUBTOTAL,TAXES,DISCOUNT,TOTAL, DATE, MDATE};
+    public static String[] columns = new String[]{CODE,CODEUSER,CODEAREADETAIL,STATUS, NCF,SUBTOTAL,TAXES,DISCOUNT,TOTAL, DATE, MDATE};
     Context context;
     FirebaseFirestore db;
     private static ReceiptController instance;
@@ -57,6 +58,9 @@ public class ReceiptController {
     public long insert(Receipts r){
         ContentValues cv = new ContentValues();
         cv.put(CODE,r.getCode() );
+        cv.put(CODEUSER, r.getCodeuser());
+        cv.put(CODEAREADETAIL, r.getCodeareadetail());
+        cv.put(STATUS, r.getStatus());
         cv.put(NCF,r.getNcf());
         cv.put(SUBTOTAL, r.getSubTotal());
         cv.put(TAXES, r.getTaxes());
@@ -149,5 +153,30 @@ public class ReceiptController {
 
     }
 
+
+    public ArrayList<ReceiptSavedModel> getReceiptsSM(String codeAreaDetail){
+        ArrayList<ReceiptSavedModel> result = new ArrayList<>();
+        try {
+            String sql = "SELECT r." + CODE + " as CODE,r."+STATUS+" as STATUS, r." + CODEUSER + " as CODEUSER, u." + UsersController.USERNAME + " as USERNAME, r." + NCF + " as NCF, " +
+                    "ad." + AreasDetailController.CODEAREA + " as CODEAREA, a." + AreasController.DESCRIPTION + " as AREADESCRIPTION, ad." + AreasDetailController.CODE + " as CODEAREADETAIL, ad." + AreasDetailController.DESCRIPTION + " as AREADETAILDESCRIPTION, " +
+                    "r." + SUBTOTAL + " as SUBTOTAL, r." + TAXES + " as TAXES, r." + DISCOUNT + " as DISCOUNT, r." + TOTAL + " as TOTAL, r." + DATE + " as DATE, r." + MDATE + " as MDATE " +
+                    "FROM " + TABLE_NAME + " r " +
+                    "INNER JOIN " + UsersController.TABLE_NAME + " u ON r." + CODEUSER + " = u." + UsersController.CODE + " " +
+                    "INNER JOIN " + AreasDetailController.TABLE_NAME + " ad on r." + CODEAREADETAIL + " = ad." + AreasDetailController.CODE + " " +
+                    "INNER JOIN " + AreasController.TABLE_NAME + " a on ad." + AreasDetailController.CODEAREA + " = a." + AreasController.CODE + " " +
+                    "ORDER BY r." + DATE + " DESC";
+
+            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
+            while (c.moveToNext()) {
+                result.add(new ReceiptSavedModel(c));
+            }
+            c.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return result;
+
+    }
 
 }

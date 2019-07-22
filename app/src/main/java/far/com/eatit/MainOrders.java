@@ -44,16 +44,19 @@ import javax.annotation.Nullable;
 
 import far.com.eatit.Adapters.Models.NotificationRowModel;
 import far.com.eatit.Adapters.Models.OrderDetailModel;
+import far.com.eatit.Adapters.Models.OrderReceiptModel;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.Adapters.Models.WorkedOrdersRowModel;
 import far.com.eatit.CloudFireStoreObjects.Products;
 import far.com.eatit.CloudFireStoreObjects.ProductsMeasure;
+import far.com.eatit.CloudFireStoreObjects.Receipts;
 import far.com.eatit.CloudFireStoreObjects.Sales;
 import far.com.eatit.CloudFireStoreObjects.SalesDetails;
 import far.com.eatit.CloudFireStoreObjects.UserInbox;
 import far.com.eatit.Controllers.AreasController;
 import far.com.eatit.Controllers.ProductsController;
 import far.com.eatit.Controllers.ProductsMeasureController;
+import far.com.eatit.Controllers.ReceiptController;
 import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Controllers.TempOrdersController;
 import far.com.eatit.Controllers.UserInboxController;
@@ -63,12 +66,14 @@ import far.com.eatit.Dialogs.NotificationsDialog;
 import far.com.eatit.Dialogs.WorkedOrdersDialog;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Interfases.ListableActivity;
+import far.com.eatit.Interfases.ReceiptableActivity;
 import far.com.eatit.Utils.Funciones;
 
-public class MainOrders extends AppCompatActivity implements ListableActivity, NavigationView.OnNavigationItemSelectedListener {
+public class MainOrders extends AppCompatActivity implements ListableActivity, ReceiptableActivity, NavigationView.OnNavigationItemSelectedListener {
 
     SalesController salesController;
     UserInboxController userInboxController;
+
     ProductsMeasureController productsMeasureController;
 
     CollectionReference sales;
@@ -78,6 +83,9 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
 
     NewOrderFragment newOrderFragment;
     ResumenOrderFragment resumenOrderFragment;
+    ReceipFragment receipFragment;
+    ReceiptResumeFragment receiptResumeFragment;
+    Fragment lastFragment;
 
     TempOrdersController tempOrdersController;
     String orderCode = null;
@@ -181,6 +189,11 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
         newOrderFragment.setParent(this);
         resumenOrderFragment = new ResumenOrderFragment();
         resumenOrderFragment.setParent(this);
+        receipFragment = new ReceipFragment();
+        receipFragment.setMainActivityReference(this);
+        receiptResumeFragment = new ReceiptResumeFragment();
+        receiptResumeFragment.setMainActivityReference(this);
+
 
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         nav = (NavigationView)findViewById(R.id.nav_view);
@@ -316,9 +329,13 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-         if (id == R.id.openOrders) {
+        if(id == R.id.goMenu){
+            goToMenu();
+        } else if (id == R.id.openOrders) {
             callWorkedOrdersDialog();
-        }
+        }else if(id == R.id.goReceip){
+             showReceiptFragment();
+         }
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -348,12 +365,20 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
         changeFragment(resumenOrderFragment, R.id.result);
     }
 
+
+    public void goToMenu(){
+        changeFragment(newOrderFragment, R.id.details);
+    }
     public void changeFragment(Fragment f, int id){
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(id, f);
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
 
         ft.commit();
+
+        if(id == R.id.details) {
+            lastFragment = f;
+        }
     }
 
     @Override
@@ -368,7 +393,15 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
             objectToEditFromResume = (OrderDetailModel) obj;
         }else if(obj instanceof WorkedOrdersRowModel){
             workedOrdersDialog.showDetail((WorkedOrdersRowModel) obj);
+        }else if(obj instanceof OrderReceiptModel){
+            OrderReceiptModel orderReceiptModel = (OrderReceiptModel)obj;
+            receiptResumeFragment.setCodeAreaDetail(orderReceiptModel.getMesaID());
+            showReceiptResumeFragment();
         }
+    }
+
+    public void showReceiptResumeFragment(){
+        changeFragment(receiptResumeFragment, R.id.details);
     }
 
     public void callAddDialog(Object object){
@@ -479,11 +512,19 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
 
     public void refreshInterface(){
         notityOrdersReady();
+
+        if(lastFragment instanceof ReceipFragment){
+            receipFragment.refreshList();
+        }else if(lastFragment instanceof ReceiptResumeFragment){
+            receiptResumeFragment.refreshList();
+        }
+
         if(notificationsDialog != null && notificationsDialog.isVisible()){
             notificationsDialog.refreshNotifications();
         }else if(workedOrdersDialog != null && workedOrdersDialog.isVisible()){
             workedOrdersDialog.refreshNotifications();
         }
+
     }
 
     public void editOrder(Sales s){
@@ -564,6 +605,25 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, N
 
     public void updateTempSalesDetail(){
         TempOrdersController.getInstance(MainOrders.this).updatePrices();
+    }
+
+    @Override
+    public void closeOrders(Receipts receipt, ArrayList<Sales> sales) {
+
+        if(sales != null && sales.size() > 0) {
+            //////////////////////////////////////////////////////////////////
+            ////////// CERRANDO ORDENES            ///////////////////////////
+            SalesController.getInstance(MainOrders.this).closeOrders(receipt,sales);
+            //////////////////////////////////////////////////////////////////
+            //////////  GUARDANDO RECIBO          ////////////////////////////
+            ReceiptController.getInstance(MainOrders.this).sendToFireBase(receipt);
+            /////////////////////////////////////////////////////////////////
+        }
+    }
+
+    @Override
+    public void showReceiptFragment() {
+        changeFragment(receipFragment, R.id.details);
     }
 
 }

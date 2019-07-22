@@ -16,10 +16,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".MainReceiptsSaved"></activity>
         <activity
             android:name=".MainReceipt"
             android:label="@string/title_activity_main_receipt"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".MaintenanceUsersControl" />
         <activity android:name=".Login">
             <intent-filter>
