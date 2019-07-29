@@ -581,6 +581,21 @@ public class UserControlController {
         return list;
     }
 
+    public String getOrderSplitDestinyIn(){
+        String result = "";
+        Users u = UsersController.getInstance(context).getUserByCode(Funciones.getCodeuserLogged(context));
+        String sql = "SELECT "+UserControlController.VALUE+" " +
+                "FROM "+UserControlController.TABLE_NAME+" " +
+                "WHERE "+UserControlController.CONTROL+" = ? AND "+UserControlController.TARGET+" = ? AND "+UserControlController.TARGETCODE+" = ? AND "+UserControlController.ACTIVE+" = ?";
+        Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, new String[]{CODES.USERCONTROL_ORDERSPLITDESTINY,CODES.USERSCONTROL_TARGET_USER, u.getCODE(), "1"});
+        while(c.moveToNext()){
+            result+=((result.equals("")?"":",")+"'"+c.getString(0)+"'");
+        }c.close();
+
+        return " AND ( (ifnull("+SalesController.CODEPRODUCTTYPE+", '') = '' AND ifnull("+SalesController.CODEPRODUCTSUBTYPE+", '') = '') OR  ( ("+SalesController.CODEPRODUCTTYPE+" IN ("+result+")) OR "+SalesController.CODEPRODUCTSUBTYPE+" IN ("+result+") )  ) ";
+
+    }
+
 
     public static String getControlsQueryRol(){
         String controls = "(SELECT CODE, DESCRIPTION, TARGET FROM  ( " +

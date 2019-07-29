@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import far.com.eatit.Adapters.Models.OrderModel;
 import far.com.eatit.Adapters.OrdersBoardAdapter;
 import far.com.eatit.Controllers.SalesController;
+import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Globales.CODES;
 
 /**
@@ -60,6 +61,9 @@ public class OrdersBoardFragment extends Fragment {
     public void reloadList(){
 
         String where = " ("+SalesController.STATUS+" = "+ CODES.CODE_ORDER_STATUS_OPEN+" OR "+ SalesController.STATUS+" = "+ CODES.CODE_ORDER_STATUS_CANCELED+") ";
+        if(UserControlController.getInstance(parentActivity).orderSplit()) {
+            where += UserControlController.getInstance(parentActivity).getOrderSplitDestinyIn();
+        }
         //where += TableFilterController.getInstance(parentActivity).getConditionsByTableTask(Tablas.generalUsersSales, CODES.TABLE_FILTER_CODETASK_WORKORDER);
 
         ArrayList<OrderModel> orders = salesController.getOrderModels(where);
