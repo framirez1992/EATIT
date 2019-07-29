@@ -470,6 +470,27 @@
                             android:textStyle="bold"/>
 
                     </LinearLayout>
+
+                        <LinearLayout android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <ImageView android:id="@+id/btnUserTable"
+                                android:layout_width="120dp"
+                                android:layout_height="120dp"
+                                android:src="@drawable/user_type"
+                                android:background="?attr/selectableItemBackgroundBorderless"/>
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Users Table"
+                                android:gravity="center"
+                                android:textStyle="bold"/>
+
+                        </LinearLayout>
                     </TableRow>
 
                 </TableLayout>
@@ -680,6 +701,113 @@
                         </LinearLayout>
 
                     </TableRow>
+
+
+
+                    <TableRow android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="20dp">
+
+                        <LinearLayout android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <ImageView android:id="@+id/btnUsersControl"
+                                android:layout_width="120dp"
+                                android:layout_height="120dp"
+                                android:src="@drawable/user_type"
+                                android:background="?attr/selectableItemBackgroundBorderless"/>
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Users Control"
+                                android:gravity="center"
+                                android:textStyle="bold"/>
+
+                        </LinearLayout>
+
+
+                        <LinearLayout android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:visibility="visible">
+
+                            <ImageView android:id="@+id/btnRolesControl"
+                                android:layout_width="120dp"
+                                android:layout_height="120dp"
+                                android:src="@drawable/user"
+                                android:background="?attr/selectableItemBackgroundBorderless"/>
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Roles Control"
+                                android:gravity="center"
+                                android:textStyle="bold"/>
+
+                        </LinearLayout>
+
+
+
+                        <LinearLayout android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:visibility="visible">
+
+                            <ImageView android:id="@+id/btnOrderSplit"
+                                android:layout_width="120dp"
+                                android:layout_height="120dp"
+                                android:src="@drawable/user"
+                                android:background="?attr/selectableItemBackgroundBorderless"/>
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Order Split Control"
+                                android:gravity="center"
+                                android:textStyle="bold"/>
+
+                        </LinearLayout>
+
+
+                    </TableRow>
+
+
+                    <TableRow android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="20dp">
+
+                    <LinearLayout android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <ImageView android:id="@+id/btnOrderSplitDestiny"
+                            android:layout_width="120dp"
+                            android:layout_height="120dp"
+                            android:src="@drawable/user_type"
+                            android:background="?attr/selectableItemBackgroundBorderless"/>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Order Split Destiny"
+                            android:gravity="center"
+                            android:textStyle="bold"/>
+
+                    </LinearLayout>
+                    </TableRow>
+
 
                 </TableLayout>
 

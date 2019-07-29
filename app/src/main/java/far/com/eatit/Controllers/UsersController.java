@@ -314,6 +314,31 @@ public class UsersController {
         spn.setAdapter(new ArrayAdapter<KV>(context, android.R.layout.simple_list_item_1,spnList));
     }
 
+    public void fillSpnUserWithCode(Spinner spn, boolean addTodos){
+        ArrayList<Users> result = getUsers(null, null, USERNAME);
+        ArrayList<KV> spnList = new ArrayList<>();
+        if(addTodos){
+            spnList.add(new KV("0", "TODOS"));
+        }
+        for(Users u : result){
+            spnList.add(new KV(u.getCODE(), u.getCODE()+" "+u.getUSERNAME()));
+        }
+        spn.setAdapter(new ArrayAdapter<KV>(context, android.R.layout.simple_list_item_1,spnList));
+    }
+
+    public void fillSpnUserByUserType(Spinner spn, String role, boolean addTodos){
+        String where = ROLE+" = ?";
+        ArrayList<Users> result = getUsers(where, new String[]{role}, USERNAME);
+        ArrayList<KV> spnList = new ArrayList<>();
+        if(addTodos){
+            spnList.add(new KV("-1", "TODOS"));
+        }
+        for(Users u : result){
+            spnList.add(new KV(u.getCODE(), u.getUSERNAME()));
+        }
+        spn.setAdapter(new ArrayAdapter<KV>(context, android.R.layout.simple_list_item_1,spnList));
+    }
+
     /**
      * retorna un arrayList con todas las  dependencias en otras tablas (llave foranea)
      * @param code

@@ -17,6 +17,7 @@ import java.util.ArrayList;
 
 import far.com.eatit.Adapters.Models.OptionModel;
 import far.com.eatit.Adapters.OptionsAdapter;
+import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Interfases.ListableActivity;
 
@@ -25,7 +26,7 @@ public class MaintenanceFragment extends Fragment {
 
 
     ImageView btnFamily, btnGroup, btnMeasures, btnProducts,btnFamilyInv, btnGroupInv, btnMeasuresInv, btnProductsInv, btnUsers, btnUserRol, btnAreas, btnMesas,btnControls, btnTableCode,
-            btnTableFilter, btnActualizationCenter;
+            btnTableFilter, btnActualizationCenter, btnUserTable, btnUsersControl, btnRolesControl, btnOrderSplit, btnOrderSplitDestiny;
     LinearLayout llMainScreen,llMaintenanceControls, llMaintenanceAreas, llMaintenanceUsers, llMaintenanceProducts,llMaintenanceInventory;
     public MaintenanceFragment() {
         // Required empty public constructor
@@ -66,6 +67,11 @@ public class MaintenanceFragment extends Fragment {
         btnTableCode = view.findViewById(R.id.btnTableCode);
         btnTableFilter = view.findViewById(R.id.btnTableFilter);
         btnActualizationCenter = view.findViewById(R.id.btnActualizationCenter);
+        btnUserTable = view.findViewById(R.id.btnUserTable);
+        btnUsersControl = view.findViewById(R.id.btnUsersControl);
+        btnRolesControl = view.findViewById(R.id.btnRolesControl);
+        btnOrderSplit = view.findViewById(R.id.btnOrderSplit);
+        btnOrderSplitDestiny = view.findViewById(R.id.btnOrderSplitDestiny);
 
         btnFamily.setOnClickListener(imageClick);
         btnGroup.setOnClickListener(imageClick);
@@ -79,12 +85,22 @@ public class MaintenanceFragment extends Fragment {
 
         btnUsers.setOnClickListener(imageClick);
         btnUserRol.setOnClickListener(imageClick);
+        btnUserTable.setOnClickListener(imageClick);
+
         btnAreas.setOnClickListener(imageClick);
         btnMesas.setOnClickListener(imageClick);
+
         btnControls.setOnClickListener(imageClick);
+        btnUsersControl.setOnClickListener(imageClick);
+        btnRolesControl.setOnClickListener(imageClick);
         btnTableCode.setOnClickListener(imageClick);
         btnTableFilter.setOnClickListener(imageClick);
+        btnOrderSplit.setOnClickListener(imageClick);
+        btnOrderSplitDestiny.setOnClickListener(imageClick);
+
+
         btnActualizationCenter.setOnClickListener(imageClick);
+
 
 
     }
@@ -110,6 +126,11 @@ public class MaintenanceFragment extends Fragment {
                     break;
                 case R.id.btnUserRol:
                     i = new Intent(getActivity(), MaintenanceUserTypes.class);
+                    break;
+                case R.id.btnUserTable:
+                    i =new Intent(getActivity(), MainAssignation.class);
+                    i.putExtra(CODES.EXTRA_MAINASSIGNATION_TABLE, UserControlController.TABLE_NAME);
+                    i.putExtra(CODES.EXTRA_MAINASSIGNATION_TARGET, CODES.USERCONTROL_TABLEASSIGN);
                     break;
                 case R.id.btnGroups:
                 case R.id.btnGroupsInv:
@@ -139,6 +160,27 @@ public class MaintenanceFragment extends Fragment {
                 case R.id.btnControls:
                     i = new Intent(getActivity(), MaintenanceUsersControl.class);
                     break;
+                case R.id.btnRolesControl:
+                    i =new Intent(getActivity(), MainAssignation.class);
+                    i.putExtra(CODES.EXTRA_MAINASSIGNATION_TABLE, UserControlController.TABLE_NAME);
+                    i.putExtra(CODES.EXTRA_MAINASSIGNATION_TARGET, CODES.EXTRA_MAINASSIGNATION_TARGET_ROLESCONTROL);
+                    break;
+                case R.id.btnUsersControl:
+                    i =new Intent(getActivity(), MainAssignation.class);
+                    i.putExtra(CODES.EXTRA_MAINASSIGNATION_TABLE, UserControlController.TABLE_NAME);
+                    i.putExtra(CODES.EXTRA_MAINASSIGNATION_TARGET, CODES.EXTRA_MAINASSIGNATION_TARGET_USERSCONTROL);
+                    break;
+                case R.id.btnOrderSplit:
+                    i =new Intent(getActivity(), MainAssignation.class);
+                    i.putExtra(CODES.EXTRA_MAINASSIGNATION_TABLE, UserControlController.TABLE_NAME);
+                    i.putExtra(CODES.EXTRA_MAINASSIGNATION_TARGET, CODES.USERCONTROL_ORDERSPLIT);
+                    break;
+                case R.id.btnOrderSplitDestiny:
+                    i =new Intent(getActivity(), MainAssignation.class);
+                    i.putExtra(CODES.EXTRA_MAINASSIGNATION_TABLE, UserControlController.TABLE_NAME);
+                    i.putExtra(CODES.EXTRA_MAINASSIGNATION_TARGET, CODES.USERCONTROL_ORDERSPLITDESTINY);
+                    break;
+
 
             }
 

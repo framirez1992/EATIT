@@ -35,6 +35,7 @@ import far.com.eatit.CloudFireStoreObjects.UsersDevices;
 import far.com.eatit.Controllers.DevicesController;
 import far.com.eatit.Controllers.LicenseController;
 import far.com.eatit.Controllers.ProductsControlController;
+import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Controllers.UserInboxController;
 import far.com.eatit.Controllers.UsersController;
 import far.com.eatit.Controllers.UsersDevicesController;
@@ -321,6 +322,7 @@ public class Main extends AppCompatActivity
     public void goToSavedReceipts(){
         startActivity(new Intent(Main.this, MainReceiptsSaved.class));
     }
+
 
     public void notityUnreadMessages(){
         String where =UserInboxController.STATUS+" = ? ";

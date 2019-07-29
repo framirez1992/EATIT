@@ -33,6 +33,7 @@ import far.com.eatit.Controllers.AreasController;
 import far.com.eatit.Controllers.AreasDetailController;
 import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Controllers.TempOrdersController;
+import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
 
@@ -155,7 +156,11 @@ public class ResumenOrderFragment extends Fragment {
                 spnMesas.setAdapter(null);
                 return;
             }
-            AreasDetailController.getInstance(parentActivity).fillSpinner(spnMesas,false, value.getKey());
+            if(UserControlController.getInstance(parentActivity).tableAssign()){//mesas asignadas al usuario, rol o empresa
+                AreasDetailController.getInstance(parentActivity).fillSpinnerWithControl(spnMesas, value.getKey());
+            }else {
+                AreasDetailController.getInstance(parentActivity).fillSpinner(spnMesas, false, value.getKey());
+            }
         }
 
         @Override

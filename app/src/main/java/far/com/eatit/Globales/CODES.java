@@ -56,11 +56,11 @@ public class CODES {
 
     //PREFERENCES
     //LOGIN
-    public static final String PREFERENCE_USERSKEY_CODE = "USERSKEY_CODE";
-    public static final String PREFERENCE_USERSKEY_USERTYPE = "USERSKEY_USERTYPE";
-    public static final String PREFERENCE_LOGIN_BLOQUED = "LOGIN_BLOQUED";
-    public static final String PREFERENCE_LOGIN_BLOQUED_REASON = "LOGIN_BLOQUED_REASON";
-    public static final String PREFERENCE_LOGIN_BLOQUED_TOKEN_ATTEMPS = "LOGIN_BLOQUED_TOKEN_ATTEMPS";
+    public static final String PREFERENCE_USERSKEY_CODE = "USERSKEY_CODE";//CODIGO DE USUARIOI
+    public static final String PREFERENCE_USERSKEY_USERTYPE = "USERSKEY_USERTYPE";//TIPO DE USUARIO
+    public static final String PREFERENCE_LOGIN_BLOQUED = "LOGIN_BLOQUED";//LOGEO BLOQUEADO
+    public static final String PREFERENCE_LOGIN_BLOQUED_REASON = "LOGIN_BLOQUED_REASON";//RAZON DE BLOQUEO DE LOGIN
+    public static final String PREFERENCE_LOGIN_BLOQUED_TOKEN_ATTEMPS = "LOGIN_BLOQUED_TOKEN_ATTEMPS";//NUMERO DE INTENTOS TOKEN
 
     //PANTALLA
     public static final String PREFERENCE_SCREEN_HEIGHT = "SCREEN_HEIGHT";
@@ -82,16 +82,24 @@ public class CODES {
     public static final String USERSCONTROL_TARGET_USER_ROL = "1";
     public static final String USERSCONTROL_TARGET_COMPANY = "2";
 
-    /*
-    Indica si una orden se va a seccionar en 2 o mas ordenes. depende de ORDERSPLIT
-     */
-    public static final String USERCONTROL_ORDERSPLIT ="ORDERSPLIT";
+    public static final String USER_CONTROL_CREATEORDER = "CREATEORDER";//modulo de menu (para crear ordenes)
+    public static final String USER_CONTROL_DISPATCHORDER = "DISPATCHORDER";//modulo de pending orders (para marcar ordenes como LISTAS)
+    public static final String USER_CONTROL_CHARGE_ORDERS = "CHARGE_ORDERS";//modulo de facturacion (cobrar)
+    public static final String USER_CONTROL_MODIFYORDER = "MODIFYORDER";//editar ordenes desde el modulo de menu
+    public static final String USER_CONTROL_ANULATEORDER = "ANULATEORDER";//anular ordenes desde el modulo de menu
+    public static final String USER_CONTROL_PRINTORDERS = "PRINTORDERS";//imprimir ordenes
+
+    public static final String USERCONTROL_ORDERSPLIT ="ORDERSPLIT";//Indica si una orden se va a seccionar en 2 o mas ordenes. depende de ORDERSPLIT
     /*
     Indica el criterio del split para la orden: 1= Familia de productos, 2= Grupo de productos. depende de ORDERSPLIT
      */
     public static final String USERCONTROL_ORDERSPLITTYPE = "ORDERSPLITTYPE";
     public static final String VAL_USERCONTROL_ORDERSPLITTYPE_FAMILY = "1";
     public static final String VAL_USERCONTROL_ORDERSPLITTYPE_GROUP = "2";
+
+    public static final String USERCONTROL_ORDERSPLITDESTINY="ORDERSPLITDESTINY";//establece el tipo de ordenes que podra trabajar un usuario en especifico desde el modulo de de DISPACHORDERS (para cheff, bartendes)
+
+    public static final String USERCONTROL_TABLEASSIGN = "TABLEASSIGN";//establece la asignacion de mesas (AreaDetail) a un usuario, rol, empresa
 
 
 
@@ -114,7 +122,7 @@ public class CODES {
     //////////////////////////////////
     //// USERS_TYPES            /////
     /////////////////////////////////
-    public static final String  USERTYPE_MESERO = "0533569d-8018-446f-95c8-2af6c64e60b7";
+    public static final String USERTYPE_MESERO = "0533569d-8018-446f-95c8-2af6c64e60b7";
     public static final String USERTYPE_BARTENDER = "0db2565b-7b51-4555-b7d2-791cd976bd9f";
     public static final String USERTYPE_CHEFF = "a0d6eb6b-6c94-4a6d-90a6-8c56ff4149c5";
 
@@ -129,6 +137,14 @@ public class CODES {
     public static final String EXTRA_TYPE_FAMILY = "MAINTENANCE_PRODUCT_TYPE_EXTRA_ENTITY_TYPE";
 
     public static final String EXTRA_SECURITY_ERROR_CODE = "SECURITY_ERROR_CODE";
+
+    //indica la tabla con la que se va a trabajar en el activity MainAssignation.java
+    public static final String EXTRA_MAINASSIGNATION_TABLE = "MAINASSIGNATION_TABLE";
+    public static final String EXTRA_MAINASSIGNATION_TARGET = "MAINASSIGNATION_TARGET";
+
+    public static final String EXTRA_MAINASSIGNATION_TARGET_ROLESCONTROL = "MAINASSIGNATION_TARGET_ROLESCONTROL";//configurar controles de ROL
+    public static final String EXTRA_MAINASSIGNATION_TARGET_USERSCONTROL = "MAINASSIGNATION_TARGET_USERSCONTROL";//configurar controles de USUARIO
+
 
     //////////////////////////////////
     ///  REPORTS KEYS            ////

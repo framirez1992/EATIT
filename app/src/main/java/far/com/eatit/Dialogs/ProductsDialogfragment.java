@@ -234,7 +234,7 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
 
             ArrayList<ProductsMeasure> list = new ArrayList<>();
             for(EditSelectionRowModel ssrm: selected){
-               // list.add(new ProductsMeasure(Funciones.generateCode(), code, ssrm.getCode(),Double.parseDouble(ssrm.getText()), null, null));
+                list.add(new ProductsMeasure(Funciones.generateCode(), code, ssrm.getCode(),Double.parseDouble(ssrm.getText()),true, null, null));
             }
 
             if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){

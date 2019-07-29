@@ -22,6 +22,7 @@ import far.com.eatit.CloudFireStoreObjects.AreasDetail;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.DataBase.DB;
 import far.com.eatit.Generic.Objects.KV;
+import far.com.eatit.Globales.CODES;
 import far.com.eatit.Globales.Tablas;
 import far.com.eatit.Utils.Funciones;
 
@@ -236,6 +237,30 @@ public class AreasDetailController {
         ArrayAdapter<KV> adapter = new ArrayAdapter<KV>(context,android.R.layout.simple_list_item_1, data);
         spn.setAdapter(adapter);
     }
+
+    public void fillSpinnerWithControl(Spinner spn, String area){
+        ArrayList<KV> data = new ArrayList<>();
+        String orderBy = AreasDetailController.ORDER+" ASC, "+AreasDetailController.DESCRIPTION;
+
+        KV lowTarger = UserControlController.getInstance(context).getLowTargetLevel(CODES.USERCONTROL_TABLEASSIGN);
+        String target = lowTarger.getKey();
+        String targetCode = lowTarger.getValue();
+
+        String sql = "SELECT ad."+CODE+", ad."+DESCRIPTION+" " +
+                "FROM "+TABLE_NAME+" ad " +
+                "INNER JOIN "+UserControlController.TABLE_NAME+" uc on ad."+CODE+" = uc."+UserControlController.VALUE+" AND "+UserControlController.TARGET+" = '"+target+"' AND "+UserControlController.TARGETCODE+" = '"+targetCode+"' " +
+                "AND "+UserControlController.CONTROL+" = '"+CODES.USERCONTROL_TABLEASSIGN+"' AND uc."+UserControlController.ACTIVE+" = '1' " +
+                "WHERE ad."+CODEAREA+" = ? " +
+                "ORDER BY "+orderBy;
+        Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, new String[]{area});
+        while(c.moveToNext()){
+            data.add(new KV(c.getString(0), c.getString(1)));
+        }
+
+        ArrayAdapter<KV> adapter = new ArrayAdapter<KV>(context,android.R.layout.simple_list_item_1, data);
+        spn.setAdapter(adapter);
+    }
+
 
 
 }

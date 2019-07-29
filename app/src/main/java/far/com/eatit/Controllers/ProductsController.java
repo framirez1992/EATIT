@@ -285,22 +285,6 @@ public class ProductsController {
 
                     lote.update(ProductsMeasureController.getInstance(context).getReferenceFireStore().document(pm.getCODE()), pm.toMap());
                 }
-
-               /* ArrayList<ProductsMeasure> old = ProductsMeasureController.getInstance(context).getProductsMeasureByCodeProduct(product.getCODE());
-                ArrayList<ProductsMeasure> diferentes = ProductsMeasureController.getInstance(context).getdifference(old, newMeasures);
-
-                for(ProductsMeasure del: diferentes){//ELIMINANDO
-                 lote.delete(ProductsMeasureController.getInstance(context).getReferenceFireStore().document(del.getCODE()));
-                }
-
-                for (ProductsMeasure obj : newMeasures) {//Insertando o actualizando el nuevo detalle
-                    if (obj.getMDATE() == null) {
-                        lote.set(ProductsMeasureController.getInstance(context).getReferenceFireStore().document(obj.getCODE()), obj.toMap());
-                    } else {
-                        lote.update(ProductsMeasureController.getInstance(context).getReferenceFireStore().document(obj.getCODE()), obj.toMap());
-                    }
-
-                }*/
             }
 
             lote.commit().addOnFailureListener(new OnFailureListener() {

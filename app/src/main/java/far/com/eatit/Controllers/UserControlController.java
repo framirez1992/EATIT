@@ -3,6 +3,7 @@ package far.com.eatit.Controllers;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.support.annotation.NonNull;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
@@ -16,10 +17,14 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 import far.com.eatit.Adapters.Models.SimpleRowModel;
+import far.com.eatit.Adapters.Models.SimpleSeleccionRowModel;
 import far.com.eatit.Adapters.Models.UserControlRowModel;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
+import far.com.eatit.CloudFireStoreObjects.ProductsSubTypes;
+import far.com.eatit.CloudFireStoreObjects.ProductsTypes;
 import far.com.eatit.CloudFireStoreObjects.UserControl;
 import far.com.eatit.CloudFireStoreObjects.Users;
 import far.com.eatit.DataBase.DB;
@@ -35,6 +40,7 @@ public class UserControlController {
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+" ("
             +CODE+" TEXT, "+TARGET+" TEXT,"+TARGETCODE+" TEXT, "+CONTROL+" TEXT," +VALUE+" TEXT, "+ACTIVE+" BOOLEAN, "+
             DATE+" TEXT, "+MDATE+" TEXT)";
+    public static String[]RolesControl = new String[]{CODES.USER_CONTROL_CREATEORDER, CODES.USER_CONTROL_DISPATCHORDER, CODES.USER_CONTROL_CHARGE_ORDERS};
 
     FirebaseFirestore db;
     Context context;
@@ -143,6 +149,123 @@ public class UserControlController {
 
     }
 
+    public void sendToFireBase(String control, String target, String targetCode, ArrayList<UserControl> newControls){
+        try {
+            WriteBatch lote = db.batch();
+
+            if (newControls != null ){
+
+                String notIn=" NOT IN ('1'";
+                for(UserControl uc: newControls){
+
+                    String where = UserControlController.CONTROL+" = ? AND "+UserControlController.TARGET+" = ? AND "+UserControlController.TARGETCODE+"= ? AND "+UserControlController.VALUE+" = ?";
+                    String[]args = new String[]{control, target, targetCode, uc.getVALUE()};
+                    ArrayList<UserControl> existingPM = getUserControls(where, args, null);
+
+                    if(existingPM.size() >0){//ACTUALIZAR
+                        uc.setCODE(existingPM.get(0).getCODE());//sustituye el codigo nuevo por el existente en la base de datos
+                        uc.setDATE(existingPM.get(0).getDATE());//permanecer la fecha de creacion.
+                        uc.setMDATE(null);
+
+                        //ENVIAR A FIRE BASE
+                        lote.update(getReferenceFireStore().document(uc.getCODE()), uc.toMap());
+
+                        //ACTUALIZAR LOCAL
+                        where = UserControlController.CODE+" = ?";
+                        update(uc,where, new String[]{uc.getCODE()});
+
+
+                    }else{//INSERTAR
+                        lote.set(getReferenceFireStore().document(uc.getCODE()), uc.toMap());
+                        insert(uc);
+                    }
+                    notIn+=",'"+uc.getCODE()+"'";
+                }
+
+                notIn+=")";
+                String where = UserControlController.CONTROL+" = ? AND "+UserControlController.TARGET+" = ? AND "+UserControlController.TARGETCODE+"= ? AND "+UserControlController.ACTIVE+" = ? AND  "+UserControlController.CODE+notIn;
+                ArrayList<UserControl> toDisable = getUserControls(where, new String[]{control,target,targetCode, "1"}, null);
+                for(UserControl uc: toDisable){
+                    uc.setACTIVE(false);
+                    uc.setMDATE(null);
+                    where = UserControlController.CODE+" = ?";
+                    update(uc,where, new String[]{uc.getCODE()});
+
+                    lote.update(getReferenceFireStore().document(uc.getCODE()), uc.toMap());
+                }
+            }
+
+            lote.commit().addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    public void sendToFireBase(String target, String targetCode, ArrayList<UserControl> newControls){
+        try {
+            WriteBatch lote = db.batch();
+
+            if (newControls != null ){
+
+                String notIn=" NOT IN ('1'";
+                for(UserControl uc: newControls){
+
+                    String where = UserControlController.CONTROL+" = ? AND "+UserControlController.TARGET+" = ? AND "+UserControlController.TARGETCODE+"= ? AND "+UserControlController.VALUE+" = ?";
+                    String[]args = new String[]{uc.getCONTROL(), target, targetCode, uc.getVALUE()};
+                    ArrayList<UserControl> existingPM = getUserControls(where, args, null);
+
+                    if(existingPM.size() >0){//ACTUALIZAR
+                        uc.setCODE(existingPM.get(0).getCODE());//sustituye el codigo nuevo por el existente en la base de datos
+                        uc.setDATE(existingPM.get(0).getDATE());//permanecer la fecha de creacion.
+                        uc.setMDATE(null);
+
+                        //ENVIAR A FIRE BASE
+                        lote.update(getReferenceFireStore().document(uc.getCODE()), uc.toMap());
+
+                        //ACTUALIZAR LOCAL
+                        where = UserControlController.CODE+" = ?";
+                        update(uc,where, new String[]{uc.getCODE()});
+
+
+                    }else{//INSERTAR
+                        lote.set(getReferenceFireStore().document(uc.getCODE()), uc.toMap());
+                        insert(uc);
+                    }
+                    notIn+=",'"+uc.getCODE()+"'";
+                }
+
+                notIn+=")";//obtener todos los controles del mismo target y targetCode (usuario x por ejemplo) que estan activos en la base dee datos pero que no fueron seleccionados.
+                String where = UserControlController.TARGET+" = ? AND "+UserControlController.TARGETCODE+"= ? AND "+UserControlController.ACTIVE+" = ? AND  "+UserControlController.CODE+notIn;
+                ArrayList<UserControl> toDisable = getUserControls(where, new String[]{target,targetCode, "1"}, null);
+                for(UserControl uc: toDisable){
+                    uc.setACTIVE(false);
+                    uc.setMDATE(null);
+                    where = UserControlController.CODE+" = ?";
+                    update(uc,where, new String[]{uc.getCODE()});
+
+                    lote.update(getReferenceFireStore().document(uc.getCODE()), uc.toMap());
+                }
+            }
+
+            lote.commit().addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+
     public void deleteFromFireBase(UserControl uc){
         try {
             getReferenceFireStore().document(uc.getCODE()).delete();
@@ -241,6 +364,16 @@ public class UserControlController {
            return searchControl(CODES.USERCONTROL_ORDERSPLITTYPE);
         }
 
+    /**
+     * CONTROL: TABLEASSIGN
+     * indica si el usuario, tipo de usuario o empresa tienes mesas asignadas.
+     * @return
+     */
+    public boolean tableAssign(){
+        String result = searchControl(CODES.USERCONTROL_TABLEASSIGN);
+        return (result !=null);
+    }
+
     public String searchControl(String control){
         String result = null;
         String sql = "SELECT "+VALUE+" " +
@@ -264,6 +397,31 @@ public class UserControlController {
         return result;
     }
 
+    public KV getLowTargetLevel(String control){
+        //USER =0, USER_ROL = 1, COMPANY = 2
+        KV result = null;
+        String sql = "SELECT "+TARGET+", "+TARGETCODE+" " +
+                "FROM "+TABLE_NAME+" " +
+                "WHERE "+CONTROL+" = ? AND "+ACTIVE+" = ?  AND ( ("+TARGET+" = ? AND "+TARGETCODE+" = ? ) OR ("+TARGET+" = ? AND "+TARGETCODE+" = ? )  OR ("+TARGET+" = ? AND "+TARGETCODE+" = ? )    )  " +
+                "ORDER BY "+TARGET+" ASC";
+        Users u = UsersController.getInstance(context).getUserByCode(Funciones.getCodeuserLogged(context));
+        String[]args = new String[]{control, "1",
+                CODES.USERSCONTROL_TARGET_USER,u.getCODE(),
+                CODES.USERSCONTROL_TARGET_USER_ROL,u.getROLE(),
+                CODES.USERSCONTROL_TARGET_COMPANY,u.getCOMPANY() };
+        try {
+            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, args);
+            if (c.moveToFirst()) {
+                result = new KV(c.getString(0), c.getString(1));
+            }
+            c.close();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
     public void fillSpinnerControlLevels(Spinner spn, boolean addTodos){
         ArrayList<KV> list = new ArrayList<>();
         if(addTodos)
@@ -273,6 +431,215 @@ public class UserControlController {
         list.add(new KV(CODES.USERSCONTROL_TARGET_COMPANY, "Empresa"));
         list.add(new KV(CODES.USERSCONTROL_TARGET_USER, "Usuario"));
         spn.setAdapter(new ArrayAdapter<KV>(context,android.R.layout.simple_list_item_1,list));
+    }
+
+    public void fillSpinnerByControlLevel(Spinner spn, String target){
+        if(target.equals(CODES.USERSCONTROL_TARGET_COMPANY)){
+         CompanyController.getInstance(context).fillSpnCompany(spn, false);
+        }else if(target.equals(CODES.USERSCONTROL_TARGET_USER_ROL)){
+        UserTypesController.getInstance(context).fillSpnUserTypes(spn, false);
+        }else if(target.equals(CODES.USERSCONTROL_TARGET_USER)){
+        UsersController.getInstance(context).fillSpnUserWithCode(spn, false);
+        }
+    }
+
+    public void fillSpinnerOrderSplitType(Spinner spn){
+        ArrayList<KV> list = new ArrayList<>();
+
+        list.add(new KV("-1", "NONE"));
+        list.add(new KV(CODES.VAL_USERCONTROL_ORDERSPLITTYPE_FAMILY, "Family"));
+        list.add(new KV(CODES.VAL_USERCONTROL_ORDERSPLITTYPE_GROUP, "Group"));
+        spn.setAdapter(new ArrayAdapter<KV>(context,android.R.layout.simple_list_item_1,list));
+    }
+
+    /**
+     * obtiene todas las mesas asignadas a un usuario, rol o empresa
+     * @return
+     */
+    public ArrayList<SimpleSeleccionRowModel> getUserTableSSRM(String target, String targerCode){
+
+        ArrayList<SimpleSeleccionRowModel> list = new ArrayList<>();
+        String sql = "SELECT ad."+AreasDetailController.CODE+" as CODEAREADETAIL, ad."+AreasDetailController.DESCRIPTION+" as AREADETAILDESCRIPTION, ifnull(uc."+CODE+", -1), ifnull(uc."+TARGET+", '"+target+"'), ifnull(uc."+TARGETCODE+", '"+targerCode+"'), ifnull(uc."+ACTIVE+", 0) as CHECKED " +
+                     "FROM "+AreasDetailController.TABLE_NAME+" ad " +
+                     "LEFT JOIN "+TABLE_NAME+" uc ON uc."+TARGET+" = '"+target+"' AND uc."+TARGETCODE+" = '"+targerCode+"' AND  uc."+CONTROL+" = '"+CODES.USERCONTROL_TABLEASSIGN+"' AND  ad."+AreasDetailController.CODE+" = uc."+VALUE+" " +
+                     "ORDER BY ad."+AreasDetailController.ORDER+" ASC ";
+        Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
+        while(c.moveToNext()){
+            list.add(new SimpleSeleccionRowModel(c.getString(c.getColumnIndex("CODEAREADETAIL")),c.getString(c.getColumnIndex("AREADETAILDESCRIPTION")), c.getString(c.getColumnIndex("CHECKED")).equals("1")));
+        }c.close();
+
+        return list;
+    }
+
+
+    /**
+     * obtiene todos los controles asignados a un rol.
+     * @return
+     */
+    public ArrayList<SimpleSeleccionRowModel> getRolesControlSSRM(String targerCode){
+        ArrayList<SimpleSeleccionRowModel> list = new ArrayList<>();
+        String controls = getControlsQueryRol();
+        String sql = "SELECT c.CODE as CODE, c.DESCRIPTION as DESCRIPTION, ifnull(uc."+CODE+", -1), ifnull(uc."+TARGET+", '"+CODES.USERSCONTROL_TARGET_USER_ROL+"'), ifnull(uc."+TARGETCODE+", '"+targerCode+"'), ifnull(uc."+ACTIVE+", 0) as CHECKED " +
+                "FROM "+controls+" c "+
+                "LEFT JOIN "+TABLE_NAME+" uc ON  uc."+CONTROL+" = c.CODE AND uc."+TARGET+" = c.TARGET AND uc."+TARGETCODE+" = '"+targerCode+"'  " +
+                "ORDER BY c.DESCRIPTION ";
+
+        Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
+        while(c.moveToNext()){
+            list.add(new SimpleSeleccionRowModel(c.getString(c.getColumnIndex("CODE")),c.getString(c.getColumnIndex("DESCRIPTION")), c.getString(c.getColumnIndex("CHECKED")).equals("1")));
+        }c.close();
+
+        return list;
+    }
+
+
+    /**
+     * obtiene todos los controles asignados a un Usuario.
+     * @return
+     */
+    public ArrayList<SimpleSeleccionRowModel> getUsersControlSSRM( String targerCodeUser){
+        ArrayList<SimpleSeleccionRowModel> list = new ArrayList<>();
+        try {
+            String controls = getControlsQueryUser();
+            String sql;
+            if(targerCodeUser.equals("-1")){
+                 sql = "SELECT c.CODE as CODE, c.DESCRIPTION as DESCRIPTION, 0 as CHECKED " +
+                        "FROM "+controls+" c ";
+            }else{
+                 sql = "SELECT c.CODE as CODE, c.DESCRIPTION as DESCRIPTION, ifnull(uc." + CODE + ", -1), ifnull(uc." + TARGET + ", '" + CODES.USERSCONTROL_TARGET_USER_ROL + "'), ifnull(uc." + TARGETCODE + ", '" + targerCodeUser + "'), ifnull(uc." + ACTIVE + ", 0) as CHECKED " +
+                        "FROM " + controls + " c " +
+                        "LEFT JOIN " + TABLE_NAME + " uc ON uc." + TARGET + " = c.TARGET AND uc." + TARGETCODE + " = '" + targerCodeUser + "'  AND  c.CODE = uc." + CONTROL + " " +
+                        "ORDER BY c.DESCRIPTION ";
+            }
+
+
+            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
+            while (c.moveToNext()) {
+                list.add(new SimpleSeleccionRowModel(c.getString(c.getColumnIndex("CODE")), c.getString(c.getColumnIndex("DESCRIPTION")), c.getString(c.getColumnIndex("CHECKED")).equals("1")));
+            }
+            c.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+
+    public ArrayList<SimpleSeleccionRowModel> getOrderSplitSSRM(String splitType){
+        ArrayList<SimpleSeleccionRowModel> list = new ArrayList<>();
+        try{
+            String sql ="";
+            if(splitType.equals(CODES.VAL_USERCONTROL_ORDERSPLITTYPE_FAMILY)){
+            sql = "SELECT pt."+ProductsTypesController.CODE+" as CODE, pt."+ProductsTypesController.DESCRIPTION+" as DESCRIPTION, ifnull(uc." + ACTIVE + ", 0) as CHECKED " +
+                  "FROM "+ProductsTypesController.TABLE_NAME+" pt " +
+                  "LEFT JOIN "+UserControlController.TABLE_NAME+" uc ON uc."+UserControlController.CONTROL+" = '"+CODES.USERCONTROL_ORDERSPLIT+"' AND uc."+UserControlController.VALUE+" = pt."+ProductsTypesController.CODE+" " +
+                  "ORDER BY pt."+ProductsTypesController.DESCRIPTION;
+            }else if(splitType.equals(CODES.VAL_USERCONTROL_ORDERSPLITTYPE_GROUP)){
+            sql = "SELECT pt."+ProductsSubTypesController.CODE+" as CODE, pt."+ProductsSubTypesController.DESCRIPTION+" as DESCRIPTION, ifnull(uc." + ACTIVE + ", 0) as CHECKED " +
+                    "FROM "+ProductsSubTypesController.TABLE_NAME+" pt " +
+                    "LEFT JOIN "+UserControlController.TABLE_NAME+" uc ON uc."+UserControlController.CONTROL+" = '"+CODES.USERCONTROL_ORDERSPLIT+"' AND uc."+UserControlController.VALUE+" = pt."+ProductsSubTypesController.CODE+" " +
+                    "ORDER BY pt."+ProductsTypesController.DESCRIPTION;
+            }
+
+            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
+            while(c.moveToNext()){
+                list.add(new SimpleSeleccionRowModel(c.getString(c.getColumnIndex("CODE")),
+                        c.getString(c.getColumnIndex("DESCRIPTION")), c.getString(c.getColumnIndex("CHECKED")).equals("1")));
+            }c.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+
+    public ArrayList<SimpleSeleccionRowModel> getOrderSplitDestinySSRM(String codeUser){
+        ArrayList<SimpleSeleccionRowModel> list = new ArrayList<>();
+        try{
+
+            String company = UsersController.getInstance(context).getUserByCode(codeUser).getCOMPANY();
+            String tabla = "SELECT ifnull(pt."+ProductsTypesController.CODE+", pst."+ProductsSubTypesController.CODE+") as CODE, " +
+                    "ifnull(pt."+ProductsTypesController.DESCRIPTION+", pst."+ProductsSubTypesController.DESCRIPTION+") as DESCRIPTION, 0 as CHECKED " +
+                    "FROM "+UserControlController.TABLE_NAME+" uc " +
+                    "LEFT JOIN "+ProductsTypesController.TABLE_NAME+" pt on pt."+ProductsTypesController.CODE+" = uc."+UserControlController.VALUE+" " +
+                    "LEFT JOIN "+ProductsSubTypesController.TABLE_NAME+" pst on pst."+ProductsSubTypesController.CODE+" = uc."+UserControlController.VALUE+" " +
+                    "WHERE uc."+UserControlController.CONTROL+" = '"+CODES.USERCONTROL_ORDERSPLIT+"' AND uc."+UserControlController.TARGET+" = '"+CODES.USERSCONTROL_TARGET_COMPANY+"' " +
+                    "AND uc."+UserControlController.TARGETCODE+" = '"+company+"' AND uc."+UserControlController.ACTIVE+" = '1' ";
+
+            String sql = "SELECT t.CODE, t.DESCRIPTION, ifnull(uc."+UserControlController.ACTIVE+", 0) as CHECKED " +
+                    "FROM ("+tabla+") as t " +
+                    "LEFT JOIN "+UserControlController.TABLE_NAME+" uc on uc."+UserControlController.CONTROL+" = '"+CODES.USERCONTROL_ORDERSPLITDESTINY+"' " +
+                    "AND uc."+UserControlController.TARGET+" = '"+CODES.USERSCONTROL_TARGET_USER+"' AND uc."+UserControlController.TARGETCODE+" = '"+codeUser+"' " +
+                    "AND uc."+UserControlController.VALUE+" = t.CODE";
+
+
+            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql,null);
+            while(c.moveToNext()){
+                String cheked = c.getString(c.getColumnIndex("CHECKED"));
+                list.add(new SimpleSeleccionRowModel(c.getString(c.getColumnIndex("CODE")),
+                        c.getString(c.getColumnIndex("DESCRIPTION")), c.getString(c.getColumnIndex("CHECKED")).equals("1")));
+            }c.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+
+    public static String getControlsQueryRol(){
+        String controls = "(SELECT CODE, DESCRIPTION, TARGET FROM  ( " +
+                "SELECT '"+CODES.USER_CONTROL_CREATEORDER+"' as CODE, 'Create orders' as DESCRIPTION, '"+CODES.USERSCONTROL_TARGET_USER_ROL +"' as TARGET "+
+                "UNION " +
+                "SELECT '"+CODES.USER_CONTROL_DISPATCHORDER+"' as CODE, 'Dispatch orders' as DESCRIPTION,  '"+CODES.USERSCONTROL_TARGET_USER_ROL +"' as TARGET " +
+                "UNION " +
+                "SELECT '"+CODES.USER_CONTROL_CHARGE_ORDERS+"' as CODE, 'Charge orders' as DESCRIPTION,  '"+CODES.USERSCONTROL_TARGET_USER_ROL +"' as TARGET " +
+                " ) )";
+        return controls;
+    }
+
+    public static String getControlsQueryUser(){
+        //String RolesControls =  getControlsQueryRol();
+        String controls = //"(" +
+               // "SELECT * FROM " +
+                "(SELECT CODE, DESCRIPTION, TARGET FROM  ( " +
+                "SELECT '"+CODES.USER_CONTROL_MODIFYORDER+"' as CODE, 'Modify orders' as DESCRIPTION, '"+CODES.USERSCONTROL_TARGET_USER +"' as TARGET "+
+                "UNION " +
+                "SELECT '"+CODES.USER_CONTROL_ANULATEORDER+"' as CODE, 'Anulate orders' as DESCRIPTION,  '"+CODES.USERSCONTROL_TARGET_USER +"' as TARGET " +
+                "UNION " +
+                "SELECT '"+CODES.USER_CONTROL_PRINTORDERS+"' as CODE, 'Print orders' as DESCRIPTION,  '"+CODES.USERSCONTROL_TARGET_USER +"' as TARGET " +
+                " ) )  "; //+
+               // "UNION " +
+               // "SELECT * FROM "+RolesControls+"  " +
+              //  ")";
+        return controls;
+    }
+
+    /**
+     * llena un spinner con una lista de los roles que pueden despachar ordenes (CONTROL DISPATCHORDER activo para el rol)
+     * @return
+     */
+    public ArrayList<KV> getOrderDispachRoles(){
+        ArrayList<KV> result = new ArrayList<>();
+        try {
+            String sql = "SELECT ut." + UserTypesController.CODE + " as CODE, ut." + UserTypesController.DESCRIPTION + " as DESCRIPTION " +
+                    "FROM " + UserTypesController.TABLE_NAME + " ut " +
+                    "INNER JOIN " + UserControlController.TABLE_NAME + " uc on uc." + UserControlController.CONTROL + " = '" + CODES.USER_CONTROL_DISPATCHORDER + "' AND uc." + UserControlController.ACTIVE + " = 1  " +
+                    "AND uc." + UserControlController.TARGET + " = '" + CODES.USERSCONTROL_TARGET_USER_ROL + "' AND uc." + UserControlController.TARGETCODE + " = ut." + UserTypesController.CODE + " " +
+                    "ORDER BY ut." + UserTypesController.DESCRIPTION;
+            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
+            while (c.moveToNext()) {
+                result.add(new KV(c.getString(c.getColumnIndex("CODE")), c.getString(c.getColumnIndex("DESCRIPTION"))));
+            }
+            c.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    public void fillOrderDispachRoles(Spinner spn){
+        spn.setAdapter(new ArrayAdapter<KV>(context, android.R.layout.simple_list_item_1,getOrderDispachRoles()));
     }
 
 }
