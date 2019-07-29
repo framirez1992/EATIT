@@ -351,17 +351,12 @@ public class UserControlController {
 
     /**
      * CONTROL: ORDERSPLIT
-     * Indica si el Usuario o Tipo de usuario fracionara la orden segun la Familia o Grupo de productos creando ordenes diferentes para cada agrupacion.
-     * Depende del parametro: ORDERSPLITTYPE
+     * Indica si el control para dividir ordenes esta activo.
      * @return
      */
     public boolean orderSplit(){
             String result = searchControl(CODES.USERCONTROL_ORDERSPLIT);
-            return (result !=null && orderSplitType()!= null);
-        }
-
-        public String orderSplitType(){
-           return searchControl(CODES.USERCONTROL_ORDERSPLITTYPE);
+            return (result !=null);
         }
 
     /**

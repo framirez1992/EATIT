@@ -193,7 +193,7 @@ public class SalesController {
 
     public void save(String notes, String codeAreaDetail){
         if(UserControlController.getInstance(context).orderSplit()){
-        ArrayList<ArrayList> list = TempOrdersController.getInstance(context).getSplitedTempSale(notes, codeAreaDetail);
+        ArrayList<ArrayList> list = TempOrdersController.getInstance(context).getSplittedOrder(notes, codeAreaDetail);//getSplitedTempSale(notes, codeAreaDetail);
         ArrayList<Sales> sales = (ArrayList<Sales>) list.get(0);
         ArrayList<SalesDetails> salesDetails = (ArrayList<SalesDetails>) list.get(1);
         sendToFireBase(sales, salesDetails);

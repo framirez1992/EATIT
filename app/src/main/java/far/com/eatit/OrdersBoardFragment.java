@@ -1,7 +1,6 @@
 package far.com.eatit;
 
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -11,32 +10,13 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
-
-import com.google.common.collect.Tables;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
-import far.com.eatit.Adapters.Models.OrderDetailModel;
 import far.com.eatit.Adapters.Models.OrderModel;
 import far.com.eatit.Adapters.OrdersBoardAdapter;
-import far.com.eatit.CloudFireStoreObjects.Licenses;
-import far.com.eatit.CloudFireStoreObjects.Sales;
-import far.com.eatit.CloudFireStoreObjects.SalesDetails;
-import far.com.eatit.Controllers.LicenseController;
 import far.com.eatit.Controllers.SalesController;
-import far.com.eatit.Controllers.TableFilterController;
-import far.com.eatit.Controllers.UserControlController;
-import far.com.eatit.Controllers.UsersController;
 import far.com.eatit.Globales.CODES;
-import far.com.eatit.Globales.Tablas;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -46,14 +26,14 @@ public class OrdersBoardFragment extends Fragment {
     RecyclerView rvOrders;
     SalesController salesController;
 
-    public OrderBoard parentActivity;
+    public MainOrderBoard parentActivity;
 
     public OrdersBoardFragment() {
         // Required empty public constructor
     }
 
 
-    public void setParentActivity(OrderBoard parent){
+    public void setParentActivity(MainOrderBoard parent){
         this.parentActivity = parent;
     }
 

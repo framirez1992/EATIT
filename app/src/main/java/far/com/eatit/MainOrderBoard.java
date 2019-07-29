@@ -10,11 +10,9 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.ContextMenu;
-import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -40,7 +38,7 @@ import far.com.eatit.Globales.CODES;
 import far.com.eatit.Interfases.ListableActivity;
 import far.com.eatit.Utils.Funciones;
 
-public class OrderBoard extends AppCompatActivity implements ListableActivity, NavigationView.OnNavigationItemSelectedListener {
+public class MainOrderBoard extends AppCompatActivity implements ListableActivity, NavigationView.OnNavigationItemSelectedListener {
 
     OrdersBoardFragment ordersBoardFragment;
     SalesController salesController;
@@ -70,7 +68,7 @@ public class OrderBoard extends AppCompatActivity implements ListableActivity, N
                 }
             });
 
-            salesController = SalesController.getInstance(OrderBoard.this);
+            salesController = SalesController.getInstance(MainOrderBoard.this);
             salesReference = salesController.getReferenceFireStore();
             salesDetailReference = salesController.getReferenceDetailFireStore();
 
@@ -81,7 +79,7 @@ public class OrderBoard extends AppCompatActivity implements ListableActivity, N
 
             drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
             nav = (NavigationView)findViewById(R.id.nav_view);
-            nav.setNavigationItemSelectedListener(OrderBoard.this);
+            nav.setNavigationItemSelectedListener(MainOrderBoard.this);
 
             llMenu.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -216,13 +214,13 @@ public class OrderBoard extends AppCompatActivity implements ListableActivity, N
             if(s != null) {
                 salesController.sendToFireBase(s, new ArrayList<SalesDetails>());//AQUI DEBEN ACTUALIZARSE A "LISTO" EL DETALLE DE LAS ORDENES
                 //Se le coloca el codigo de la orden en caso de que la orden pase a "LISTA" varias veces sobreescriba el mensaje en el server con Status "NO LEIDO"
-                String subject =  "Orden Lista: "+AreasDetailController.getInstance(OrderBoard.this).getAreasDetailByCode(s.getCODEAREADETAIL()).getDESCRIPTION();
+                String subject =  "Orden Lista: "+AreasDetailController.getInstance(MainOrderBoard.this).getAreasDetailByCode(s.getCODEAREADETAIL()).getDESCRIPTION();
                 String message = "La orden esta lista. Pase a recogerla";
-                UserInbox ui = new UserInbox(s.getCODE(), Funciones.getCodeuserLogged(OrderBoard.this), s.getCODEUSER(),s.getCODE(), subject,message,CODES.CODE_TYPE_OPERATION_SALES+"",CODES.CODE_ICON_MESSAGE_CHECK, CODES.CODE_USERINBOX_STATUS_NO_READ );
+                UserInbox ui = new UserInbox(s.getCODE(), Funciones.getCodeuserLogged(MainOrderBoard.this), s.getCODEUSER(),s.getCODE(), subject,message,CODES.CODE_TYPE_OPERATION_SALES+"",CODES.CODE_ICON_MESSAGE_CHECK, CODES.CODE_USERINBOX_STATUS_NO_READ );
                 ArrayList<UserInbox> uis = new ArrayList<>(); uis.add(ui);
-                UserInboxController.getInstance(OrderBoard.this).sendToFireBase(uis);
+                UserInboxController.getInstance(MainOrderBoard.this).sendToFireBase(uis);
             }else{
-                Toast.makeText(OrderBoard.this, "Not in DATABASE", Toast.LENGTH_LONG).show();
+                Toast.makeText(MainOrderBoard.this, "Not in DATABASE", Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -233,7 +231,7 @@ public class OrderBoard extends AppCompatActivity implements ListableActivity, N
             String where = SalesController.STATUS+" = ?";
             String[]args = new String[]{+CODES.CODE_ORDER_STATUS_CANCELED+""};
             ArrayList<Sales> sales = salesController.getSales(where, args);
-            SalesController.getInstance(OrderBoard.this).massiveDelete(sales);
+            SalesController.getInstance(MainOrderBoard.this).massiveDelete(sales);
             ordersBoardFragment.reloadList();
     }
 
@@ -242,7 +240,7 @@ public class OrderBoard extends AppCompatActivity implements ListableActivity, N
         String where = SalesController.STATUS+" = ? AND "+SalesController.CODE+" = ?";
         String[]args = new String[]{+CODES.CODE_ORDER_STATUS_CANCELED+"", currentOrder.getOrderNum()};
         ArrayList<Sales> sales = salesController.getSales(where, args);
-        SalesController.getInstance(OrderBoard.this).massiveDelete(sales);
+        SalesController.getInstance(MainOrderBoard.this).massiveDelete(sales);
         ordersBoardFragment.reloadList();
     }
 
@@ -253,7 +251,7 @@ public class OrderBoard extends AppCompatActivity implements ListableActivity, N
             ft.remove(prev);
         }
         //ft.addToBackStack(null);
-        DialogFragment newFragment =  MessageSendDialog.newInstance(OrderBoard.this, salesController.getSaleByCode(currentOrder.getOrderNum()));
+        DialogFragment newFragment =  MessageSendDialog.newInstance(MainOrderBoard.this, salesController.getSaleByCode(currentOrder.getOrderNum()));
 
         // Create and show the dialog.
         newFragment.show(ft, "dialog");

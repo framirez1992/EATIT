@@ -13,6 +13,7 @@ import far.com.eatit.Adapters.Models.OrderModel;
 import far.com.eatit.CloudFireStoreObjects.ProductsControl;
 import far.com.eatit.CloudFireStoreObjects.Sales;
 import far.com.eatit.CloudFireStoreObjects.SalesDetails;
+import far.com.eatit.CloudFireStoreObjects.UserControl;
 import far.com.eatit.DataBase.DB;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Globales.Tablas;
@@ -213,7 +214,7 @@ public class TempOrdersController{
             c.close();
             return s;
         }
-
+/*
     public ArrayList<ArrayList> getSplitedTempSale(String notes, String codeAreaDetail){
 
 
@@ -295,7 +296,11 @@ public class TempOrdersController{
         }
 
         return result;
-    }
+    }*/
+
+
+
+
 
     public ArrayList<String> getDistinctProductTypesInOrderDetail(){
             ArrayList<String> familys = new ArrayList<>();
@@ -328,6 +333,72 @@ public class TempOrdersController{
             e.printStackTrace();
         }
         return groups;
+    }
+
+
+    public ArrayList<ArrayList> getSplittedOrder(String notes, String codeAreaDetail){
+            ArrayList<ArrayList> result = new ArrayList<>();
+            ArrayList<Sales> heads = new ArrayList<>();
+            ArrayList<SalesDetails>details = new ArrayList<>();
+
+        Sales originalSale = null;
+        Cursor cos = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME, columns, null, null, null, null, null);
+        if (cos.moveToFirst()) {
+            originalSale = new Sales(cos);
+            originalSale.setNOTES(notes);
+            originalSale.setCODEAREADETAIL(codeAreaDetail);
+        }
+        cos.close();
+
+
+        String sql = "SELECT od." + DETAIL_CODE + " as " + DETAIL_CODE + " , od." + DETAIL_CODESALES + " as " + DETAIL_CODESALES + " , od." + DETAIL_CODEPRODUCT + " as " + DETAIL_CODEPRODUCT + ",od." +
+                DETAIL_DISCOUNT + " as " + DETAIL_DISCOUNT + ",od." + DETAIL_POSITION + " as " + DETAIL_POSITION + ",od." + DETAIL_PRICE + " as " + DETAIL_PRICE + ",od." +
+                DETAIL_QUANTITY + " as " + DETAIL_QUANTITY + ",od." + DETAIL_UNIT + " as " + DETAIL_UNIT + ",od." + DETAIL_CODEUND + " as " + DETAIL_CODEUND + ", od." + DETAIL_DATE + " as "+DETAIL_DATE+", od." + DETAIL_MDATE + " as " + DETAIL_MDATE+"," +
+                "ifnull(uc."+UserControlController.VALUE+", -1) as CODETYPE, ifnull(uc2."+UserControlController.VALUE+", -1) as CODESUBTYPE "+
+                "FROM " + TABLE_NAME_DETAIL + " od " +
+                "INNER JOIN " + ProductsController.TABLE_NAME + " p on p." + ProductsController.CODE + " = od." + DETAIL_CODEPRODUCT + " " +
+                "LEFT JOIN "+UserControlController.TABLE_NAME+" uc on uc."+UserControlController.CONTROL+" = '"+CODES.USERCONTROL_ORDERSPLIT+"' AND uc."+UserControlController.ACTIVE+" = '1' AND uc."+ UserControlController.VALUE+" = p."+ProductsController.TYPE+" " +
+                "LEFT JOIN "+UserControlController.TABLE_NAME+" uc2 on uc2."+UserControlController.CONTROL+" = '"+CODES.USERCONTROL_ORDERSPLIT+"' AND uc2."+UserControlController.ACTIVE+" = '1' AND uc2."+ UserControlController.VALUE+" = p."+ProductsController.SUBTYPE+" " +
+                "ORDER BY uc."+UserControlController.VALUE+", uc2."+UserControlController.VALUE;
+        Cursor c = sqlite.getReadableDatabase().rawQuery(sql, null);
+        String lastHead = "";
+        String splitType;
+        Sales s = null;
+        while(c.moveToNext()){
+            String currentHead;
+            if(!c.getString(c.getColumnIndex("CODETYPE")).equals("-1")){
+                currentHead = c.getString(c.getColumnIndex("CODETYPE"));
+                splitType = CODES.VAL_USERCONTROL_ORDERSPLITTYPE_FAMILY;
+            }else if(!c.getString(c.getColumnIndex("CODESUBTYPE")).equals("-1")){
+                currentHead = c.getString(c.getColumnIndex("CODESUBTYPE"));
+                splitType = CODES.VAL_USERCONTROL_ORDERSPLITTYPE_GROUP;
+            }else{
+                currentHead= "NONE";
+                splitType="NONE";
+            }
+
+            if(!lastHead.equals(currentHead)){
+                lastHead = currentHead;
+                s = new Sales(Funciones.generateCode(),originalSale.getCODEUSER(),codeAreaDetail,0.0,0.0,CODES.CODE_ORDER_STATUS_OPEN,notes,null,null,null,null,originalSale.getCODE(),null);
+                if(splitType.equals(CODES.VAL_USERCONTROL_ORDERSPLITTYPE_FAMILY)){
+                    s.setCODEPRODUCTTYPE(lastHead);
+                }else if(splitType.equals(CODES.VAL_USERCONTROL_ORDERSPLITTYPE_GROUP)){
+                    s.setCODEPRODUCTSUBTYPE(lastHead);
+                }
+
+                heads.add(s);
+            }
+
+            SalesDetails sd = new SalesDetails(c);
+            sd.setCODESALES(s.getCODE());
+            details.add(sd);
+
+
+        }c.close();
+        result.add(heads);
+        result.add(details);
+
+        return result;
     }
 
         public ArrayList<SalesDetails> getTempSalesDetails( Sales s){

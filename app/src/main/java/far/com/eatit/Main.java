@@ -16,7 +16,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -35,7 +34,6 @@ import far.com.eatit.CloudFireStoreObjects.UsersDevices;
 import far.com.eatit.Controllers.DevicesController;
 import far.com.eatit.Controllers.LicenseController;
 import far.com.eatit.Controllers.ProductsControlController;
-import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Controllers.UserInboxController;
 import far.com.eatit.Controllers.UsersController;
 import far.com.eatit.Controllers.UsersDevicesController;
@@ -311,7 +309,7 @@ public class Main extends AppCompatActivity
         startActivity(new Intent(Main.this, MainOrders.class));
     }
     public void goToOrdersBoard(){
-        startActivity(new Intent(Main.this, OrderBoard.class));
+        startActivity(new Intent(Main.this, MainOrderBoard.class));
     }
     public void goToReports(){
         startActivity(new Intent(Main.this, MainReports.class));
