@@ -326,6 +326,7 @@ public class UserControlController {
         return (c != null);
     }
 
+
     /**
      * CONTROL: ORDERSPLIT
      * Indica si el control para dividir ordenes esta activo.
@@ -611,7 +612,11 @@ public class UserControlController {
         return list;
     }
 
-    public String getOrderSplitDestinyIn(){
+    /**
+     * retorna los codigos de los ProdutsTypes o ProductSubTypes que el usuario puede ver como destino.
+     * @return
+     */
+    public String getOrderSplitDestiny(){
         String result = "";
         Users u = UsersController.getInstance(context).getUserByCode(Funciones.getCodeuserLogged(context));
         String sql = "SELECT "+UserControlController.VALUE+" " +
@@ -621,7 +626,10 @@ public class UserControlController {
         while(c.moveToNext()){
             result+=((result.equals("")?"":",")+"'"+c.getString(0)+"'");
         }c.close();
-
+        return result;
+    }
+    public String getOrderSplitDestinyIn(){
+        String result = getOrderSplitDestiny();
         return " AND ( (ifnull("+SalesController.CODEPRODUCTTYPE+", '') = '' AND ifnull("+SalesController.CODEPRODUCTSUBTYPE+", '') = '') OR  ( ("+SalesController.CODEPRODUCTTYPE+" IN ("+result+")) OR "+SalesController.CODEPRODUCTSUBTYPE+" IN ("+result+") )  ) ";
 
     }

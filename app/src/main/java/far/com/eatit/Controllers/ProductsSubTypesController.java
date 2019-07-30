@@ -273,6 +273,41 @@ public class ProductsSubTypesController {
     }
 
 
+
+    /**
+     * Retorna los ProductTypes de los productos que estan bloqueados
+     * @param spn
+     * @param addTodos
+     */
+    public void fillSpinnerForLockedProducts(Spinner spn, boolean addTodos, String type){
+        ArrayList<KV> data = new ArrayList<>();
+        if(addTodos){
+            KV obj = new KV("0", "TODOS");
+            data.add(obj);
+        }
+        try {
+            String sql = "SELECT pst." + ProductsSubTypesController.CODE + ", pst." + ProductsSubTypesController.DESCRIPTION + " " +
+                    "FROM " + ProductsSubTypesController.TABLE_NAME + " pst " +
+                    "INNER JOIN " + ProductsController.TABLE_NAME + " p on p." + ProductsController.SUBTYPE + " = pst." + ProductsSubTypesController.CODE + " " +
+                    "INNER JOIN " + ProductsControlController.TABLE_NAME + " pc on pc." + ProductsControlController.CODEPRODUCT + " = p." + ProductsController.CODE + " " +
+                    "WHERE pc." + ProductsControlController.BLOQUED + " = ? AND p."+ProductsController.TYPE+" = ? " +
+                    "GROUP BY pst." + ProductsSubTypesController.CODE + ", pst." + ProductsSubTypesController.DESCRIPTION + " " +
+                    "ORDER BY pst." + ProductsSubTypesController.ORDER + " ASC, pst." + ProductsSubTypesController.DESCRIPTION;
+
+            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, new String[]{"1", type});
+            while (c.moveToNext()) {
+                data.add(new KV(c.getString(0), c.getString(1)));
+            }
+            c.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        ArrayAdapter<KV> adapter = new ArrayAdapter<KV>(context,android.R.layout.simple_list_item_1, data);
+        spn.setAdapter(adapter);
+    }
+
+
     /**
      * retorna true si el codigo tiene dependencias en otras tablas (llave foranea)
      * @param code

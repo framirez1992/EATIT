@@ -195,13 +195,6 @@ public class ProductsControlController {
 
             if (newProductsControl != null && !newProductsControl.isEmpty()){
 
-                //ArrayList<ProductsControl> old = getProductsControl(null, null, CODE);
-               // ArrayList<ProductsControl> diferentes = getdifference(old, newProductsControl);
-
-               /* for(ProductsControl del: diferentes){//ELIMINANDO
-                    lote.delete(getReferenceFireStore().document(del.getCODE()));
-                }*/
-
                 for (ProductsControl obj : newProductsControl) {//Insertando o actualizando el nuevo detalle
                     if (obj.getMDATE() == null) {
                         lote.set(getReferenceFireStore().document(obj.getCODE()), obj.toMap());

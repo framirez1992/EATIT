@@ -27,6 +27,7 @@ import far.com.eatit.Controllers.ProductsControlController;
 import far.com.eatit.Controllers.ProductsSubTypesController;
 import far.com.eatit.Controllers.ProductsTypesController;
 import far.com.eatit.Controllers.SalesController;
+import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Controllers.UserInboxController;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
@@ -108,7 +109,13 @@ public class ProductBlockSelectionDialog extends DialogFragment implements OnFai
         rvList.setLayoutManager(manager);
 
         ProductsControlController.getInstance(getContext()).fillSpinnerStatus(spnStatus, unlock);
-        ProductsTypesController.getInstance(getActivity()).fillSpinner(spnFamily, true);
+        if(unlock){
+            ProductsTypesController.getInstance(getActivity()).fillSpinnerForLockedProducts(spnFamily, true);
+        }else{
+            ProductsTypesController.getInstance(getActivity()).fillSpinner(spnFamily, true);
+        }
+
+
 
         llSave.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -136,7 +143,12 @@ public class ProductBlockSelectionDialog extends DialogFragment implements OnFai
             @Override
             public void onItemSelected(AdapterView<?> p, View view, int position, long id) {
                 family = (KV)p.getSelectedItem();
-                ProductsSubTypesController.getInstance(getActivity()).fillSpinner(spnGroup, false, family.getKey());
+                if(unlock){
+                    ProductsSubTypesController.getInstance(getActivity()).fillSpinnerForLockedProducts(spnGroup, false, family.getKey());
+                }else{
+                    ProductsSubTypesController.getInstance(getActivity()).fillSpinner(spnGroup, false, family.getKey());
+                }
+
             }
 
             @Override

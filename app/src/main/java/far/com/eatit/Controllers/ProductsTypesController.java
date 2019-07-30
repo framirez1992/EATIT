@@ -25,8 +25,10 @@ import java.util.UUID;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.Adapters.Models.SimpleSeleccionRowModel;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
+import far.com.eatit.CloudFireStoreObjects.ProductsControl;
 import far.com.eatit.CloudFireStoreObjects.ProductsSubTypes;
 import far.com.eatit.CloudFireStoreObjects.ProductsTypes;
+import far.com.eatit.CloudFireStoreObjects.Users;
 import far.com.eatit.DataBase.DB;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
@@ -271,6 +273,39 @@ public class ProductsTypesController {
     }
 
     /**
+     * Retorna los ProductTypes de los productos que estan bloqueados
+     * @param spn
+     * @param addTodos
+     */
+    public void fillSpinnerForLockedProducts(Spinner spn, boolean addTodos){
+        ArrayList<KV> data = new ArrayList<>();
+        if(addTodos){
+            KV obj = new KV("0", "TODOS");
+            data.add(obj);
+        }
+        try {
+            String sql = "SELECT pt." + ProductsTypesController.CODE + ", pt." + ProductsTypesController.DESCRIPTION + " " +
+                    "FROM " + ProductsTypesController.TABLE_NAME + " pt " +
+                    "INNER JOIN " + ProductsController.TABLE_NAME + " p on p." + ProductsController.TYPE + " = pt." + ProductsTypesController.CODE + " " +
+                    "INNER JOIN " + ProductsControlController.TABLE_NAME + " pc on pc." + ProductsControlController.CODEPRODUCT + " = p." + ProductsController.CODE + " " +
+                    "WHERE pc." + ProductsControlController.BLOQUED + " = ? " +
+                    "GROUP BY pt." + ProductsTypesController.CODE + ", pt." + ProductsTypesController.DESCRIPTION + " " +
+                    "ORDER BY pt." + ProductsTypesController.ORDER + " ASC, pt." + ProductsTypesController.DESCRIPTION;
+
+            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, new String[]{"1"});
+            while (c.moveToNext()) {
+                data.add(new KV(c.getString(0), c.getString(1)));
+            }
+            c.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        ArrayAdapter<KV> adapter = new ArrayAdapter<KV>(context,android.R.layout.simple_list_item_1, data);
+        spn.setAdapter(adapter);
+    }
+
+    /**
      * retorna true si el codigo tiene dependencias en otras tablas (llave foranea)
      * @param code
      * @return
@@ -288,5 +323,7 @@ public class ProductsTypesController {
         }
         return msg;
     }
+
+
 
 }
