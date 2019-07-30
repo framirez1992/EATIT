@@ -73,7 +73,6 @@ public class CODES {
     public static final String TABLA_TABLEFILTER_TASK = "Task Tablas Filtro";
     public static final String TABLA_TABLEFILTER_TASK_CODE = "tasktablefilter";
 
-    public static final String CODE_PRODUCTS_CONTROL_BLOQUED = "1";
 
     /////////////////////////////////
     //USERCONTROL               /////
@@ -114,17 +113,6 @@ public class CODES {
     public static final String TABLE_FILTER_DESTINY_USERTYPE = "USERTYPE";
     public static final String TABLE_FILTER_ORIGIN_PRODUCTTYPE = "PRODUCTTYPE";
     public static final String TABLE_FILTER_ORIGIN_PRODUCTSUBTYPE = "PRODUCTSUBTYPE";
-
-
-
-
-
-    //////////////////////////////////
-    //// USERS_TYPES            /////
-    /////////////////////////////////
-    public static final String USERTYPE_MESERO = "0533569d-8018-446f-95c8-2af6c64e60b7";
-    public static final String USERTYPE_BARTENDER = "0db2565b-7b51-4555-b7d2-791cd976bd9f";
-    public static final String USERTYPE_CHEFF = "a0d6eb6b-6c94-4a6d-90a6-8c56ff4149c5";
 
 
     //////////////////////////////////
