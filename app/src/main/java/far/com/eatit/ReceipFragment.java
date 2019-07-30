@@ -17,6 +17,7 @@ import far.com.eatit.Adapters.OrdersReceipAdapter;
 import far.com.eatit.Controllers.AreasController;
 import far.com.eatit.Controllers.AreasDetailController;
 import far.com.eatit.Controllers.SalesController;
+import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Interfases.ListableActivity;
 
@@ -51,12 +52,22 @@ public class ReceipFragment extends Fragment {
         spnAreas = view.findViewById(R.id.spn);
         spnMesas = view.findViewById(R.id.spn2);
 
-        AreasController.getInstance(activity).fillSpinner(spnAreas, false);
+        if(activity instanceof MainOrders && UserControlController.getInstance(activity).tableAssign()){
+            AreasController.getInstance(activity).fillSpinnerAreasForAssignedTables(spnAreas, false);
+        }else{
+            AreasController.getInstance(activity).fillSpinner(spnAreas, false);
+        }
+
         spnAreas.setOnItemSelectedListener(new  AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 area = (KV)parent.getSelectedItem();
-                AreasDetailController.getInstance(activity).fillSpinner(spnMesas,false, area.getKey());
+                if(activity instanceof MainOrders && UserControlController.getInstance(activity).tableAssign()){
+                    AreasDetailController.getInstance(activity).fillSpinnerWithAssignedTables(spnMesas, area.getKey());
+                }else{
+                    AreasDetailController.getInstance(activity).fillSpinner(spnMesas,false, area.getKey());
+                }
+
             }
 
             @Override

@@ -59,6 +59,7 @@ import far.com.eatit.Controllers.ProductsMeasureController;
 import far.com.eatit.Controllers.ReceiptController;
 import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Controllers.TempOrdersController;
+import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Controllers.UserInboxController;
 import far.com.eatit.Dialogs.AddProductDialog;
 import far.com.eatit.Dialogs.MessageSendDialog;
@@ -217,6 +218,7 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(MainOrders.this);
 
+        setupUserControls();
 
         // SI SE ENTRA POR PRIMERA VEZ, SI SE GIRA LA PANTALLA NO CORRER OTRA VEZ.
         if(savedInstanceState == null){
@@ -621,9 +623,20 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
         }
     }
 
+    public void setupUserControls(){
+        MenuItem printOrders = ((NavigationView)findViewById(R.id.nav_view)).getMenu().findItem(R.id.goReceip);
+        printOrders.setVisible(false);
+        if(UserControlController.getInstance(MainOrders.this).printOrders()){
+            printOrders.setVisible(true);
+        }
+
+    }
+
     @Override
     public void showReceiptFragment() {
         changeFragment(receipFragment, R.id.details);
+        ((ViewGroup)findViewById(R.id.details)).setVisibility(View.VISIBLE);
+        ((ViewGroup)findViewById(R.id.result)).setVisibility(View.GONE);
     }
 
 }

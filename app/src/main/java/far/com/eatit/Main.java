@@ -34,6 +34,7 @@ import far.com.eatit.CloudFireStoreObjects.UsersDevices;
 import far.com.eatit.Controllers.DevicesController;
 import far.com.eatit.Controllers.LicenseController;
 import far.com.eatit.Controllers.ProductsControlController;
+import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Controllers.UserInboxController;
 import far.com.eatit.Controllers.UsersController;
 import far.com.eatit.Controllers.UsersDevicesController;
@@ -370,16 +371,42 @@ public class Main extends AppCompatActivity
     }
 
     public void setUpForUserType(){
-        if(usersController.isSuperUser() || usersController.isAdmin()){//SU o Administrador
-            nav.getMenu().findItem(R.id.goMantInventario).setVisible(true);
-            nav.getMenu().findItem(R.id.goMantProductos).setVisible(true);
-            nav.getMenu().findItem(R.id.goMantUsuarios).setVisible(true);
-            nav.getMenu().findItem(R.id.goMantAreas).setVisible(true);
-            nav.getMenu().findItem(R.id.goMantControls).setVisible(true);
-            nav.getMenu().findItem(R.id.goReports).setVisible(true);
+        MenuItem mantenimientoInventario = nav.getMenu().findItem(R.id.goMantInventario);
+        MenuItem mantenimientoProductos = nav.getMenu().findItem(R.id.goMantProductos);
+        MenuItem mantenimientoUsuarios = nav.getMenu().findItem(R.id.goMantUsuarios);
+        MenuItem mantenimientoAreas = nav.getMenu().findItem(R.id.goMantAreas);
+        MenuItem mantenimientoControles = nav.getMenu().findItem(R.id.goMantControls);
+        MenuItem crearOrdenes = nav.getMenu().findItem(R.id.goMenu);
+        MenuItem despacharOrdenes = nav.getMenu().findItem(R.id.goPendingOrders);
+        MenuItem facturar = nav.getMenu().findItem(R.id.goReceip);
+        MenuItem recibos = nav.getMenu().findItem(R.id.goSavedReceipts);
+        MenuItem reportes = nav.getMenu().findItem(R.id.goReports);
 
-            nav.getMenu().findItem(R.id.goMenu).setVisible(usersController.isSuperUser());
-            nav.getMenu().findItem(R.id.goPendingOrders).setVisible(usersController.isSuperUser());
+        mantenimientoInventario.setVisible(false);
+        mantenimientoProductos.setVisible(false);
+        mantenimientoUsuarios.setVisible(false);
+        mantenimientoAreas.setVisible(false);
+        mantenimientoControles.setVisible(false);
+        reportes.setVisible(false);
+        crearOrdenes.setVisible(false);
+        despacharOrdenes.setVisible(false);
+        facturar.setVisible(false);
+        recibos.setVisible(false);
+        reportes.setVisible(false);
+
+        if(usersController.isSuperUser() || usersController.isAdmin()){//SU o Administrador
+            mantenimientoInventario.setVisible(usersController.isSuperUser());
+            mantenimientoProductos.setVisible(usersController.isSuperUser());
+            mantenimientoUsuarios.setVisible(usersController.isSuperUser());
+            mantenimientoAreas.setVisible(usersController.isSuperUser());
+            mantenimientoControles.setVisible(usersController.isSuperUser());
+
+            crearOrdenes.setVisible(usersController.isSuperUser());
+            despacharOrdenes.setVisible(usersController.isSuperUser());
+            facturar.setVisible(usersController.isSuperUser());
+            recibos.setVisible(true);
+            reportes.setVisible(true);
+
 
             fragmentMaintenance = new MaintenanceFragment();
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
@@ -387,12 +414,15 @@ public class Main extends AppCompatActivity
             ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
             ft.commit();
         }else {
-            nav.getMenu().findItem(R.id.goMantInventario).setVisible(false);
-            nav.getMenu().findItem(R.id.goMantProductos).setVisible(false);
-            nav.getMenu().findItem(R.id.goMantUsuarios).setVisible(false);
-            nav.getMenu().findItem(R.id.goMantAreas).setVisible(false);
-            nav.getMenu().findItem(R.id.goMantControls).setVisible(false);
-            nav.getMenu().findItem(R.id.goReports).setVisible(false);
+            if(UserControlController.getInstance(Main.this).dispatchOrders()){
+                nav.getMenu().findItem(R.id.goPendingOrders).setVisible(true);
+            }
+            if(UserControlController.getInstance(Main.this).createOrders()){
+                nav.getMenu().findItem(R.id.goMenu).setVisible(true);
+            }
+            if(UserControlController.getInstance(Main.this).chargeOrders()){
+                nav.getMenu().findItem(R.id.goReceip).setVisible(true);
+            }
 
             logoFragment = new LogoFragment();
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
@@ -402,13 +432,6 @@ public class Main extends AppCompatActivity
             ft.commit();
         }
 
-        if(usersController.isUserRole(CODES.USERTYPE_CHEFF) || usersController.isUserRole(CODES.USERTYPE_BARTENDER)){
-            nav.getMenu().findItem(R.id.goMenu).setVisible(false);
-            nav.getMenu().findItem(R.id.goPendingOrders).setVisible(true);
-        }else if(usersController.isUserRole(CODES.USERTYPE_MESERO)){
-            nav.getMenu().findItem(R.id.goMenu).setVisible(true);
-            nav.getMenu().findItem(R.id.goPendingOrders).setVisible(false);
-        }
 
 
     }

@@ -22,6 +22,7 @@ import far.com.eatit.CloudFireStoreObjects.Areas;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.DataBase.DB;
 import far.com.eatit.Generic.Objects.KV;
+import far.com.eatit.Globales.CODES;
 import far.com.eatit.Globales.Tablas;
 import far.com.eatit.Utils.Funciones;
 
@@ -224,6 +225,41 @@ public class AreasController {
         ArrayAdapter<KV> adapter = new ArrayAdapter<KV>(context,android.R.layout.simple_list_item_1, data);
         spn.setAdapter(adapter);
     }
+
+    public void fillSpinnerAreasForAssignedTables(Spinner spn, boolean addTodos){
+        String orderBy = " ac."+AreasController.ORDER+" ASC, ac."+AreasController.DESCRIPTION;
+        ArrayList<KV> data = new ArrayList<>();
+        if(addTodos){
+            KV obj = new KV("-1", "TODOS");
+            data.add(obj);
+        }
+        try {
+            KV lowTarger = UserControlController.getInstance(context).getLowTargetLevel(CODES.USERCONTROL_TABLEASSIGN);
+            String target = lowTarger.getKey();
+            String targetCode = lowTarger.getValue();
+
+            String sql = "SELECT ac." + AreasController.CODE + ", ac." + AreasController.DESCRIPTION + " " +
+                    "FROM " + AreasDetailController.TABLE_NAME + " ad " +
+                    "INNER JOIN " + AreasController.TABLE_NAME + " ac on ac." + AreasController.CODE + " = ad." + AreasDetailController.CODEAREA + " " +
+                    "INNER JOIN " + UserControlController.TABLE_NAME + " uc on ad." + AreasDetailController.CODE + " = uc." + UserControlController.VALUE + " AND uc." + UserControlController.TARGET + " = '" + target + "' AND " + UserControlController.TARGETCODE + " = '" + targetCode + "' " +
+                    "AND " + UserControlController.CONTROL + " = '" + CODES.USERCONTROL_TABLEASSIGN + "' AND uc." + UserControlController.ACTIVE + " = '1' " +
+                    "GROUP BY ac." + AreasController.CODE + ", ac." + AreasController.DESCRIPTION + " " +
+                    "ORDER BY " + orderBy;
+
+            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
+            while (c.moveToNext()) {
+                data.add(new KV(c.getString(0), c.getString(1)));
+            }
+            c.close();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
+        ArrayAdapter<KV> adapter = new ArrayAdapter<KV>(context,android.R.layout.simple_list_item_1, data);
+        spn.setAdapter(adapter);
+    }
+
+
 
     /**
      * retorna true si el codigo tiene dependencias en otras tablas (llave foranea)

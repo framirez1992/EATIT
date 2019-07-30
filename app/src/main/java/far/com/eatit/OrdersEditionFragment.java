@@ -37,6 +37,7 @@ import far.com.eatit.Controllers.AreasController;
 import far.com.eatit.Controllers.AreasDetailController;
 import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Controllers.TableCodeController;
+import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Controllers.UserInboxController;
 import far.com.eatit.Dialogs.NotificationsDialog;
 import far.com.eatit.Dialogs.WorkedOrdersDialog;
@@ -180,7 +181,13 @@ public class OrdersEditionFragment extends Fragment {
             AreasDetail ad = AreasDetailController.getInstance(parent.getContext()).getAreasDetailByCode(sales.getCODEAREADETAIL());
             tvArea.setText(AreasController.getInstance(parent.getContext()).getAreaByCode(ad.getCODEAREA()).getDESCRIPTION());
             tvMesa.setText(ad.getDESCRIPTION());
-            tvTime.setText("Listo hace " + Funciones.calcularMinutos(new Date(), sales.getMDATE()) + " Mins");
+            if(sales.getSTATUS() == CODES.CODE_ORDER_STATUS_OPEN && sales.getDATE().equals(sales.getMDATE())){
+               tvTime.setVisibility(View.GONE);
+            }else{
+                tvTime.setVisibility(View.VISIBLE);
+                tvTime.setText("Listo hace " + Funciones.calcularMinutos(new Date(), sales.getMDATE()) + " Mins");
+            }
+
             tvNotes.setText("Notas: " + ((sales.getNOTES() != null) ? sales.getNOTES() : ""));
 
             OrderDetailAdapter adapter = new OrderDetailAdapter(parent.getActivity(),SalesController.getInstance(getActivity()).getOrderDetailModels(sales.getCODE()));
@@ -318,22 +325,27 @@ public class OrdersEditionFragment extends Fragment {
     public void setupEdition(){
 
        if(sales.getSTATUS() == CODES.CODE_ORDER_STATUS_READY || sales.getSTATUS() == CODES.CODE_ORDER_STATUS_OPEN || sales.getSTATUS() == CODES.CODE_ORDER_STATUS_DELIVERED) {
-           btnEditar.setVisibility(View.VISIBLE);
-           btnAnular.setVisibility(View.VISIBLE);
-          // btnCerrar.setVisibility((sales.getSTATUS() == CODES.CODE_ORDER_STATUS_DELIVERED)?View.VISIBLE:View.GONE);
+           btnEditar.setVisibility(View.GONE);
+           btnAnular.setVisibility(View.GONE);
+
+           if(UserControlController.getInstance(parent.getContext()).editOrders()){
+               btnEditar.setVisibility(View.VISIBLE);
+           }
+           if(UserControlController.getInstance(parent.getContext()).cancelOrders()){
+               btnAnular.setVisibility(View.VISIBLE);
+           }
+
            btnEntregar.setVisibility((sales.getSTATUS() == CODES.CODE_ORDER_STATUS_READY)?View.VISIBLE:View.GONE);
 
        }else if(sales.getSTATUS() == CODES.CODE_ORDER_STATUS_CANCELED || sales.getSTATUS() == CODES.CODE_ORDER_STATUS_CLOSED ){
            btnEditar.setVisibility(View.GONE);
            btnAnular.setVisibility(View.GONE);
            btnEntregar.setVisibility(View.GONE);
-           //btnCerrar.setVisibility(View.GONE);
 
        }else {//En caso de que este nul o algo asi
            btnEditar.setVisibility(View.GONE);
            btnAnular.setVisibility(View.GONE);
            btnEntregar.setVisibility(View.GONE);
-          // btnCerrar.setVisibility(View.GONE);
        }
     }
 

@@ -238,7 +238,7 @@ public class AreasDetailController {
         spn.setAdapter(adapter);
     }
 
-    public void fillSpinnerWithControl(Spinner spn, String area){
+    public void fillSpinnerWithAssignedTables(Spinner spn, String area){
         ArrayList<KV> data = new ArrayList<>();
         String orderBy = AreasDetailController.ORDER+" ASC, "+AreasDetailController.DESCRIPTION;
 

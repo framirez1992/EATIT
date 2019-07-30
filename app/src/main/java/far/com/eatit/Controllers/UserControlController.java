@@ -296,6 +296,56 @@ public class UserControlController {
         return null;
     }
 
+    public boolean createOrders(){
+        String c = searchControl(CODES.USER_CONTROL_CREATEORDER);
+        return (c != null);
+    }
+
+    public boolean dispatchOrders(){
+        String c = searchControl(CODES.USER_CONTROL_DISPATCHORDER);
+        return (c != null);
+    }
+
+    public boolean chargeOrders(){
+        String c = searchControl(CODES.USER_CONTROL_CHARGE_ORDERS);
+        return (c != null);
+    }
+
+    public boolean printOrders(){
+        String c = searchControl(CODES.USER_CONTROL_PRINTORDERS);
+        return (c != null);
+    }
+
+    public boolean editOrders(){
+        String c = searchControl(CODES.USER_CONTROL_MODIFYORDER);
+        return (c != null);
+    }
+
+    public boolean cancelOrders(){
+        String c = searchControl(CODES.USER_CONTROL_ANULATEORDER);
+        return (c != null);
+    }
+
+    /**
+     * CONTROL: ORDERSPLIT
+     * Indica si el control para dividir ordenes esta activo.
+     * @return
+     */
+    public boolean orderSplit(){
+        String result = searchControl(CODES.USERCONTROL_ORDERSPLIT);
+        return (result !=null);
+    }
+
+    /**
+     * CONTROL: TABLEASSIGN
+     * indica si el usuario, tipo de usuario o empresa tienes mesas asignadas.
+     * @return
+     */
+    public boolean tableAssign(){
+        String result = searchControl(CODES.USERCONTROL_TABLEASSIGN);
+        return (result !=null);
+    }
+
     /**
      * Simple seleccion row model
      * @param where
@@ -349,25 +399,6 @@ public class UserControlController {
 
 
 
-    /**
-     * CONTROL: ORDERSPLIT
-     * Indica si el control para dividir ordenes esta activo.
-     * @return
-     */
-    public boolean orderSplit(){
-            String result = searchControl(CODES.USERCONTROL_ORDERSPLIT);
-            return (result !=null);
-        }
-
-    /**
-     * CONTROL: TABLEASSIGN
-     * indica si el usuario, tipo de usuario o empresa tienes mesas asignadas.
-     * @return
-     */
-    public boolean tableAssign(){
-        String result = searchControl(CODES.USERCONTROL_TABLEASSIGN);
-        return (result !=null);
-    }
 
     public String searchControl(String control){
         String result = null;
@@ -571,7 +602,6 @@ public class UserControlController {
 
             Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql,null);
             while(c.moveToNext()){
-                String cheked = c.getString(c.getColumnIndex("CHECKED"));
                 list.add(new SimpleSeleccionRowModel(c.getString(c.getColumnIndex("CODE")),
                         c.getString(c.getColumnIndex("DESCRIPTION")), c.getString(c.getColumnIndex("CHECKED")).equals("1")));
             }c.close();

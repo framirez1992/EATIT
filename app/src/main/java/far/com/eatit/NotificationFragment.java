@@ -24,6 +24,7 @@ import far.com.eatit.Controllers.AreasController;
 import far.com.eatit.Controllers.AreasDetailController;
 import far.com.eatit.Controllers.NotificationsController;
 import far.com.eatit.Controllers.SalesController;
+import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Controllers.UserInboxController;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
@@ -86,12 +87,22 @@ public class NotificationFragment extends Fragment {
             llFiltroMensajes.setVisibility(View.GONE);
             llFiltroOrdenes.setVisibility(View.VISIBLE);
             SalesController.getInstance(parent).fillSpinnerOrderStatus(spnFiltroOrdenes, true);
-            AreasController.getInstance(parent).fillSpinner(spnAreas, true);
+            if(UserControlController.getInstance(parent).tableAssign()){
+                AreasController.getInstance(parent).fillSpinnerAreasForAssignedTables(spnAreas, true);
+            }else{
+                AreasController.getInstance(parent).fillSpinner(spnAreas, true);
+            }
+
             spnAreas.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> p, View view, int position, long id) {
                      area = (KV)p.getSelectedItem();
-                    AreasDetailController.getInstance(parent).fillSpinner(spnMesas, true, area.getKey());
+                    if(UserControlController.getInstance(parent).tableAssign()){//mesas asignadas al usuario, rol o empresa
+                        AreasDetailController.getInstance(parent).fillSpinnerWithAssignedTables(spnMesas, area.getKey());
+                    }else {
+                        AreasDetailController.getInstance(parent).fillSpinner(spnMesas, true, area.getKey());
+                    }
+
                 }
 
                 @Override

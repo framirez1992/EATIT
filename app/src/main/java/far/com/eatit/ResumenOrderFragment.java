@@ -142,8 +142,12 @@ public class ResumenOrderFragment extends Fragment {
             }
         });
 
-
-        AreasController.getInstance(parentActivity).fillSpinner(spnAreas, true);
+        if(UserControlController.getInstance(parentActivity).tableAssign()){
+            AreasController.getInstance(parentActivity).fillSpinnerAreasForAssignedTables(spnAreas, true);
+        }else{
+            AreasController.getInstance(parentActivity).fillSpinner(spnAreas, true);
+        }
+        
         spnAreas.setOnItemSelectedListener(onAreaSelected);
     }
 
@@ -157,7 +161,7 @@ public class ResumenOrderFragment extends Fragment {
                 return;
             }
             if(UserControlController.getInstance(parentActivity).tableAssign()){//mesas asignadas al usuario, rol o empresa
-                AreasDetailController.getInstance(parentActivity).fillSpinnerWithControl(spnMesas, value.getKey());
+                AreasDetailController.getInstance(parentActivity).fillSpinnerWithAssignedTables(spnMesas, value.getKey());
             }else {
                 AreasDetailController.getInstance(parentActivity).fillSpinner(spnMesas, false, value.getKey());
             }
