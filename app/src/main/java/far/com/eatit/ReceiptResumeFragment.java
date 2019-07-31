@@ -89,6 +89,13 @@ public class ReceiptResumeFragment extends Fragment {
             }
         });
 
+        view.findViewById(R.id.btnImprimir).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+               SalesController.printReceipt(mainReceipt,codeAreaDetail, SalesController.getInstance(mainReceipt).getOrderReceiptResume(codeAreaDetail));
+            }
+        });
+
         refreshList();
     }
 

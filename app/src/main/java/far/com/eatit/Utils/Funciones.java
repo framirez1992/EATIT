@@ -453,4 +453,39 @@ public class Funciones {
         savePreferences(activity,CODES.PREFERENCE_SCREEN_HEIGHT,height);
         savePreferences(activity,CODES.PREFERENCE_SCREEN_WIDTH,width);
     }
+
+    public static String reservarCaracteres(String text, int caracteres){
+        return  reservarCaracteres(text, caracteres, false);
+    }
+
+    public static String reservarCaracteresAlinearDerecha(String text, int caracteres){
+        return  reservarCaracteres(text, caracteres, true);
+    }
+    public static String reservarCaracteres(String text, int caracteres, boolean alinearDerecha){
+        String format = "%"+(alinearDerecha?"":"-")+caracteres+"s";
+        String data = String.format(format, text);
+        return data;
+    }
+
+    public static String centrarTexto(String texto, int longitud){
+        int lRestante = longitud - texto.length();
+        if(lRestante >0){
+            int espacio = texto.length()+lRestante/2;
+            String data = reservarCaracteres(texto,espacio);
+            espacio = data.length()+lRestante/2;
+            data = reservarCaracteresAlinearDerecha(data,espacio);
+            return data;
+        }
+
+        return texto;
+
+
+    }
+
+    public static String formatDecimal(String decimal){
+        return formatDecimal(Double.parseDouble(decimal.replace(",", "")));
+    }
+    public static String formatDecimal(double decimal){
+        return String.format("%.2f", decimal);
+    }
 }

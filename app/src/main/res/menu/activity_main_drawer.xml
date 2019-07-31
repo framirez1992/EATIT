@@ -78,5 +78,15 @@
         </menu>
     </item>
 
+    <item android:title="Configuracion">
+        <menu>
+            <item
+                android:id="@+id/goConfiguration"
+                android:icon="@drawable/ic_menu_slideshow"
+                android:title="Configuration"
+                android:visible="true"/>
+        </menu>
+    </item>
+
 
 </menu>

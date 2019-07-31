@@ -16,6 +16,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.bluetoothlibrary.BluetoothScan;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -223,6 +225,8 @@ public class Main extends AppCompatActivity
             goToReceipts();
         }else if(id == R.id.goSavedReceipts){
             goToSavedReceipts();
+        }else if(id == R.id.goConfiguration){
+            startActivity(new Intent(this, BluetoothScan.class));
         } else  {
             changeModule(id);
         }
