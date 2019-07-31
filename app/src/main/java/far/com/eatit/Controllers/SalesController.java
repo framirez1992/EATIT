@@ -4,11 +4,14 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
+import com.example.bluetoothlibrary.Printer.Print;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -57,6 +60,7 @@ import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Generic.Objects.KV2;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Globales.Tablas;
+import far.com.eatit.R;
 import far.com.eatit.Utils.Funciones;
 
 public class SalesController {
@@ -1335,5 +1339,38 @@ public class SalesController {
             }
 
         }
+    }
+
+    public static String printReceipt(Context c, String codeAreaDetail, ArrayList<ReceiptResumeModel> list){
+        Print p = new Print(c,Print.PULGADAS.PULGADAS_2);
+        p.addAlign(Print.PRINTER_ALIGN.ALIGN_CENTER);
+        p.addImage(R.drawable.gordi);
+        p.drawText("Restaurant Los Gorditos");
+        p.drawText("C: La gloria #14 El almirante");
+        p.drawText("Tel:809-236-1503");
+        p.drawText("");
+        p.drawLine();
+        p.drawText("Detalle");
+        p.drawLine();
+
+        p.addAlign(Print.PRINTER_ALIGN.ALIGN_LEFT);
+
+        double total = 0.0;
+        for(ReceiptResumeModel r :list){
+            total+=Double.parseDouble(r.getTotal());
+            p.drawText(r.getProductDescription());
+            p.drawText(Funciones.reservarCaracteres("Cant:"+r.getQuantity(),9)+Funciones.reservarCaracteres(r.getMeasureDescription(),10)+Funciones.reservarCaracteresAlinearDerecha(" $"+Funciones.formatDecimal(r.getTotal()),13));
+        }
+        p.drawLine();
+
+        p.addAlign(Print.PRINTER_ALIGN.ALIGN_RIGHT);
+        p.drawText("Total:"+Funciones.formatDecimal(total), Print.TEXT_ALIGN.RIGHT);
+
+       /*
+
+      */
+
+        p.printText("02:3D:D3:DB:D5:06");
+        return null;
     }
 }
