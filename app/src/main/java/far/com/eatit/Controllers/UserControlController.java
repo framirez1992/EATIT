@@ -630,7 +630,7 @@ public class UserControlController {
     }
     public String getOrderSplitDestinyIn(){
         String result = getOrderSplitDestiny();
-        return " AND ( (ifnull("+SalesController.CODEPRODUCTTYPE+", '') = '' AND ifnull("+SalesController.CODEPRODUCTSUBTYPE+", '') = '') OR  ( ("+SalesController.CODEPRODUCTTYPE+" IN ("+result+")) OR "+SalesController.CODEPRODUCTSUBTYPE+" IN ("+result+") )  ) ";
+        return " AND ( (ifnull("+SalesController.CODEPRODUCTTYPE+", '') = '' AND ifnull("+SalesController.CODEPRODUCTSUBTYPE+", '') = '') OR   "+SalesController.CODEPRODUCTTYPE+" IN ("+result+") OR "+SalesController.CODEPRODUCTSUBTYPE+" IN ("+result+")   ) ";
 
     }
 
@@ -688,6 +688,27 @@ public class UserControlController {
 
     public void fillOrderDispachRoles(Spinner spn){
         spn.setAdapter(new ArrayAdapter<KV>(context, android.R.layout.simple_list_item_1,getOrderDispachRoles()));
+    }
+
+
+    /**
+     * Llena un spinner con todos los usuarios que: 1- Puedan crear ordenes, 2- esten activos, 3-tengan ordenes abiertas
+     * @param spn
+     */
+    public void fillSpinnerOrderMoveUsersFrom(Spinner spn){
+        ArrayList<KV> list = new ArrayList<>();
+        list.add(new KV("-1", "NONE"));
+        String sql = "SELECT u."+UsersController.CODE+", u."+UsersController.USERNAME+" " +
+                "FROM "+UsersController.TABLE_NAME+" u " +
+                "INNER JOIN "+SalesController.TABLE_NAME+" s on s."+SalesController.CODEUSER+" = u."+UsersController.CODE+" AND s."+SalesController.STATUS+" IN ("+CODES.CODE_ORDER_STATUS_OPEN+", "+CODES.CODE_ORDER_STATUS_DELIVERED+", "+CODES.CODE_ORDER_STATUS_READY+") " +
+                "INNER JOIN "+UserControlController.TABLE_NAME+" uc on uc."+UserControlController.CONTROL+" = '"+CODES.USER_CONTROL_CREATEORDER+"' AND uc."+UserControlController.TARGET+" = '"+CODES.USERSCONTROL_TARGET_USER_ROL+"' AND uc."+UserControlController.TARGETCODE+" = u."+UsersController.ROLE+" " +
+                "WHERE u."+UsersController.ENABLED+" = ? " +
+                "GROUP BY u."+UsersController.CODE+", u."+UsersController.USERNAME;
+        Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, new String[]{"1"});
+        while(c.moveToNext()){
+            list.add(new KV(c.getString(0), c.getString(1)));
+        }
+        spn.setAdapter(new ArrayAdapter<KV>(context,android.R.layout.simple_list_item_1,list));
     }
 
 }

@@ -11,7 +11,7 @@ import android.support.annotation.Nullable;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
-import com.example.bluetoothlibrary.Printer.Print;
+//import com.example.bluetoothlibrary.Printer.Print;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -285,6 +285,12 @@ public class SalesController {
         String table =(history)?TABLE_NAME_HISTORY:TABLE_NAME;
         long result = DB.getInstance(context).getWritableDatabase().delete(table,where, args);
         return result;
+    }
+
+    public void deleteHeadDetail(ArrayList<Sales> sales){
+        for(Sales sale: sales){
+            deleteHeadDetail(sale);
+        }
     }
     public long deleteHeadDetail(Sales s){
         String where = CODE+" = ? ";
@@ -1316,31 +1322,30 @@ public class SalesController {
                 sales.setCODERECEIPT(receipt.getCode());
                 sales.setMDATE(null);//actualizar fecha de ultima actualizacion.
 
-
-                ArrayList<Sales> s = new ArrayList<>();
-                s.add(sales);
-                ///////////////////////////////////////////////////////////////////
-                ///////////   ENVIANDO AL HISTORICO     ///////////////////////////
-
-                sendToHistory(s);
-                ///////////////////////////////////////////////////////////////////
-
-                ///////////////////////////////////////////////////////////////////
-                //////      ELIMINANDO DE LA TABLA SALES Y SALES_DETAIL EN FIREBASE   ////////
-                massiveDelete(s);
-                //////////////////////////////////////////////////////////////////
-
-                ///////////////////////////////////////////////////////////////////
-                //////////  ELIMINANDOLA EN EL MOVIL   ///////////////////////////
-                deleteHeadDetail(sales);//esto es porque la lista se actualizara antes de que el server retorne la actualizacion.
-                //////////////////////////////////////////////////////////////////
-
-
             }
+
+
+            ///////////////////////////////////////////////////////////////////
+            ///////////   ENVIANDO AL HISTORICO     ///////////////////////////
+
+            sendToHistory(deliveredSales);
+            ///////////////////////////////////////////////////////////////////
+
+            ///////////////////////////////////////////////////////////////////
+            //////      ELIMINANDO DE LA TABLA SALES Y SALES_DETAIL EN FIREBASE   ////////
+            massiveDelete(deliveredSales);
+            //////////////////////////////////////////////////////////////////
+
+            ///////////////////////////////////////////////////////////////////
+            //////////  ELIMINANDOLA EN EL MOVIL   ///////////////////////////
+            deleteHeadDetail(deliveredSales);//esto es porque la lista se actualizara antes de que el server retorne la actualizacion.
+            //////////////////////////////////////////////////////////////////
+
+
 
         }
     }
-
+/*
     public static String printReceipt(Context c, String codeAreaDetail, ArrayList<ReceiptResumeModel> list){
         Print p = new Print(c,Print.PULGADAS.PULGADAS_2);
         p.addAlign(Print.PRINTER_ALIGN.ALIGN_CENTER);
@@ -1366,11 +1371,8 @@ public class SalesController {
         p.addAlign(Print.PRINTER_ALIGN.ALIGN_RIGHT);
         p.drawText("Total:"+Funciones.formatDecimal(total), Print.TEXT_ALIGN.RIGHT);
 
-       /*
-
-      */
 
         p.printText("02:3D:D3:DB:D5:06");
         return null;
-    }
+    }*/
 }

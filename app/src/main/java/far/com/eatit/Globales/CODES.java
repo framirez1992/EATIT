@@ -132,6 +132,7 @@ public class CODES {
 
     public static final String EXTRA_MAINASSIGNATION_TARGET_ROLESCONTROL = "MAINASSIGNATION_TARGET_ROLESCONTROL";//configurar controles de ROL
     public static final String EXTRA_MAINASSIGNATION_TARGET_USERSCONTROL = "MAINASSIGNATION_TARGET_USERSCONTROL";//configurar controles de USUARIO
+    public static final String EXTRA_MAINASSIGNATION_TARGET_ORDERMOVE = "MAINASSIGNATION_TARGET_ORDERMOVE";//reasigna las ordenes abiertas de un usuario hacia otro.
 
 
     //////////////////////////////////

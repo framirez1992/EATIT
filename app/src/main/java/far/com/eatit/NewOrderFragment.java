@@ -19,6 +19,8 @@ import java.util.ArrayList;
 
 import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.Adapters.NewOrderProductRowAdapter;
+import far.com.eatit.CloudFireStoreObjects.ProductsSubTypes;
+import far.com.eatit.CloudFireStoreObjects.Sales;
 import far.com.eatit.Controllers.ProductsController;
 import far.com.eatit.Controllers.ProductsSubTypesController;
 import far.com.eatit.Controllers.ProductsTypesController;
@@ -88,36 +90,40 @@ public class NewOrderFragment extends Fragment {
             });
         }
 
-         spnFamilia.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-             @Override
-             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                 lastType = ((KV)parent.getItemAtPosition(position)).getKey();
-                 ProductsSubTypesController.getInstance(parentActivity).fillSpinner(spnGrupo,false,lastType);
-             }
+         spnFamilia.setOnItemSelectedListener(spnFamiliaListener);
+         spnGrupo.setOnItemSelectedListener(spnGrupoListener);
 
-             @Override
-             public void onNothingSelected(AdapterView<?> parent) {
-
-             }
-         });
-
-         spnGrupo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-             @Override
-             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                 lastSeach = null;
-                 lastSubType = ((KV)parent.getItemAtPosition(position)).getKey();
-                 search();
-             }
-
-             @Override
-             public void onNothingSelected(AdapterView<?> parent) {
-
-             }
-         });
 
         ProductsTypesController.getInstance(parentActivity).fillSpinner(spnFamilia, false);
-        ProductsSubTypesController.getInstance(parentActivity).fillSpinner(spnGrupo, false);
+        //ProductsSubTypesController.getInstance(parentActivity).fillSpinner(spnGrupo, false);
     }
+
+    AdapterView.OnItemSelectedListener spnFamiliaListener = new AdapterView.OnItemSelectedListener() {
+        @Override
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            lastType = ((KV)parent.getItemAtPosition(position)).getKey();
+            ProductsSubTypesController.getInstance(parentActivity).fillSpinner(spnGrupo,false,lastType);
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> parent) {
+
+        }
+    };
+
+    AdapterView.OnItemSelectedListener spnGrupoListener = new AdapterView.OnItemSelectedListener() {
+        @Override
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            lastSeach = null;
+            lastSubType = ((KV)parent.getItemAtPosition(position)).getKey();
+            search();
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> parent) {
+
+        }
+    };
 
     public void search(){
 
@@ -126,7 +132,7 @@ public class NewOrderFragment extends Fragment {
         ArrayList<String> x = new ArrayList();
 
 
-            if (lastSeach != null) {
+            if (lastSeach != null && !searchBlocked()) {
                 where += "AND p." + ProductsController.DESCRIPTION + " like ?";
                 x.add("%"+lastSeach+"%");
             }else {
@@ -162,6 +168,53 @@ public class NewOrderFragment extends Fragment {
 
     public void setLastSearch(String ls){
         this.lastSeach = ls;
+    }
+
+    public void setUpEditSplitedOrder(Sales s){
+        if(s.getCODEPRODUCTTYPE()!= null){
+            setSpnSelection(spnFamilia,s.getCODEPRODUCTTYPE());
+            spnFamilia.setEnabled(false);
+        }else if(s.getCODEPRODUCTSUBTYPE() != null){
+            spnFamilia.setOnItemSelectedListener(null);
+            spnGrupo.setOnItemSelectedListener(null);
+            ProductsSubTypes ps = ProductsSubTypesController.getInstance(parentActivity).getProductTypeByCode(s.getCODEPRODUCTSUBTYPE());
+            setSpnSelection(spnFamilia,ps.getCODETYPE());
+            spnFamilia.setEnabled(false);
+            ProductsSubTypesController.getInstance(parentActivity).fillSpinner(spnGrupo,false,ps.getCODETYPE());
+            setSpnSelection(spnGrupo,ps.getCODE());
+            spnGrupo.setEnabled(false);
+
+            lastType = ((KV)spnFamilia.getSelectedItem()).getKey();
+            lastSubType = ((KV)spnGrupo.getSelectedItem()).getKey();
+            search();
+        }
+    }
+
+    public void setSpnSelection(Spinner spn, String code){
+        for(int i = 0; i<spn.getAdapter().getCount(); i++){
+            KV kv = (KV)spn.getAdapter().getItem(i);
+            if(kv.getKey().equals(code)){
+                spn.setSelection(i);
+                break;
+            }
+        }
+    }
+
+    /**
+     * si 1 de los espinners estan bloqueados obviamos la busqueda search. esto es debido a que se esta editando una orden que fue splited, asi que solo
+     * puede agregar productos del mismo tipo por el que la orden fue splited.
+     * @return
+     */
+    public boolean searchBlocked(){
+        return !spnFamilia.isEnabled() || !spnGrupo.isEnabled();
+    }
+
+    public void setUpSpinners(){
+        spnFamilia.setEnabled(true);
+        spnGrupo.setEnabled(true);
+        spnFamilia.setOnItemSelectedListener(spnFamiliaListener);
+        spnGrupo.setOnItemSelectedListener(spnGrupoListener);
+        ProductsTypesController.getInstance(parentActivity).fillSpinner(spnFamilia, false);
     }
 
 }

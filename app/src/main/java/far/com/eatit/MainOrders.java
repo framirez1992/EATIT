@@ -542,6 +542,10 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
 
         refreshResume();
         prepareResumeForEdition();
+        /////////////////////////////////////////
+        ///// SI ES UNA ORDEN SPLIT  ////////////
+        setUpEditSplitedOrder(s);
+        ////////////////////////////////////////
 
 
         FrameLayout menuFrameLayout = findViewById(R.id.details);
@@ -584,6 +588,8 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
 
 
         AreasController.getInstance(MainOrders.this).fillSpinner(resumenOrderFragment.spnAreas, true);
+
+        newOrderFragment.setUpSpinners();
     }
 
     public void setThemeEditing(){
@@ -637,6 +643,12 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
         changeFragment(receipFragment, R.id.details);
         ((ViewGroup)findViewById(R.id.details)).setVisibility(View.VISIBLE);
         ((ViewGroup)findViewById(R.id.result)).setVisibility(View.GONE);
+    }
+
+    public void setUpEditSplitedOrder(Sales s){
+        if(s.getCODEPRODUCTTYPE() != null || s.getCODEPRODUCTSUBTYPE() != null){
+                newOrderFragment.setUpEditSplitedOrder(s);
+        }
     }
 
 }

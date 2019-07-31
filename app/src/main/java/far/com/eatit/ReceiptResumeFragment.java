@@ -21,6 +21,7 @@ import far.com.eatit.Adapters.ReceiptResumeAdapter;
 import far.com.eatit.CloudFireStoreObjects.Receipts;
 import far.com.eatit.CloudFireStoreObjects.Sales;
 import far.com.eatit.Controllers.SalesController;
+import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Interfases.ListableActivity;
 import far.com.eatit.Interfases.ReceiptableActivity;
 import far.com.eatit.Utils.Funciones;
@@ -34,7 +35,7 @@ public class ReceiptResumeFragment extends Fragment {
     RecyclerView rvList;
     Activity activity;
     String codeAreaDetail;
-    Button btnCollect;
+    Button btnCollect, btnPrint;
     TextView tvTotal, tvSubTotal, tvItbis;
     LinearLayout llBack;
 
@@ -59,8 +60,12 @@ public class ReceiptResumeFragment extends Fragment {
         llBack = view.findViewById(R.id.llBack);
 
         btnCollect = view.findViewById(R.id.btnCollect);
+        btnPrint = view.findViewById(R.id.btnPrint);
         rvList = view.findViewById(R.id.rvList);
         rvList.setLayoutManager(new LinearLayoutManager(activity));
+
+        btnPrint.setVisibility(View.GONE);
+        btnCollect.setVisibility(View.GONE);
 
         llBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -89,12 +94,19 @@ public class ReceiptResumeFragment extends Fragment {
             }
         });
 
-        view.findViewById(R.id.btnImprimir).setOnClickListener(new View.OnClickListener() {
+        btnPrint.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-               SalesController.printReceipt(mainReceipt,codeAreaDetail, SalesController.getInstance(mainReceipt).getOrderReceiptResume(codeAreaDetail));
+              // SalesController.printReceipt(mainReceipt,codeAreaDetail, SalesController.getInstance(mainReceipt).getOrderReceiptResume(codeAreaDetail));
             }
         });
+
+        if(activity instanceof MainOrders && UserControlController.getInstance(activity).printOrders()){
+            btnPrint.setVisibility(View.VISIBLE);
+        }
+        if(activity instanceof MainReceipt && UserControlController.getInstance(activity).chargeOrders()){
+            btnCollect.setVisibility(View.VISIBLE);
+        }
 
         refreshList();
     }
