@@ -52,7 +52,7 @@ public class ReceipFragment extends Fragment {
         spnAreas = view.findViewById(R.id.spn);
         spnMesas = view.findViewById(R.id.spn2);
 
-        if(activity instanceof MainOrders && UserControlController.getInstance(activity).tableAssign()){
+        if(activity instanceof MainOrders ){
             AreasController.getInstance(activity).fillSpinnerAreasForAssignedTables(spnAreas, false);
         }else{
             AreasController.getInstance(activity).fillSpinner(spnAreas, false);
@@ -62,7 +62,7 @@ public class ReceipFragment extends Fragment {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 area = (KV)parent.getSelectedItem();
-                if(activity instanceof MainOrders && UserControlController.getInstance(activity).tableAssign()){
+                if(activity instanceof MainOrders ){
                     AreasDetailController.getInstance(activity).fillSpinnerWithAssignedTables(spnMesas, area.getKey());
                 }else{
                     AreasDetailController.getInstance(activity).fillSpinner(spnMesas,false, area.getKey());

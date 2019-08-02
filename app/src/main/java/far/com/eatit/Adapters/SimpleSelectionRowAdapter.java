@@ -49,9 +49,10 @@ public class SimpleSelectionRowAdapter  extends RecyclerView.Adapter<SimpleSelec
         if(isSelected(objects.get(position))){
             objects.get(position).setChecked(true);
         }
+        CheckBox cb =  holder.getCbCheck();
+        cb.setOnCheckedChangeListener(null);
         holder.fillData(objects.get(position));
 
-        CheckBox cb =  holder.getCbCheck();
         if(noEditable) {
             cb.setEnabled(false);
             cb.setFocusable(false);

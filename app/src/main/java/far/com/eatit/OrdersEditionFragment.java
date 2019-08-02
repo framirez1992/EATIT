@@ -324,6 +324,13 @@ public class OrdersEditionFragment extends Fragment {
 
     public void setupEdition(){
 
+        if(!sales.getCODEUSER().equals(Funciones.getCodeuserLogged(parent.getContext()))){
+            btnAnular.setVisibility(View.GONE);
+            btnEditar.setVisibility(View.GONE);
+            btnCerrar.setVisibility(View.GONE);
+            btnEntregar.setVisibility(View.GONE);
+            return;
+        }
        if(sales.getSTATUS() == CODES.CODE_ORDER_STATUS_READY || sales.getSTATUS() == CODES.CODE_ORDER_STATUS_OPEN || sales.getSTATUS() == CODES.CODE_ORDER_STATUS_DELIVERED) {
            btnEditar.setVisibility(View.GONE);
            btnAnular.setVisibility(View.GONE);

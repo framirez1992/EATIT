@@ -46,6 +46,7 @@ import far.com.eatit.Adapters.Models.OrderModel;
 import far.com.eatit.Adapters.Models.OrderReceiptModel;
 import far.com.eatit.Adapters.Models.PercentRowModel;
 import far.com.eatit.Adapters.Models.ReceiptResumeModel;
+import far.com.eatit.Adapters.Models.SelectableOrderRowModel;
 import far.com.eatit.Adapters.Models.WorkedOrdersRowModel;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.Products;
@@ -548,6 +549,57 @@ public class SalesController {
             e.printStackTrace();
         }
         return objects;
+    }
+
+
+    public ArrayList<SelectableOrderRowModel> getSelectableOrderModelsByAreaDetail(String areaDetail){
+        ArrayList<SelectableOrderRowModel> data = new ArrayList<>();
+        String sql = "Select DISTINCT s." + CODE + " as CODE, ifnull(ifnull(s." + MDATE + ", s." + DATE + "), 'NONE') as FECHA, a." + AreasController.CODE + " as ACODE,  " +
+                "a." + AreasController.DESCRIPTION + " as ADESCRIPTION,  ad." + AreasDetailController.CODE + " as ADCODE, ad." + AreasDetailController.DESCRIPTION + " as ADDESCRIPTION, s." + STATUS + " as STATUS," +
+                "s."+TOTAL+" as TOTAL,u."+UsersController.CODE+" as CODEUSER,  u."+UsersController.USERNAME+" as USERNAME " +
+                "FROM " + TABLE_NAME + " s  " +
+                "INNER JOIN " + AreasDetailController.TABLE_NAME + " ad on ad." + AreasDetailController.CODE + " = s." + CODEAREADETAIL + " " +
+                "INNER JOIN " + AreasController.TABLE_NAME + " a on a." + AreasController.CODE + " = ad." + AreasDetailController.CODEAREA + " " +
+                "INNER JOIN "+UsersController.TABLE_NAME+" u on u."+UsersController.CODE+" = s."+CODEUSER+" "+
+                "WHERE ad."+AreasDetailController.CODE+" = ? AND s."+STATUS+" IN(?, ?, ?) "+
+                "ORDER BY a." + AreasController.DESCRIPTION + ", ad."+AreasDetailController.ORDER;
+        Cursor c = sqlite.getReadableDatabase().rawQuery(sql, new String[]{areaDetail,CODES.CODE_ORDER_STATUS_OPEN+"", CODES.CODE_ORDER_STATUS_READY+"", CODES.CODE_ORDER_STATUS_DELIVERED+""});
+        while (c.moveToNext()) {
+
+            String code = c.getString(c.getColumnIndex("CODE"));
+            String fecha = c.getString(c.getColumnIndex("FECHA"));
+            String areaCode = c.getString(c.getColumnIndex("ACODE"));
+            String areaDescription = c.getString(c.getColumnIndex("ADESCRIPTION"));
+            String areaDetailCode = c.getString(c.getColumnIndex("ADCODE"));
+            String areaDetailDescription = c.getString(c.getColumnIndex("ADDESCRIPTION"));
+            String total = c.getString(c.getColumnIndex("TOTAL"));
+            String codeUser = c.getString(c.getColumnIndex("CODEUSER"));
+            String userName = c.getString(c.getColumnIndex("USERNAME"));
+            int s = c.getInt(c.getColumnIndex("STATUS"));
+            String status = "NONE";
+            switch (s) {
+                case CODES.CODE_ORDER_STATUS_OPEN:
+                    status = "Abierta";
+                    break;
+                case CODES.CODE_ORDER_STATUS_CLOSED:
+                    status = "Cerrada";
+                    break;
+                case CODES.CODE_ORDER_STATUS_CANCELED:
+                    status = "Cancelada";
+                    break;
+                case CODES.CODE_ORDER_STATUS_READY:
+                    status = "Lista";
+                    break;
+                case CODES.CODE_ORDER_STATUS_DELIVERED:
+                    status = "Entregada";
+                    break;
+
+            }
+
+            SelectableOrderRowModel om = new SelectableOrderRowModel(code, fecha, codeUser,userName,areaCode, areaDescription, areaDetailCode, areaDetailDescription, status,total,false);
+            data.add(om);
+        }c.close();
+        return data;
     }
 
 

@@ -340,6 +340,61 @@ public class UsersController {
     }
 
     /**
+     * llena un spinner con todos los usuarios que pueden crear ordenes (meseros)
+     */
+    public void fillSpnUsersCreateOrders(Spinner spn){
+        ArrayList<KV> data = new ArrayList<>();
+        String sql = "SELECT u."+CODE+", u."+USERNAME+" " +
+                "FROM "+UsersController.TABLE_NAME+" u " +
+                "INNER JOIN "+UserControlController.TABLE_NAME+" uc on uc."+UserControlController.CONTROL+" = '"+CODES.USER_CONTROL_CREATEORDER+"' AND uc."+UserControlController.TARGET+" = '"+CODES.USERSCONTROL_TARGET_USER_ROL+"' " +
+                "AND uc."+UserControlController.TARGETCODE+" = u."+ROLE+" AND uc."+UserControlController.ACTIVE+" = '1' " +
+                "ORDER BY u."+USERNAME;
+        Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
+        while(c.moveToNext()){
+            data.add(new KV(c.getString(0), "["+c.getString(0)+"]"+c.getString(1)));
+        }c.close();
+
+        spn.setAdapter(new ArrayAdapter<KV>(context, android.R.layout.simple_list_item_1,data));
+    }
+
+    /**
+     * llena un spinner con todos los usuarios que pueden crear ordenes (meseros) segun el codigo de mesa (areaDetail) asignado.
+     */
+    public void fillSpnUsersCreateOrders(Spinner spn, String codeAreaDetail){
+        ArrayList<KV> data = new ArrayList<>();
+        try {
+            String tabla =
+                    "SELECT u2."+UsersController.CODE+" as CODEUSER, u2."+USERNAME+" as USER, uc2."+UserControlController.TARGET+" as TARGET, uc2."+UserControlController.TARGETCODE+" AS TARGETCODE " +
+                    "FROM "+UsersController.TABLE_NAME+" u2 " +
+                    "INNER JOIN " + UserControlController.TABLE_NAME + " uc2 on uc2." + UserControlController.CONTROL + " = '" + CODES.USERCONTROL_TABLEASSIGN + "' AND uc2." + UserControlController.ACTIVE + " = '1' AND uc2."+UserControlController.VALUE+" = '"+codeAreaDetail+"' " +
+                    "AND(   (uc2." + UserControlController.TARGET + " = '" + CODES.USERSCONTROL_TARGET_USER + "' AND uc2." + UserControlController.TARGETCODE + " = u2." + CODE + " ) " +
+                    "     OR(uc2." + UserControlController.TARGET + " = '" + CODES.USERSCONTROL_TARGET_USER_ROL + "' AND uc2." + UserControlController.TARGETCODE + " = u2." + ROLE + " ) " +
+                    "     OR(uc2." + UserControlController.TARGET + " = '" + CODES.USERSCONTROL_TARGET_COMPANY + "' AND uc2." + UserControlController.TARGETCODE + " = u2." + COMPANY + " )   " +
+                    ") " +
+                    "GROUP BY u2."+UsersController.CODE+", u2."+UsersController.USERNAME+", uc2."+UserControlController.TARGET+" "+
+                    "ORDER BY uc2."+UserControlController.TARGET+" DESC ";
+            String tabla2 = "SELECT * FROM ("+tabla+") as t GROUP BY t.CODEUSER ";
+
+            String sql = "SELECT u." + CODE + ", u." + USERNAME +" " +
+                    "FROM " + UsersController.TABLE_NAME + " u " +
+                    "INNER JOIN " + UserControlController.TABLE_NAME + " uc on uc." + UserControlController.CONTROL + " = '" + CODES.USER_CONTROL_CREATEORDER + "' AND uc." + UserControlController.TARGET + " = '" + CODES.USERSCONTROL_TARGET_USER_ROL + "' " +
+                    "AND uc." + UserControlController.TARGETCODE + " = u." + ROLE + " AND uc." + UserControlController.ACTIVE + " = '1' " +
+                    "INNER JOIN ("+tabla+") as t on t.CODEUSER = u."+CODE+" "+
+                    "GROUP BY u." + CODE + ", u." + USERNAME + " " +
+                    "ORDER BY u." + USERNAME + " ";
+            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
+            while (c.moveToNext()) {
+                data.add(new KV(c.getString(0), "[" + c.getString(0) + "]" + c.getString(1)));
+            }
+            c.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        spn.setAdapter(new ArrayAdapter<KV>(context, android.R.layout.simple_list_item_1,data));
+    }
+
+    /**
      * retorna un arrayList con todas las  dependencias en otras tablas (llave foranea)
      * @param code
      * @return

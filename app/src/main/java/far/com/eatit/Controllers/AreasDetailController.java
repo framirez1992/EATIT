@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.CloudFireStoreObjects.AreasDetail;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
+import far.com.eatit.CloudFireStoreObjects.Users;
 import far.com.eatit.DataBase.DB;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
@@ -238,24 +239,50 @@ public class AreasDetailController {
         spn.setAdapter(adapter);
     }
 
+    /**
+     * Llena un spinner con las mesas que corespondan a Pedidos con los Status (Abierta, Lista, Entregada)
+     */
+    public void fillSpinnerPendingOrders(Spinner spn){
+        ArrayList<KV> data = new ArrayList<>();
+        String sql = "SELECT ad."+AreasDetailController.CODE+", ad."+AreasDetailController.DESCRIPTION+" " +
+                "FROM "+AreasDetailController.TABLE_NAME+" ad " +
+                "INNER JOIN "+SalesController.TABLE_NAME+" s on s."+SalesController.CODEAREADETAIL+" = ad."+AreasDetailController.CODE+" " +
+                "AND s."+SalesController.STATUS+" in ("+CODES.CODE_ORDER_STATUS_OPEN+", "+CODES.CODE_ORDER_STATUS_READY+", "+CODES.CODE_ORDER_STATUS_DELIVERED+") " +
+                "GROUP BY ad."+AreasDetailController.CODE+", ad."+AreasDetailController.DESCRIPTION+" "+
+                "ORDER BY ad."+AreasDetailController.ORDER+" ASC, ad."+AreasDetailController.DESCRIPTION+" ";
+        Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
+        while(c.moveToNext()){
+            data.add(new KV(c.getString(0), c.getString(1)));
+        }c.close();
+
+        ArrayAdapter<KV> adapter = new ArrayAdapter<KV>(context,android.R.layout.simple_list_item_1, data);
+        spn.setAdapter(adapter);
+    }
+
     public void fillSpinnerWithAssignedTables(Spinner spn, String area){
         ArrayList<KV> data = new ArrayList<>();
         String orderBy = AreasDetailController.ORDER+" ASC, "+AreasDetailController.DESCRIPTION;
 
-        KV lowTarger = UserControlController.getInstance(context).getLowTargetLevel(CODES.USERCONTROL_TABLEASSIGN);
+        /*KV lowTarger = UserControlController.getInstance(context).getLowTargetLevel(CODES.USERCONTROL_TABLEASSIGN);
         String target = lowTarger.getKey();
-        String targetCode = lowTarger.getValue();
+        String targetCode = lowTarger.getValue();*/
+        Users u = UsersController.getInstance(context).getUserByCode(Funciones.getCodeuserLogged(context));
 
-        String sql = "SELECT ad."+CODE+", ad."+DESCRIPTION+" " +
-                "FROM "+TABLE_NAME+" ad " +
-                "INNER JOIN "+UserControlController.TABLE_NAME+" uc on ad."+CODE+" = uc."+UserControlController.VALUE+" AND "+UserControlController.TARGET+" = '"+target+"' AND "+UserControlController.TARGETCODE+" = '"+targetCode+"' " +
-                "AND "+UserControlController.CONTROL+" = '"+CODES.USERCONTROL_TABLEASSIGN+"' AND uc."+UserControlController.ACTIVE+" = '1' " +
-                "WHERE ad."+CODEAREA+" = ? " +
-                "ORDER BY "+orderBy;
-        Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, new String[]{area});
-        while(c.moveToNext()){
-            data.add(new KV(c.getString(0), c.getString(1)));
-        }
+    String sql = "SELECT ad." + AreasDetailController.CODE + ", ad." + AreasDetailController.DESCRIPTION + " " +
+            "FROM " + AreasDetailController.TABLE_NAME + " ad " +
+            "INNER JOIN " + UserControlController.TABLE_NAME + " uc on uc." + UserControlController.CONTROL + " = '" + CODES.USERCONTROL_TABLEASSIGN + "' AND uc." + UserControlController.ACTIVE + " = '1' " +
+            "AND (   (uc." + UserControlController.TARGET + " = '" + CODES.USERSCONTROL_TARGET_USER + "' AND uc." + UserControlController.TARGETCODE + " = '" + u.getCODE() + "') " +
+            "      OR(uc." + UserControlController.TARGET + " = '" + CODES.USERSCONTROL_TARGET_USER_ROL + "' AND uc." + UserControlController.TARGETCODE + " = '" + u.getROLE() + "') " +
+            "      OR(uc." + UserControlController.TARGET + " = '" + CODES.USERSCONTROL_TARGET_COMPANY + "' AND uc." + UserControlController.TARGETCODE + " = '" + u.getCOMPANY() + "') " +
+            ")" +
+            "AND  ad." + AreasDetailController.CODE + " = uc." + UserControlController.VALUE + "  " +
+            "WHERE ad." + AreasDetailController.CODEAREA + " = ? " +
+            "GROUP BY ad." + AreasDetailController.CODE + ", ad." + AreasDetailController.DESCRIPTION + " " +
+            "ORDER BY " + orderBy;
+    Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, new String[]{area});
+    while (c.moveToNext()) {
+        data.add(new KV(c.getString(0), c.getString(1)));
+    }
 
         ArrayAdapter<KV> adapter = new ArrayAdapter<KV>(context,android.R.layout.simple_list_item_1, data);
         spn.setAdapter(adapter);

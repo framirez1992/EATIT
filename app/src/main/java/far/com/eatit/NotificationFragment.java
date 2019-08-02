@@ -28,6 +28,7 @@ import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Controllers.UserInboxController;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
+import far.com.eatit.Utils.Funciones;
 
 
 /**
@@ -86,22 +87,22 @@ public class NotificationFragment extends Fragment {
         if(workedOrders){
             llFiltroMensajes.setVisibility(View.GONE);
             llFiltroOrdenes.setVisibility(View.VISIBLE);
-            SalesController.getInstance(parent).fillSpinnerOrderStatus(spnFiltroOrdenes, true);
-            if(UserControlController.getInstance(parent).tableAssign()){
-                AreasController.getInstance(parent).fillSpinnerAreasForAssignedTables(spnAreas, true);
-            }else{
-                AreasController.getInstance(parent).fillSpinner(spnAreas, true);
-            }
+            SalesController.getInstance(parent).fillSpinnerOrderStatus(spnFiltroOrdenes, false);
+            //if(){
+                AreasController.getInstance(parent).fillSpinnerAreasForAssignedTables(spnAreas, false);
+           // }else{
+             //   AreasController.getInstance(parent).fillSpinner(spnAreas, true);
+           // }
 
             spnAreas.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> p, View view, int position, long id) {
                      area = (KV)p.getSelectedItem();
-                    if(UserControlController.getInstance(parent).tableAssign()){//mesas asignadas al usuario, rol o empresa
+                   // if(){//mesas asignadas al usuario, rol o empresa
                         AreasDetailController.getInstance(parent).fillSpinnerWithAssignedTables(spnMesas, area.getKey());
-                    }else {
-                        AreasDetailController.getInstance(parent).fillSpinner(spnMesas, true, area.getKey());
-                    }
+                   // }else {
+                     //   AreasDetailController.getInstance(parent).fillSpinner(spnMesas, true, area.getKey());
+                    //}
 
                 }
 
@@ -183,7 +184,7 @@ public class NotificationFragment extends Fragment {
 
 
     public void searchOrders(){
-        String where = " 1 = 1 ";
+        String where = " s."+SalesController.CODEUSER+" = '"+ Funciones.getCodeuserLogged(parent) +"' ";
         if(status != null && !status.getKey().equals("-1")){
             where += " AND s."+SalesController.STATUS+" = '"+status.getKey()+"' ";
         }

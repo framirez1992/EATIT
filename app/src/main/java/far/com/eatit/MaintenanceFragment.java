@@ -185,9 +185,7 @@ public class MaintenanceFragment extends Fragment {
                     i.putExtra(CODES.EXTRA_MAINASSIGNATION_TARGET, CODES.USERCONTROL_ORDERSPLITDESTINY);
                     break;
                 case R.id.btnOrderMove:
-                    i =new Intent(getActivity(), MainAssignation.class);
-                    i.putExtra(CODES.EXTRA_MAINASSIGNATION_TABLE, SalesController.TABLE_NAME);
-                    i.putExtra(CODES.EXTRA_MAINASSIGNATION_TARGET, CODES.EXTRA_MAINASSIGNATION_TARGET_ORDERMOVE);
+                    i =new Intent(getActivity(), MainOrderReasignation.class);
                     break;
 
 

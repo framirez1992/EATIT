@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.CloudFireStoreObjects.Areas;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
+import far.com.eatit.CloudFireStoreObjects.Users;
 import far.com.eatit.DataBase.DB;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
@@ -234,15 +235,20 @@ public class AreasController {
             data.add(obj);
         }
         try {
-            KV lowTarger = UserControlController.getInstance(context).getLowTargetLevel(CODES.USERCONTROL_TABLEASSIGN);
+            /*KV lowTarger = UserControlController.getInstance(context).getLowTargetLevel(CODES.USERCONTROL_TABLEASSIGN);
             String target = lowTarger.getKey();
-            String targetCode = lowTarger.getValue();
+            String targetCode = lowTarger.getValue();*/
+            Users u = UsersController.getInstance(context).getUserByCode(Funciones.getCodeuserLogged(context));
 
             String sql = "SELECT ac." + AreasController.CODE + ", ac." + AreasController.DESCRIPTION + " " +
                     "FROM " + AreasDetailController.TABLE_NAME + " ad " +
                     "INNER JOIN " + AreasController.TABLE_NAME + " ac on ac." + AreasController.CODE + " = ad." + AreasDetailController.CODEAREA + " " +
-                    "INNER JOIN " + UserControlController.TABLE_NAME + " uc on ad." + AreasDetailController.CODE + " = uc." + UserControlController.VALUE + " AND uc." + UserControlController.TARGET + " = '" + target + "' AND " + UserControlController.TARGETCODE + " = '" + targetCode + "' " +
-                    "AND " + UserControlController.CONTROL + " = '" + CODES.USERCONTROL_TABLEASSIGN + "' AND uc." + UserControlController.ACTIVE + " = '1' " +
+                    "INNER JOIN " + UserControlController.TABLE_NAME + " uc on uc."+UserControlController.CONTROL+" = '"+CODES.USERCONTROL_TABLEASSIGN+"' AND uc."+UserControlController.ACTIVE+" = '1' " +
+                    "AND (   (uc."+UserControlController.TARGET+" = '"+CODES.USERSCONTROL_TARGET_USER+"' AND uc."+UserControlController.TARGETCODE+" = '"+u.getCODE()+"') " +
+                    "      OR(uc."+UserControlController.TARGET+" = '"+CODES.USERSCONTROL_TARGET_USER_ROL+"' AND uc."+UserControlController.TARGETCODE+" = '"+u.getROLE()+"') " +
+                    "      OR(uc."+UserControlController.TARGET+" = '"+CODES.USERSCONTROL_TARGET_COMPANY+"' AND uc."+UserControlController.TARGETCODE+" = '"+u.getCOMPANY()+"') " +
+                    ")" +
+                    "AND  ad." + AreasDetailController.CODE + " = uc." + UserControlController.VALUE + "  "+
                     "GROUP BY ac." + AreasController.CODE + ", ac." + AreasController.DESCRIPTION + " " +
                     "ORDER BY " + orderBy;
 
