@@ -393,6 +393,13 @@ public class TempOrdersController{
             sd.setCODESALES(s.getCODE());
             details.add(sd);
 
+            /////////////////////////////////////////////////////////////////////
+            /////////     ACTUALIZAR EL TOTAL         ///////////////////////////
+            double total = sd.getPRICE() * sd.getQUANTITY();
+            int saleIndex = heads.indexOf(s);
+            heads.get(saleIndex).setTOTAL(heads.get(saleIndex).getTOTAL() + total);
+            //////////////////////////////////////////////////////////////////////
+
 
         }c.close();
         result.add(heads);

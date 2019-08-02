@@ -23,6 +23,7 @@ import far.com.eatit.Adapters.SimpleSelectionRowAdapter;
 import far.com.eatit.CloudFireStoreObjects.UserControl;
 import far.com.eatit.CloudFireStoreObjects.Users;
 import far.com.eatit.Controllers.CompanyController;
+import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Controllers.UserTypesController;
 import far.com.eatit.Controllers.UsersController;
@@ -42,6 +43,7 @@ public class MainAssignation extends AppCompatActivity {
     String lastSearch;
 
     UserControlController userControlController;
+    SalesController salesController;
     ArrayList<SimpleSeleccionRowModel> selected = new ArrayList<>();
 
     @Override
@@ -176,6 +178,9 @@ public class MainAssignation extends AppCompatActivity {
     public void initByCodeTable(){
         if(codeTable.equals(UserControlController.TABLE_NAME)){
             userControlController =  UserControlController.getInstance(MainAssignation.this);
+        }else if(codeTable.equals(SalesController.TABLE_NAME)){
+            userControlController =  UserControlController.getInstance(MainAssignation.this);
+            salesController = SalesController.getInstance(MainAssignation.this);
         }
     }
 
@@ -322,6 +327,13 @@ public class MainAssignation extends AppCompatActivity {
             });
 
             userControlController.fillOrderDispachRoles(spn1);
+        }else if(codeTarget.equals(CODES.EXTRA_MAINASSIGNATION_TARGET_ORDERMOVE)){
+            ll3.setVisibility(View.GONE);
+            tvTitle.setText("Reasignar Ordenes");
+            tvSpn1.setText("Desde");
+            tvSpn2.setText("Hasta");
+
+            userControlController.fillSpinnerOrderMoveUsersFrom(spn1);
         }
     }
 

@@ -14,9 +14,11 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 import far.com.eatit.Adapters.Models.OptionModel;
 import far.com.eatit.Adapters.OptionsAdapter;
+import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Interfases.ListableActivity;
@@ -26,7 +28,7 @@ public class MaintenanceFragment extends Fragment {
 
 
     ImageView btnFamily, btnGroup, btnMeasures, btnProducts,btnFamilyInv, btnGroupInv, btnMeasuresInv, btnProductsInv, btnUsers, btnUserRol, btnAreas, btnMesas,btnControls, btnTableCode,
-            btnTableFilter, btnActualizationCenter, btnUserTable, btnUsersControl, btnRolesControl, btnOrderSplit, btnOrderSplitDestiny;
+            btnTableFilter, btnActualizationCenter, btnUserTable, btnUsersControl, btnRolesControl, btnOrderSplit, btnOrderSplitDestiny, btnOrderMove;
     LinearLayout llMainScreen,llMaintenanceControls, llMaintenanceAreas, llMaintenanceUsers, llMaintenanceProducts,llMaintenanceInventory;
     public MaintenanceFragment() {
         // Required empty public constructor
@@ -72,6 +74,7 @@ public class MaintenanceFragment extends Fragment {
         btnRolesControl = view.findViewById(R.id.btnRolesControl);
         btnOrderSplit = view.findViewById(R.id.btnOrderSplit);
         btnOrderSplitDestiny = view.findViewById(R.id.btnOrderSplitDestiny);
+        btnOrderMove = view.findViewById(R.id.btnOrderMove);
 
         btnFamily.setOnClickListener(imageClick);
         btnGroup.setOnClickListener(imageClick);
@@ -97,6 +100,7 @@ public class MaintenanceFragment extends Fragment {
         btnTableFilter.setOnClickListener(imageClick);
         btnOrderSplit.setOnClickListener(imageClick);
         btnOrderSplitDestiny.setOnClickListener(imageClick);
+        btnOrderMove.setOnClickListener(imageClick);
 
 
         btnActualizationCenter.setOnClickListener(imageClick);
@@ -179,6 +183,11 @@ public class MaintenanceFragment extends Fragment {
                     i =new Intent(getActivity(), MainAssignation.class);
                     i.putExtra(CODES.EXTRA_MAINASSIGNATION_TABLE, UserControlController.TABLE_NAME);
                     i.putExtra(CODES.EXTRA_MAINASSIGNATION_TARGET, CODES.USERCONTROL_ORDERSPLITDESTINY);
+                    break;
+                case R.id.btnOrderMove:
+                    i =new Intent(getActivity(), MainAssignation.class);
+                    i.putExtra(CODES.EXTRA_MAINASSIGNATION_TABLE, SalesController.TABLE_NAME);
+                    i.putExtra(CODES.EXTRA_MAINASSIGNATION_TARGET, CODES.EXTRA_MAINASSIGNATION_TARGET_ORDERMOVE);
                     break;
 
 

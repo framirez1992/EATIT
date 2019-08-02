@@ -16,7 +16,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.bluetoothlibrary.BluetoothScan;
+//import com.example.bluetoothlibrary.BluetoothScan;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 import far.com.eatit.CloudFireStoreObjects.Devices;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.ProductsControl;
+import far.com.eatit.CloudFireStoreObjects.UserControl;
 import far.com.eatit.CloudFireStoreObjects.UserInbox;
 import far.com.eatit.CloudFireStoreObjects.Users;
 import far.com.eatit.CloudFireStoreObjects.UsersDevices;
@@ -52,6 +53,7 @@ public class Main extends AppCompatActivity
     UsersController usersController;
     DevicesController devicesController;
     UsersDevicesController usersDevicesController;
+    UserControlController userControlController;
     UserInboxController userInboxController;
     ProductsControlController productsControlController;
     RelativeLayout rlNotifications;
@@ -74,6 +76,7 @@ public class Main extends AppCompatActivity
         productsControlController = ProductsControlController.getInstance(Main.this);
         usersController = UsersController.getInstance(Main.this);
         usersDevicesController = UsersDevicesController.getInstance(Main.this);
+        userControlController = UserControlController.getInstance(Main.this);
 
         rlNotifications = findViewById(R.id.rlNotifications);
         cvNotificacions = findViewById(R.id.cvNotifications);
@@ -120,6 +123,7 @@ public class Main extends AppCompatActivity
         });*/
 
         setUpForUserType();
+        setInitialFragment();
 
 
     }
@@ -148,6 +152,7 @@ public class Main extends AppCompatActivity
         usersController.getReferenceFireStore().addSnapshotListener(usersListener);
         devicesController.getReferenceFireStore(licenseController.getLicense()).addSnapshotListener(deviceListener);
         usersDevicesController.getReferenceFireStore(licenseController.getLicense()).addSnapshotListener(userDevicesListener);
+        userControlController.getReferenceFireStore().addSnapshotListener(userControlListener);
 
       /*  userInboxController.getReferenceFireStore().addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -226,7 +231,7 @@ public class Main extends AppCompatActivity
         }else if(id == R.id.goSavedReceipts){
             goToSavedReceipts();
         }else if(id == R.id.goConfiguration){
-            startActivity(new Intent(this, BluetoothScan.class));
+            //startActivity(new Intent(this, BluetoothScan.class));
         } else  {
             changeModule(id);
         }
@@ -308,6 +313,20 @@ public class Main extends AppCompatActivity
                }
             }
         }
+    };
+
+    public EventListener<QuerySnapshot> userControlListener = new EventListener<QuerySnapshot>() {
+        @Override
+        public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
+            if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
+                userControlController.delete(null, null);
+                for(DocumentSnapshot doc: querySnapshot){
+                    UserControl uc = doc.toObject(UserControl.class);
+                    userControlController.insert(uc);
+                }
+        }
+            setUpForUserType();
+    }
     };
     public void goToOrders(){
 
@@ -391,7 +410,6 @@ public class Main extends AppCompatActivity
         mantenimientoUsuarios.setVisible(false);
         mantenimientoAreas.setVisible(false);
         mantenimientoControles.setVisible(false);
-        reportes.setVisible(false);
         crearOrdenes.setVisible(false);
         despacharOrdenes.setVisible(false);
         facturar.setVisible(false);
@@ -410,13 +428,6 @@ public class Main extends AppCompatActivity
             facturar.setVisible(usersController.isSuperUser());
             recibos.setVisible(true);
             reportes.setVisible(true);
-
-
-            fragmentMaintenance = new MaintenanceFragment();
-            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            ft.replace(R.id.details, fragmentMaintenance);
-            ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-            ft.commit();
         }else {
             if(UserControlController.getInstance(Main.this).dispatchOrders()){
                 nav.getMenu().findItem(R.id.goPendingOrders).setVisible(true);
@@ -428,17 +439,27 @@ public class Main extends AppCompatActivity
                 nav.getMenu().findItem(R.id.goReceip).setVisible(true);
             }
 
+
+        }
+
+    }
+
+    public void setInitialFragment(){
+        if(usersController.isSuperUser() || usersController.isAdmin()) {//SU o Administrador
+            fragmentMaintenance = new MaintenanceFragment();
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            ft.replace(R.id.details, fragmentMaintenance);
+            ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+            ft.commit();
+        }else {
             logoFragment = new LogoFragment();
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.details, logoFragment);
             ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-
             ft.commit();
         }
-
-
-
     }
+
 
     public void changeModule(int id){
 
