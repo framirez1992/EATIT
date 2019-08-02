@@ -208,6 +208,7 @@ public class ResumenOrderFragment extends Fragment {
             }else {
                 saveOrder();
             }
+            spnAreas.setSelection(0);
         }
         llSave.setEnabled(true);
     }
