@@ -585,9 +585,7 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
         resumenOrderFragment.etNotas.setText("");
         resumenOrderFragment.llMore.setVisibility(View.GONE);
         resumenOrderFragment.imgMore.setImageResource(R.drawable.ic_arrow_drop_down);
-
-
-        AreasController.getInstance(MainOrders.this).fillSpinner(resumenOrderFragment.spnAreas, true);
+        resumenOrderFragment.setUpSpinnersAreas();
 
         newOrderFragment.setUpSpinners();
     }

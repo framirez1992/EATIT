@@ -142,13 +142,7 @@ public class ResumenOrderFragment extends Fragment {
             }
         });
 
-       // if(){
-            AreasController.getInstance(parentActivity).fillSpinnerAreasForAssignedTables(spnAreas, true);
-      //  }else{
-            //AreasController.getInstance(parentActivity).fillSpinner(spnAreas, true);
-       // }
-        
-        spnAreas.setOnItemSelectedListener(onAreaSelected);
+        setUpSpinnersAreas();
     }
 
 
@@ -160,11 +154,7 @@ public class ResumenOrderFragment extends Fragment {
                 spnMesas.setAdapter(null);
                 return;
             }
-            //if()){//mesas asignadas al usuario, rol o empresa
                 AreasDetailController.getInstance(parentActivity).fillSpinnerWithAssignedTables(spnMesas, value.getKey());
-            //}else {
-              //  AreasDetailController.getInstance(parentActivity).fillSpinner(spnMesas, false, value.getKey());
-           // }
         }
 
         @Override
@@ -178,7 +168,7 @@ public class ResumenOrderFragment extends Fragment {
             Snackbar.make(getView(), "No puede realizar la orden con productos NO DISPONIBLES.", Snackbar.LENGTH_LONG).show();
             return false;
         }else if(spnAreas.getSelectedItem() == null || spnMesas.getSelectedItem() == null
-                || ((KV)spnAreas.getSelectedItem()).getKey().equals("0") || ((KV)spnMesas.getSelectedItem()).getKey().equals("0")){
+                || ((KV)spnAreas.getSelectedItem()).getKey().equals("-1") || ((KV)spnMesas.getSelectedItem()).getKey().equals("-1")){
             Snackbar.make(getView(), "Debe seleccionar la mesa", Snackbar.LENGTH_LONG).show();
             return false;
         }else if(rvList.getAdapter() == null ||rvList.getAdapter().getItemCount() ==0){
@@ -251,8 +241,9 @@ public class ResumenOrderFragment extends Fragment {
     public void prepareResumeForEdition(){
         llCancel.setVisibility(View.VISIBLE);
         Sales s = TempOrdersController.getInstance(parentActivity).getTempSale();
-        etNotas.setText(s.getNOTES());
         AreasDetail ad = AreasDetailController.getInstance(parentActivity).getAreasDetailByCode(s.getCODEAREADETAIL());
+
+        etNotas.setText(s.getNOTES());
         spnMesas.setOnItemSelectedListener(null);
         spnAreas.setOnItemSelectedListener(null);
         AreasController.getInstance(parentActivity).fillSpinner(spnAreas, false);
@@ -269,7 +260,9 @@ public class ResumenOrderFragment extends Fragment {
                 break;
             }
         }
-        spnAreas.setOnItemSelectedListener(onAreaSelected);
+
+        spnAreas.setEnabled(false);
+        spnMesas.setEnabled(false);
 
     }
 
@@ -281,5 +274,13 @@ public class ResumenOrderFragment extends Fragment {
 
     public void setSelection(int pos){
         rvList.scrollToPosition(pos);
+    }
+
+    public void setUpSpinnersAreas(){
+        AreasController.getInstance(parentActivity).fillSpinnerAreasForAssignedTables(spnAreas, true);
+        spnAreas.setOnItemSelectedListener(onAreaSelected);
+        spnAreas.setSelection(0);//TODOS
+        spnAreas.setEnabled(true);
+        spnMesas.setEnabled(true);
     }
 }

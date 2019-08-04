@@ -202,7 +202,6 @@ public class SalesController {
         ArrayList<Sales> sales = (ArrayList<Sales>) list.get(0);
         ArrayList<SalesDetails> salesDetails = (ArrayList<SalesDetails>) list.get(1);
         sendToFireBase(sales, salesDetails);
-
         }else {
             Sales s = TempOrdersController.getInstance(context).getTempSale();
             s.setTOTAL(TempOrdersController.getInstance(context).getSumPrice());
