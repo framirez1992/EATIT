@@ -379,7 +379,7 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
         @Override
         public void onSuccess(QuerySnapshot querySnapshot) {
 
-            if(querySnapshot == null || querySnapshot.isEmpty()){
+            if(querySnapshot == null ){
                 btnLogin.setEnabled(true);
                 findViewById(R.id.llProgress).setVisibility(View.INVISIBLE);
                 Snackbar.make(findViewById(R.id.root), "Error de autenticacion", Snackbar.LENGTH_LONG).show();

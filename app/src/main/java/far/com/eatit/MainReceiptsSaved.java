@@ -42,7 +42,7 @@ public class MainReceiptsSaved extends AppCompatActivity implements ListableActi
             @Override
             public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
 
-                if (querySnapshot != null && !querySnapshot.isEmpty()) {
+                if (querySnapshot != null ) {
                     ReceiptController.getInstance(MainReceiptsSaved.this).delete(null, null);
                     for (DocumentSnapshot doc : querySnapshot) {
                         Receipts r = doc.toObject(Receipts.class);

@@ -37,7 +37,7 @@ public class ReceiptResumeFragment extends Fragment {
     String codeAreaDetail;
     Button btnCollect, btnPrint;
     TextView tvTotal, tvSubTotal, tvItbis;
-    LinearLayout llBack;
+    LinearLayout llBack, llDetails;
 
     public ReceiptResumeFragment() {
         // Required empty public constructor
@@ -58,6 +58,7 @@ public class ReceiptResumeFragment extends Fragment {
         tvSubTotal = view.findViewById(R.id.tvSubTotal);
         tvItbis = view.findViewById(R.id.tvItbis);
         llBack = view.findViewById(R.id.llBack);
+        llDetails = view.findViewById(R.id.llDetails);
 
         btnCollect = view.findViewById(R.id.btnCollect);
         btnPrint = view.findViewById(R.id.btnPrint);
@@ -66,11 +67,19 @@ public class ReceiptResumeFragment extends Fragment {
 
         btnPrint.setVisibility(View.GONE);
         btnCollect.setVisibility(View.GONE);
+        llDetails.setVisibility(View.GONE);
 
         llBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 ((ReceiptableActivity)activity).showReceiptFragment();
+            }
+        });
+
+        llDetails.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((MainReceipt)activity).callWorkedOrdersDialog(codeAreaDetail);
             }
         });
 
@@ -104,8 +113,11 @@ public class ReceiptResumeFragment extends Fragment {
         if(activity instanceof MainOrders && UserControlController.getInstance(activity).printOrders()){
             btnPrint.setVisibility(View.VISIBLE);
         }
-        if(activity instanceof MainReceipt && UserControlController.getInstance(activity).chargeOrders()){
-            btnCollect.setVisibility(View.VISIBLE);
+        if(activity instanceof MainReceipt){
+            llDetails.setVisibility(View.VISIBLE);
+            if(UserControlController.getInstance(activity).chargeOrders()){
+                btnCollect.setVisibility(View.VISIBLE);
+            }
         }
 
         refreshList();

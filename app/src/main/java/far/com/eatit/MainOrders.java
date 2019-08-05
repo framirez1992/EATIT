@@ -234,7 +234,7 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
         sales.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                if(querySnapshot == null || querySnapshot.isEmpty()){
+                if(querySnapshot == null ){
                     return;
                 }
                 salesController.delete(null, null);
@@ -251,7 +251,7 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
         salesDetails.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                if(querySnapshot == null || querySnapshot.isEmpty()){
+                if(querySnapshot == null ){
                     return;
                 }
 
@@ -268,7 +268,7 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
         userInbox.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                if(querySnapshot == null || querySnapshot.isEmpty()){
+                if(querySnapshot == null ){
                     return;
                 }
 
@@ -288,7 +288,7 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
         productsMeasure.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
-                if(querySnapshot == null || querySnapshot.isEmpty()){
+                if(querySnapshot == null ){
                     return;
                 }
                 productsMeasureController.delete(null, null);

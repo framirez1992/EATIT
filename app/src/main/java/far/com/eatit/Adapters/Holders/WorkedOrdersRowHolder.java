@@ -8,7 +8,7 @@ import far.com.eatit.Adapters.Models.WorkedOrdersRowModel;
 import far.com.eatit.R;
 
 public class WorkedOrdersRowHolder extends RecyclerView.ViewHolder {
-    TextView tvCode, tvFecha, tvArea, tvMesa, tvStatus;
+    TextView tvCode, tvFecha, tvArea, tvMesa, tvStatus,  tvTotal, tvUserName;
 
     public WorkedOrdersRowHolder(View itemView) {
         super(itemView);
@@ -17,6 +17,8 @@ public class WorkedOrdersRowHolder extends RecyclerView.ViewHolder {
         tvArea = itemView.findViewById(R.id.tvArea);
         tvMesa = itemView.findViewById(R.id.tvMesa);
         tvStatus = itemView.findViewById(R.id.tvStatus);
+        tvTotal = itemView.findViewById(R.id.tvTotal);
+        tvUserName = itemView.findViewById(R.id.tvUserName);
     }
 
     public void fillData(WorkedOrdersRowModel w){
@@ -25,6 +27,8 @@ public class WorkedOrdersRowHolder extends RecyclerView.ViewHolder {
         tvArea.setText(w.getAreaDescription());
         tvMesa.setText(w.getMesaDescription());
         tvStatus.setText(w.getStatus());
+        tvUserName.setText(w.getUserName());
+        tvTotal.setText(w.getTotal());
     }
 
 

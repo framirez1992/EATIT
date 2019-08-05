@@ -27,6 +27,8 @@ public class WorkedOrdersDialog extends DialogFragment{
 
     OrdersEditionFragment ordersEditionFragment;
     NotificationFragment notificationFragment;
+    boolean fromReceipts;
+    String codeAreaDetail;
 
     public  static WorkedOrdersDialog newInstance() {
 
@@ -46,6 +48,11 @@ public class WorkedOrdersDialog extends DialogFragment{
         ordersEditionFragment = new OrdersEditionFragment();
 
         notificationFragment.setWorkedOrders(true);
+        if(fromReceipts) {
+            notificationFragment.setFromReceipt(codeAreaDetail);
+            ordersEditionFragment.setFromReceipt();
+        }
+
 
         notificationFragment.setParent(this.getActivity());
         ordersEditionFragment.setParent(this);
@@ -157,4 +164,10 @@ public class WorkedOrdersDialog extends DialogFragment{
         dismiss();
     }
 
+
+    public void setFromReceipts(String codeAreaDetail){
+        fromReceipts = true;
+        this.codeAreaDetail = codeAreaDetail;
+
+    }
 }

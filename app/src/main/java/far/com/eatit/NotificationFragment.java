@@ -45,6 +45,8 @@ public class NotificationFragment extends Fragment {
     Activity parent;
     KV status, area, mesa;
     KV msgStatus;
+    boolean fromReceipt;
+    String codeAreaDetail;
 
     public NotificationFragment() {
         // Required empty public constructor
@@ -84,25 +86,23 @@ public class NotificationFragment extends Fragment {
 
         rvList.setLayoutManager(new LinearLayoutManager(this.getActivity()));
 
-        if(workedOrders){
+        if(fromReceipt){
+            llFiltroMensajes.setVisibility(View.GONE);
+            llFiltroOrdenes.setVisibility(View.GONE);
+            spnAreas.setVisibility(View.GONE);
+            spnMesas.setVisibility(View.GONE);
+        }else if(workedOrders){
             llFiltroMensajes.setVisibility(View.GONE);
             llFiltroOrdenes.setVisibility(View.VISIBLE);
+
             SalesController.getInstance(parent).fillSpinnerOrderStatus(spnFiltroOrdenes, false);
-            //if(){
-                AreasController.getInstance(parent).fillSpinnerAreasForAssignedTables(spnAreas, false);
-           // }else{
-             //   AreasController.getInstance(parent).fillSpinner(spnAreas, true);
-           // }
+            AreasController.getInstance(parent).fillSpinnerAreasForAssignedTables(spnAreas, false);
 
             spnAreas.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> p, View view, int position, long id) {
                      area = (KV)p.getSelectedItem();
-                   // if(){//mesas asignadas al usuario, rol o empresa
                         AreasDetailController.getInstance(parent).fillSpinnerWithAssignedTables(spnMesas, area.getKey());
-                   // }else {
-                     //   AreasDetailController.getInstance(parent).fillSpinner(spnMesas, true, area.getKey());
-                    //}
 
                 }
 
@@ -138,6 +138,7 @@ public class NotificationFragment extends Fragment {
 
                }
            });
+
         }else{
             llFiltroMensajes.setVisibility(View.VISIBLE);
             llFiltroOrdenes.setVisibility(View.GONE);
@@ -161,7 +162,9 @@ public class NotificationFragment extends Fragment {
     }
 
     public void refreshList(){
-        if(workedOrders){
+        if(fromReceipt){
+            searchDeliveredOrders();
+        }else if(workedOrders){
            searchOrders();
         }else {
             String where = " 1 = 1 ";
@@ -183,7 +186,7 @@ public class NotificationFragment extends Fragment {
     }
 
 
-    public void searchOrders(){
+    public void searchOrders() {
         String where = " s."+SalesController.CODEUSER+" = '"+ Funciones.getCodeuserLogged(parent) +"' ";
         if(status != null && !status.getKey().equals("-1")){
             where += " AND s."+SalesController.STATUS+" = '"+status.getKey()+"' ";
@@ -196,11 +199,26 @@ public class NotificationFragment extends Fragment {
             }
 
         }
-
         WorkedOrdersRowAdapter adapter = new WorkedOrdersRowAdapter(parent, (MainOrders) parent, SalesController.getInstance(parent).getWorkedOrderModels(where));
         rvList.setAdapter(adapter);
         rvList.getAdapter().notifyDataSetChanged();
         rvList.invalidate();
+    }
+
+    public void searchDeliveredOrders(){
+    String where= " s." + SalesController.CODEAREADETAIL + " = '" + codeAreaDetail + "' ";
+    where += " AND s." + SalesController.STATUS + " = '" + CODES.CODE_ORDER_STATUS_DELIVERED + "' ";
+    WorkedOrdersRowAdapter adapter = new WorkedOrdersRowAdapter(parent, (MainReceipt) parent, SalesController.getInstance(parent).getWorkedOrderModels(where));
+    rvList.setAdapter(adapter);
+    rvList.getAdapter().notifyDataSetChanged();
+    rvList.invalidate();
+
+    }
+
+    public void setFromReceipt(String codeAreaDetail){
+        this.fromReceipt = true;
+        this.workedOrders = false;
+        this.codeAreaDetail = codeAreaDetail;
     }
 
 }

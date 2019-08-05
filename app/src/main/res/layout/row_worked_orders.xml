@@ -50,29 +50,52 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Area:"
-                android:textStyle="bold"
-                android:layout_weight="0.5"/>
-            <TextView android:id="@+id/tvArea"
-                android:layout_width="0dp"
+                android:text="Usuario:"
+                android:textStyle="bold"/>
+            <TextView android:id="@+id/tvUserName"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Balcon"
-                android:paddingLeft="5dp"
-                android:layout_weight="1"/>
+                android:text=""
+                android:paddingLeft="5dp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Mesa:"
-                android:textStyle="bold"
-                android:layout_weight="0.5"/>
-            <TextView android:id="@+id/tvMesa"
+                android:layout_weight="0.5"
+                android:text="Area:"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvArea"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="1234"
+                android:layout_weight="1"
                 android:paddingLeft="5dp"
-                android:layout_weight="1"/>
+                android:text="Balcon" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.5"
+                android:text="Mesa:"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvMesa"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="5dp"
+                android:text="1234" />
 
         </LinearLayout>
 
@@ -81,15 +104,31 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.5"
                 android:text="Status:"
                 android:textStyle="bold"/>
             <TextView android:id="@+id/tvStatus"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="Cerrada"
                 android:paddingLeft="5dp"/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.5"
+                android:text="Total:"
+                android:textStyle="bold"/>
+            <TextView android:id="@+id/tvTotal"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text=""
+                android:paddingLeft="5dp"
+                android:gravity="right"/>
 
         </LinearLayout>
 

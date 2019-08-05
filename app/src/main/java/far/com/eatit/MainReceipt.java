@@ -18,11 +18,13 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 
 import far.com.eatit.Adapters.Models.OrderReceiptModel;
+import far.com.eatit.Adapters.Models.WorkedOrdersRowModel;
 import far.com.eatit.CloudFireStoreObjects.Receipts;
 import far.com.eatit.CloudFireStoreObjects.Sales;
 import far.com.eatit.CloudFireStoreObjects.SalesDetails;
 import far.com.eatit.Controllers.ReceiptController;
 import far.com.eatit.Controllers.SalesController;
+import far.com.eatit.Dialogs.WorkedOrdersDialog;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Interfases.ListableActivity;
 import far.com.eatit.Interfases.ReceiptableActivity;
@@ -36,6 +38,8 @@ public class MainReceipt extends AppCompatActivity implements ListableActivity, 
     ReceipFragment receipFragment;
     ReceiptResumeFragment receiptResumeFragment;
     Fragment lastFragment;
+
+    WorkedOrdersDialog workedOrdersDialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,7 +65,7 @@ public class MainReceipt extends AppCompatActivity implements ListableActivity, 
         sales.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                if(querySnapshot == null || querySnapshot.isEmpty()){
+                if(querySnapshot == null){
                     return;
                 }
                 salesController.delete(null, null);
@@ -78,7 +82,7 @@ public class MainReceipt extends AppCompatActivity implements ListableActivity, 
         salesDetails.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                if(querySnapshot == null || querySnapshot.isEmpty()){
+                if(querySnapshot == null){
                     return;
                 }
 
@@ -112,9 +116,14 @@ public class MainReceipt extends AppCompatActivity implements ListableActivity, 
 
     @Override
     public void onClick(Object obj) {
-        OrderReceiptModel orderReceiptModel = (OrderReceiptModel)obj;
-        receiptResumeFragment.setCodeAreaDetail(orderReceiptModel.getMesaID());
-        showReceiptResumeFragment();
+        if(obj instanceof  OrderReceiptModel){
+            OrderReceiptModel orderReceiptModel = (OrderReceiptModel)obj;
+            receiptResumeFragment.setCodeAreaDetail(orderReceiptModel.getMesaID());
+            showReceiptResumeFragment();
+        }else if(obj instanceof WorkedOrdersRowModel){
+            workedOrdersDialog.showDetail((WorkedOrdersRowModel) obj);
+        }
+
     }
 
     @Override
@@ -137,5 +146,18 @@ public class MainReceipt extends AppCompatActivity implements ListableActivity, 
         }else if(lastFragment instanceof ReceiptResumeFragment){
             receiptResumeFragment.refreshList();
         }
+    }
+
+    public void callWorkedOrdersDialog(String codeAreaDetail){
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        Fragment prev = getSupportFragmentManager().findFragmentByTag("dialogWorkedOrders");
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+        workedOrdersDialog =  WorkedOrdersDialog.newInstance();
+        workedOrdersDialog.setFromReceipts(codeAreaDetail);
+        // Create and show the dialog.
+        workedOrdersDialog.show(ft, "dialogWorkedOrders");
     }
 }

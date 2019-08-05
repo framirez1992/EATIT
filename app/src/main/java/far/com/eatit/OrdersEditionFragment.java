@@ -59,6 +59,7 @@ public class OrdersEditionFragment extends Fragment {
     LinearLayout llEdition;
     Button btnCerrar, btnEntregar, btnEditar, btnAnular;
     ImageView imgBack;
+    boolean fromReceipt;
 
     public OrdersEditionFragment() {
         // Required empty public constructor
@@ -393,5 +394,9 @@ public class OrdersEditionFragment extends Fragment {
 
         d.show();
 
+    }
+
+    public void setFromReceipt() {
+        this.fromReceipt = true;
     }
 }

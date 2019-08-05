@@ -1,11 +1,11 @@
 package far.com.eatit.Adapters.Models;
 
 public class WorkedOrdersRowModel {
-    String code, date, areaCode, areaDescription, mesaCode, mesaDescription, status;
+    String code, date, areaCode, areaDescription, mesaCode, mesaDescription, status, userName, total;
 
-    public WorkedOrdersRowModel(String code, String date, String areaCode,String areaDescription, String mesaCode, String mesaDescription, String status ){
+    public WorkedOrdersRowModel(String code, String date, String areaCode,String areaDescription, String mesaCode, String mesaDescription, String status, String userName, String total ){
         this.code = code; this.date = date; this.areaCode = areaCode; this.areaDescription = areaDescription;
-        this.mesaCode = mesaCode; this.mesaDescription = mesaDescription; this.status = status;
+        this.mesaCode = mesaCode; this.mesaDescription = mesaDescription; this.status = status;this.userName = userName;this.total = total;
     }
 
     public String getCode() {
@@ -62,5 +62,21 @@ public class WorkedOrdersRowModel {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getTotal() {
+        return total;
+    }
+
+    public void setTotal(String total) {
+        this.total = total;
     }
 }

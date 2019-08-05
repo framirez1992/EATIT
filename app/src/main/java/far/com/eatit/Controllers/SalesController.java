@@ -468,16 +468,20 @@ public class SalesController {
         ArrayList<WorkedOrdersRowModel> objects = new ArrayList<>();
         try {
             String sql = "Select DISTINCT s." + CODE + " as CODE, ifnull(ifnull(s." + MDATE + ", s." + DATE + "), 'NONE') as FECHA, a." + AreasController.CODE + " as ACODE,  " +
-                    "a." + AreasController.DESCRIPTION + " as ADESCRIPTION,  ad." + AreasDetailController.CODE + " as ADCODE, ad." + AreasDetailController.DESCRIPTION + " as ADDESCRIPTION, s." + STATUS + " as STATUS " +
+                    "a." + AreasController.DESCRIPTION + " as ADESCRIPTION,  ad." + AreasDetailController.CODE + " as ADCODE, ad." + AreasDetailController.DESCRIPTION + " as ADDESCRIPTION, s." + STATUS + " as STATUS, " +
+                    "s."+TOTAL+" as TOTAL,u."+UsersController.USERNAME+" as USERNAME  " +
                     "FROM " + TABLE_NAME + " s  " +
                     "INNER JOIN " + AreasDetailController.TABLE_NAME + " ad on ad." + AreasDetailController.CODE + " = s." + CODEAREADETAIL + " " +
                     "INNER JOIN " + AreasController.TABLE_NAME + " a on a." + AreasController.CODE + " = ad." + AreasDetailController.CODEAREA + " " +
+                    "INNER JOIN "+UsersController.TABLE_NAME+" u on u."+UsersController.CODE+" = s."+CODEUSER+" "+
                     ((where == null) ? "" : "WHERE " + where + " ")
                     + "ORDER BY s." + MDATE + " DESC";
             Cursor c = sqlite.getReadableDatabase().rawQuery(sql, null);
             while (c.moveToNext()) {
 
                 String code = c.getString(c.getColumnIndex("CODE"));
+                String total = c.getString(c.getColumnIndex("TOTAL"));
+                String userName = c.getString(c.getColumnIndex("USERNAME"));
                 String fecha = c.getString(c.getColumnIndex("FECHA"));
                 String areaCode = c.getString(c.getColumnIndex("ACODE"));
                 String areaDescription = c.getString(c.getColumnIndex("ADESCRIPTION"));
@@ -504,7 +508,7 @@ public class SalesController {
 
                 }
 
-                WorkedOrdersRowModel om = new WorkedOrdersRowModel(code, fecha, areaCode, areaDescription, areaDetailCode, areaDetailDescription, status);
+                WorkedOrdersRowModel om = new WorkedOrdersRowModel(code, fecha, areaCode, areaDescription, areaDetailCode, areaDetailDescription, status,userName,total);
                 objects.add(om);
             }c.close();
         }catch (Exception e){
