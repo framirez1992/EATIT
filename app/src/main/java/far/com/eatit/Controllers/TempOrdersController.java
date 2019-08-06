@@ -436,6 +436,20 @@ public class TempOrdersController{
         return result;
     }
 
+    public ArrayList<SalesDetails> getTempSaleDetailByCodeProduct( String codeProduct){
+        ArrayList<SalesDetails> result = new ArrayList<>();
+
+        String selection = DETAIL_CODEPRODUCT +" = ?";
+        String[] args = new String[]{codeProduct};
+        Cursor c = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME_DETAIL, columnsDetails, selection, args, null, null, null);
+
+        if (c.moveToFirst()){
+            result.add( new SalesDetails(c));
+        }
+        c.close();
+        return result;
+    }
+
     public SalesDetails getTempSaleDetailByCodeProductAndCodeMeasure( String code_product, String code_measure){
         SalesDetails result = null;
 

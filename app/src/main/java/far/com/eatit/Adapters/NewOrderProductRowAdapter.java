@@ -12,6 +12,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Spinner;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -59,26 +61,37 @@ public class NewOrderProductRowAdapter extends RecyclerView.Adapter<NewOrderProd
         holder.fillData(objects.get(position), adapter);
         holder.setBackgroundColor(activity.getResources(), objects.get(position).isBlocked());
 
+        final EditText etQuantity = holder.getEtQuantity();
+        final Button btnLess = holder.getBtnLess();
+        final Button btnMore = holder.getBtnMore();
+        final Spinner spnUnitMeasure =holder.getSpnUnitMeasure();
+        final ImageView imgDelete =  holder.getImgDelete();
+
         if(TempOrdersController.getInstance(activity).getTempSaleDetailByCodeProductAndCodeMeasure(
                 objects.get(position).getCodeProduct(),
                 objects.get(position).getMeasure())!= null) {
 
             holder.itemView.setBackgroundColor(activity.getResources().getColor(R.color.teal_A100));
-            holder.getImgDelete().setVisibility(View.VISIBLE);
+            imgDelete.setVisibility(View.VISIBLE);
         }else{
             holder.itemView.setBackgroundColor(activity.getResources().getColor(R.color.white));
-            holder.getImgDelete().setVisibility(View.GONE);
+            imgDelete.setVisibility(View.GONE);
         }
 
-        holder.getImgDelete().setOnClickListener(new View.OnClickListener() {
+        imgDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 lastPosition = position;
-                deleteOrderLine( objects.get(position));
+                objects.get(position).setQuantity("0");
+
+                btnLess.setEnabled(false);
+                imgDelete.setVisibility(View.GONE);
+                etQuantity.setText("0");
+                deleteOrderLine(objects.get(position));
+                moveSpnMeasure(objects.get(position), spnUnitMeasure);
             }
         });
-        holder.getBtnLess().setOnClickListener(new View.OnClickListener() {
+        btnLess.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //se inhabilita el boton para evitar que el usuario clicke muy rapido y genere inconsistencias en el sistema.
@@ -86,28 +99,30 @@ public class NewOrderProductRowAdapter extends RecyclerView.Adapter<NewOrderProd
 
                 lastPosition = position;
 
+                KV measure = (KV)spnUnitMeasure.getSelectedItem();
                 SalesDetails sd = TempOrdersController.getInstance(activity).getTempSaleDetailByCodeProductAndCodeMeasure(
                         objects.get(position).getCodeProduct(),
-                        objects.get(position).getMeasure());
+                        measure.getKey()/*objects.get(position).getMeasure()*/);
                 if(sd == null){
                     return;
                 }
                 double newQuantity = sd.getQUANTITY() - 1;
                 if(newQuantity <= 0){
+                    imgDelete.setVisibility(View.GONE);
                     objects.get(position).setQuantity("0");
                     deleteOrderLine(objects.get(position));
+                    moveSpnMeasure(objects.get(position), spnUnitMeasure);
                 }else{
-                    objects.get(position).setQuantity(""+newQuantity);
-                    sd.setQUANTITY(newQuantity);
+                    objects.get(position).setQuantity(""+(int)newQuantity);
+                    sd.setQUANTITY((int)newQuantity);
                     updateOrderLine(sd);
                 }
-                //se habilita nuevamente el boton
-
-                v.setEnabled(true);
+                etQuantity.setText(objects.get(position).getQuantity());
+                v.setEnabled(newQuantity>0); //se habilita nuevamente el boton
 
             }
         });
-        holder.getBtnMore().setOnClickListener(new View.OnClickListener() {
+        btnMore.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //se inhabilita el boton para evitar que el usuario clicke muy rapido y genere inconsistencias en el sistema.
@@ -120,40 +135,48 @@ public class NewOrderProductRowAdapter extends RecyclerView.Adapter<NewOrderProd
                 if(sd == null){
                     objects.get(position).setQuantity("1");
                     saveOrderLine(objects.get(position));
-                    return;
+                    btnLess.setEnabled(true);//si se presiona el boton Less cuando el item ya es 0, se bloquea. por esto agrego esta linea, para que siempre la primera vez que se agregue el item se habilite el Less.
+                    imgDelete.setVisibility(View.VISIBLE);
+
+                }else {
+                    double newQuantity = sd.getQUANTITY() + 1;
+                    if (newQuantity > 0) {
+                        sd.setQUANTITY(newQuantity);
+                        updateOrderLine(sd);
+                        objects.get(position).setQuantity((int)newQuantity+"");
+                    }
                 }
-                double newQuantity = sd.getQUANTITY() + 1;
-                if(newQuantity > 0){
-                    sd.setQUANTITY(newQuantity);
-                    updateOrderLine(sd);
-                }
-                //Habilitando el boton nuevamente para su uso.
-                v.setEnabled(true);
+                etQuantity.setText(objects.get(position).getQuantity());
+                v.setEnabled(true); //Habilitando el boton nuevamente para su uso.
             }
         });
 
-        final EditText etQuantity = holder.getEtQuantity();
 
-        holder.getSpnUnitMeasure().setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        spnUnitMeasure.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                objects.get(position).setMeasure(((KV)parent.getSelectedItem()).getKey());
+                KV measure = ((KV)parent.getSelectedItem());
+                objects.get(position).setMeasure(measure.getKey());
                 SalesDetails sd = TempOrdersController.getInstance(activity).getTempSaleDetailByCodeProductAndCodeMeasure(
                         objects.get(position).getCodeProduct(),
-                        objects.get(position).getMeasure());
+                        measure.getKey());
                 if(sd == null){
                     etQuantity.setText("0");
+                    btnLess.setEnabled(false);
+                    imgDelete.setVisibility(View.GONE);
                 }else{
                     etQuantity.setText((int)sd.getQUANTITY()+"");
+                    btnLess.setEnabled(true);
+                    imgDelete.setVisibility(View.VISIBLE);
                 }
 
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                if(parent!= null && parent.getSelectedItem()!= null){
+               /* if(parent!= null && parent.getSelectedItem()!= null){
                     objects.get(position).setMeasure(((KV)parent.getSelectedItem()).getKey());
-                }
+                }*/
 
             }
         });
@@ -188,39 +211,41 @@ public class NewOrderProductRowAdapter extends RecyclerView.Adapter<NewOrderProd
         SalesDetails sd = new SalesDetails(code,codeSale, codeProduct, codeUnd, position, quantity, unit, price, discount);
         TempOrdersController.getInstance(activity).insert_Detail(sd);
 
-        ((MainOrders)activity).refreshProductsSearch(lastPosition);
+        //((MainOrders)activity).refreshProductsSearch(lastPosition);
         ((MainOrders)activity).refreshResume();
 
     }
 
     public void updateOrderLine(SalesDetails sd){
-       /* String code = sd.getCODE();
-        String codeSale = sd.getCODESALES();
-        String codeProduct = sd.getCODEPRODUCT();
-        String codeUnd = sd.getCODEUND();
-        int position = sd.getPOSITION();
-        double quantity = Double.parseDouble(opm.getQuantity());
-        double unit = sd.getUNIT();
-        double price =sd.getPRICE();
-        double discount = sd.getDISCOUNT();
-        SalesDetails sd2 = new SalesDetails(code,codeSale, codeProduct, codeUnd, position, quantity, unit, price, discount);
-        */
        sd.setPOSITION(Integer.parseInt(Funciones.getSimpleTimeFormat().format(new Date())));
        TempOrdersController.getInstance(activity).update_Detail(sd);
 
-        ((MainOrders)activity).refreshProductsSearch(lastPosition);
+        //((MainOrders)activity).refreshProductsSearch(lastPosition);
         ((MainOrders)activity).refreshResume();
     }
 
     public void deleteOrderLine(NewOrderProductModel obj){
 
-        String where = TempOrdersController.DETAIL_CODE+" = ? ";
-        String[]args = new String[]{obj.getCodeOrderDetail()};
+        String where = TempOrdersController.DETAIL_CODEPRODUCT+" = ? AND "+TempOrdersController.DETAIL_CODEUND+" = ? ";
+        String[]args = new String[]{obj.getCodeProduct(), obj.getMeasure()};
         TempOrdersController.getInstance(activity).
                 delete_Detail(where, args);
-
-        ((MainOrders)activity).refreshProductsSearch(lastPosition);
+        //((MainOrders)activity).refreshProductsSearch(lastPosition);
         ((MainOrders)activity).refreshResume();
+    }
+
+    public void moveSpnMeasure(NewOrderProductModel obj, Spinner measure){
+        ArrayList<SalesDetails> sd = TempOrdersController.getInstance(activity).getTempSaleDetailByCodeProduct(obj.getCodeProduct());
+        if(sd != null && sd.size() > 0){
+            SalesDetails detail = sd.get(0);
+            for(int i=0; i<measure.getAdapter().getCount(); i++){
+                if(((KV)measure.getItemAtPosition(i)).getKey().equals(detail.getCODEUND())){
+                    measure.setSelection(i);
+                    break;
+                }
+            }
+        }
+
     }
 
 }
