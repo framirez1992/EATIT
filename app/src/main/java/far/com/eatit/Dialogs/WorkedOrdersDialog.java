@@ -30,6 +30,9 @@ public class WorkedOrdersDialog extends DialogFragment{
     boolean fromReceipts;
     String codeAreaDetail;
 
+    boolean showOnlyDetail;
+    Sales sales;
+
     public  static WorkedOrdersDialog newInstance() {
 
         WorkedOrdersDialog f = new WorkedOrdersDialog();
@@ -53,6 +56,11 @@ public class WorkedOrdersDialog extends DialogFragment{
             ordersEditionFragment.setFromReceipt();
         }
 
+        if(showOnlyDetail){
+            ordersEditionFragment.setSales(sales);
+            ordersEditionFragment.setShowOnlyDetail();
+
+        }
 
         notificationFragment.setParent(this.getActivity());
         ordersEditionFragment.setParent(this);
@@ -99,6 +107,10 @@ public class WorkedOrdersDialog extends DialogFragment{
 
     public void initializeFragments(){
 
+        if(showOnlyDetail){
+            changeFragment(ordersEditionFragment, R.id.notifications);
+            return;
+        }
         changeFragment(notificationFragment, R.id.notifications);
         changeFragment(ordersEditionFragment, R.id.notificationsDetails);
 
@@ -169,5 +181,10 @@ public class WorkedOrdersDialog extends DialogFragment{
         fromReceipts = true;
         this.codeAreaDetail = codeAreaDetail;
 
+    }
+
+    public void setShowOnlyDetail(boolean b, Sales s){
+        this.showOnlyDetail = b;
+        this.sales = s;
     }
 }

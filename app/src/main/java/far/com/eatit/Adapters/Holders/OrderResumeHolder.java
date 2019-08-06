@@ -23,7 +23,7 @@ import far.com.eatit.R;
 public class OrderResumeHolder extends RecyclerView.ViewHolder {
     TextView tvName;
     EditText etCantidad;
-    Spinner spnUnitMeasure;
+    TextView tvUnitMeasure;
     Button btnLess, btnMore;
     ImageView imgMenu;
     LinearLayout llPadre;
@@ -32,7 +32,7 @@ public class OrderResumeHolder extends RecyclerView.ViewHolder {
         llPadre = itemView.findViewById(R.id.llParent);
         tvName = itemView.findViewById(R.id.tvName);
         etCantidad = itemView.findViewById(R.id.etQuantity);
-        spnUnitMeasure = itemView.findViewById(R.id.spnUnitMeasure);
+        tvUnitMeasure = itemView.findViewById(R.id.tvUnitMeasure);
         imgMenu = itemView.findViewById(R.id.imgMenu);
         btnMore = itemView.findViewById(R.id.btnMore);
         btnLess = itemView.findViewById(R.id.btnLess);
@@ -41,7 +41,8 @@ public class OrderResumeHolder extends RecyclerView.ViewHolder {
     public void fillData(OrderDetailModel od, ArrayAdapter<KV> adapter){
         tvName.setText(od.getProduct_name());
         etCantidad.setText(od.getQuantity());
-        spnUnitMeasure.setAdapter(adapter);
+        tvUnitMeasure.setText(od.getMeasureDescription());
+        /*spnUnitMeasure.setAdapter(adapter);
         if(adapter != null){
             spnUnitMeasure.setVisibility(View.VISIBLE);
             spnUnitMeasure.setAdapter(adapter);
@@ -53,16 +54,16 @@ public class OrderResumeHolder extends RecyclerView.ViewHolder {
             }
         }else{
             spnUnitMeasure.setVisibility(View.INVISIBLE);
-        }
+        }*/
 
         if(od.isBlocked()){
             btnMore.setEnabled(false);
             btnLess.setEnabled(false);
-            spnUnitMeasure.setEnabled(false);
+            //spnUnitMeasure.setEnabled(false);
         }else{
             btnMore.setEnabled(true);
             btnLess.setEnabled(true);
-            spnUnitMeasure.setEnabled(true);
+           // spnUnitMeasure.setEnabled(true);
         }
     }
 
@@ -84,10 +85,6 @@ public class OrderResumeHolder extends RecyclerView.ViewHolder {
 
     public Button getBtnMore() {
         return btnMore;
-    }
-
-    public Spinner getSpnUnitMeasure() {
-        return spnUnitMeasure;
     }
 
     public EditText getEtCantidad() {

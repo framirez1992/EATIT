@@ -1,6 +1,8 @@
 package far.com.eatit;
 
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -21,6 +23,7 @@ import far.com.eatit.Controllers.AreasDetailController;
 import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Controllers.UsersController;
+import far.com.eatit.Dialogs.WorkedOrdersDialog;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Interfases.ListableActivity;
 
@@ -37,6 +40,8 @@ public class MainOrderReasignation extends AppCompatActivity implements Listable
     UserControlController userControlController;
     SalesController salesController;
     ArrayList<SelectableOrderRowModel> selected = new ArrayList<>();
+    WorkedOrdersDialog workedOrdersDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -126,7 +131,8 @@ public class MainOrderReasignation extends AppCompatActivity implements Listable
 
     @Override
     public void onClick(Object obj) {
-
+        SelectableOrderRowModel sor = (SelectableOrderRowModel)obj;
+        callWorkedOrdersDialog(SalesController.getInstance(MainOrderReasignation.this).getSaleByCode(sor.getCode()));
     }
 
     public void save(){
@@ -165,5 +171,18 @@ public class MainOrderReasignation extends AppCompatActivity implements Listable
             return false;
         }
         return true;
+    }
+
+    public void callWorkedOrdersDialog(Sales s){
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        Fragment prev = getSupportFragmentManager().findFragmentByTag("dialogWorkedOrders");
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+        workedOrdersDialog =  WorkedOrdersDialog.newInstance();
+        workedOrdersDialog.setShowOnlyDetail(true, s);
+        // Create and show the dialog.
+        workedOrdersDialog.show(ft, "dialogWorkedOrders");
     }
 }

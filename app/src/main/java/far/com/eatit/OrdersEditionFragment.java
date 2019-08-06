@@ -60,6 +60,7 @@ public class OrdersEditionFragment extends Fragment {
     Button btnCerrar, btnEntregar, btnEditar, btnAnular;
     ImageView imgBack;
     boolean fromReceipt;
+    boolean showOnlyDetail;
 
     public OrdersEditionFragment() {
         // Required empty public constructor
@@ -169,6 +170,15 @@ public class OrdersEditionFragment extends Fragment {
 
             }
         });
+
+        if(showOnlyDetail){
+            btnAnular.setVisibility(View.GONE);
+            btnEditar.setVisibility(View.GONE);
+            btnCerrar.setVisibility(View.GONE);
+            btnEntregar.setVisibility(View.GONE);
+            imgBack.setVisibility(View.GONE);
+        }
+
 
     }
 
@@ -398,5 +408,8 @@ public class OrdersEditionFragment extends Fragment {
 
     public void setFromReceipt() {
         this.fromReceipt = true;
+    }
+    public void setShowOnlyDetail(){
+        this.showOnlyDetail = true;
     }
 }
