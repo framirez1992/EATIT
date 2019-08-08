@@ -1430,4 +1430,11 @@ public class SalesController {
         p.printText("02:3D:D3:DB:D5:06");
         return null;
     }*/
+
+  public void searchProductInSalesDetail(String codeProduct, OnSuccessListener success, OnFailureListener failure){
+      getReferenceDetailFireStore().
+              whereEqualTo(DETAIL_CODEPRODUCT, codeProduct).get().
+              addOnSuccessListener(success).
+              addOnFailureListener(failure);
+  }
 }

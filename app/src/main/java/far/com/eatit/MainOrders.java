@@ -407,7 +407,7 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
         ft.addToBackStack(null);
         DialogFragment newFragment = null;
 
-            newFragment = AddProductDialog.newInstance(object);
+            //newFragment = AddProductDialog.newInstance(object, null);
 
         // Create and show the dialog.
         newFragment.show(ft, "dialog");

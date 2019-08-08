@@ -86,7 +86,7 @@ public class ReceiptResumeFragment extends Fragment {
         btnCollect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ArrayList<Sales> sales = SalesController.getInstance(activity).getDeliveredOrdersByCodeAreadetail(codeAreaDetail);
+              /*  ArrayList<Sales> sales = SalesController.getInstance(activity).getDeliveredOrdersByCodeAreadetail(codeAreaDetail);
                 if(sales.size() == 0){
                     return;
                 }
@@ -99,7 +99,10 @@ public class ReceiptResumeFragment extends Fragment {
                 ((ReceiptableActivity)activity).closeOrders(receipt, sales);
                 codeAreaDetail = null;
                 ((ReceiptableActivity)activity).showReceiptFragment();
-                llBack.setEnabled(true);
+                llBack.setEnabled(true);*/
+                if(activity instanceof MainReceipt){
+                    ((MainReceipt)activity).callPaymentDialog(codeAreaDetail);
+                }
             }
         });
 
@@ -140,6 +143,10 @@ public class ReceiptResumeFragment extends Fragment {
             tvSubTotal.setText("$"+receipt.getSubTotal());
             tvItbis.setText("$"+receipt.getTaxes());
             tvTotal.setText("$"+receipt.getTotal());
+        }
+
+        if(activity instanceof MainReceipt && ((MainReceipt)activity).paymentDialog != null && ((MainReceipt)activity).paymentDialog.getDialog().isShowing()){
+            ((MainReceipt)activity).paymentDialog.refreshAmount();
         }
 
     }

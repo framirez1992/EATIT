@@ -14,12 +14,14 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.support.v7.widget.CardView;
 import android.telephony.SmsManager;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -487,5 +489,28 @@ public class Funciones {
     }
     public static String formatDecimal(double decimal){
         return String.format("%.2f", decimal);
+    }
+
+    public static Dialog getCustomDialog(Context context,String title, String msg, int icon, View.OnClickListener listener){
+        Dialog d = new Dialog(context);
+        d.setContentView(R.layout.custom_dialog_1btn);
+        ((TextView)d.findViewById(R.id.tvTitle)).setText(title);
+        ((TextView)d.findViewById(R.id.tvMsg)).setText(msg);
+        ((ImageView)d.findViewById(R.id.img)).setImageResource(icon);
+        ((CardView)d.findViewById(R.id.cvOk)).setOnClickListener(listener);
+        try{
+            d.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return d;
+    }
+
+    public static Dialog getLoadingDialog(Context context, String msg){
+        Dialog d = new Dialog(context);
+        d.setContentView(R.layout.loading);
+        ((TextView)d.findViewById(R.id.tvMsg)).setText(msg);
+        return d;
     }
 }

@@ -1,5 +1,6 @@
 package far.com.eatit.Dialogs;
 
+import android.app.Dialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -18,6 +19,8 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -38,6 +41,7 @@ import far.com.eatit.Controllers.ProductsSubTypesController;
 import far.com.eatit.Controllers.ProductsSubTypesInvController;
 import far.com.eatit.Controllers.ProductsTypesController;
 import far.com.eatit.Controllers.ProductsTypesInvController;
+import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.R;
@@ -58,6 +62,9 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
     ArrayList<EditSelectionRowModel> selected = new ArrayList<>() ;
     boolean firstTime = true;
     String type;
+
+    Dialog loadingDialg;
+    Dialog errorDialog;
 
     public  static ProductsDialogfragment newInstance(String type, Products pt) {
 
@@ -150,7 +157,8 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
                 if(tempObj == null){
                     Save();
                 }else{
-                    EditProduct();
+                    showLoadingDialog();
+                    searchProduct(tempObj.getCODE());
                 }
                 //Funciones.getDateOnline(ProductTypeDialogFragment.this);
             }
@@ -328,5 +336,62 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
         rvMeasures.setAdapter(new EditSelectionRowAdapter(getActivity(),arr, selected));
         rvMeasures.getAdapter().notifyDataSetChanged();
         rvMeasures.invalidate();
+    }
+
+    OnFailureListener onFailureSerachProduct = new OnFailureListener() {
+        @Override
+        public void onFailure(@NonNull Exception e) {
+        showErrorDialog(e.getMessage());
+        llSave.setEnabled(true);
+        closeLoadingDialog();
+        }
+    };
+
+    OnSuccessListener<QuerySnapshot> onSuccessSeachProduct = new OnSuccessListener<QuerySnapshot>() {
+        @Override
+        public void onSuccess(QuerySnapshot querySnapshot) {
+
+            if(querySnapshot != null && querySnapshot.getDocuments().size() >0){
+            showErrorDialog("No puede editar productos que esten actualmente en ventas (Abiertas o Entregadas)");
+            }else{
+                EditProduct();
+            }
+
+            llSave.setEnabled(true);
+            closeLoadingDialog();
+        }
+    };
+
+    /**
+     * validamos que el producto a editar no este en una venta (Abierta, entregada, anulada) es decir no historica
+     * @param codeProduct
+     */
+    public void searchProduct(String codeProduct){
+        SalesController.getInstance(getActivity()).searchProductInSalesDetail(codeProduct,onSuccessSeachProduct, onFailureSerachProduct);
+    }
+
+    public void showLoadingDialog(){
+        loadingDialg = null;
+        loadingDialg = Funciones.getLoadingDialog(getActivity(),"Loading...");
+        loadingDialg.show();
+    }
+
+    public void closeLoadingDialog(){
+        if(loadingDialg != null){
+            loadingDialg.dismiss();
+        }
+    }
+
+    public void showErrorDialog(String msg){
+        errorDialog = null;
+        errorDialog = Funciones.getCustomDialog(getActivity(), "Error", msg, R.drawable.ic_error_white, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                errorDialog.dismiss();
+                errorDialog = null;
+            }
+        });
+        errorDialog.setCancelable(false);
+        errorDialog.show();
     }
 }

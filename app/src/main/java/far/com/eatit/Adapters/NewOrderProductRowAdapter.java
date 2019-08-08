@@ -3,6 +3,9 @@ package far.com.eatit.Adapters;
 import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,7 +28,9 @@ import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.CloudFireStoreObjects.ProductsMeasure;
 import far.com.eatit.CloudFireStoreObjects.SalesDetails;
 import far.com.eatit.Controllers.ProductsMeasureController;
+import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Controllers.TempOrdersController;
+import far.com.eatit.Dialogs.AddProductDialog;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Interfases.ListableActivity;
 import far.com.eatit.MainOrders;
@@ -38,6 +43,7 @@ public class NewOrderProductRowAdapter extends RecyclerView.Adapter<NewOrderProd
     ArrayList<NewOrderProductModel> objects;
     ListableActivity listableActivity;
     int lastPosition = 0;
+    AddProductDialog productDialog;
     public NewOrderProductRowAdapter(Activity act,ListableActivity la, ArrayList<NewOrderProductModel> objs){
         this.activity = act;
         this.objects = objs;
@@ -52,7 +58,7 @@ public class NewOrderProductRowAdapter extends RecyclerView.Adapter<NewOrderProd
     }
 
     @Override
-    public void onBindViewHolder(@NonNull NewOrderProductHolder holder, final int position) {
+    public void onBindViewHolder(final NewOrderProductHolder holder, final int position) {
 
         ArrayAdapter adapter = null;
         if( objects.get(position).getMeasures() != null &&  objects.get(position).getMeasures().size() >0){
@@ -66,6 +72,7 @@ public class NewOrderProductRowAdapter extends RecyclerView.Adapter<NewOrderProd
         final Button btnMore = holder.getBtnMore();
         final Spinner spnUnitMeasure =holder.getSpnUnitMeasure();
         final ImageView imgDelete =  holder.getImgDelete();
+
 
         if(TempOrdersController.getInstance(activity).getTempSaleDetailByCodeProductAndCodeMeasure(
                 objects.get(position).getCodeProduct(),
@@ -180,6 +187,14 @@ public class NewOrderProductRowAdapter extends RecyclerView.Adapter<NewOrderProd
 
             }
         });
+
+        etQuantity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                lastPosition = position;
+                callAddProductDialog(objects.get(position),holder);
+            }
+        });
        /* holder.getImg().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -245,6 +260,38 @@ public class NewOrderProductRowAdapter extends RecyclerView.Adapter<NewOrderProd
                 }
             }
         }
+
+    }
+
+
+    public void callAddProductDialog(NewOrderProductModel obj, NewOrderProductHolder holder){
+        FragmentTransaction ft = ((AppCompatActivity)activity).getSupportFragmentManager().beginTransaction();
+        Fragment prev = ((AppCompatActivity)activity).getSupportFragmentManager().findFragmentByTag("AddProductDialog");
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+        productDialog = AddProductDialog.newInstance(obj, holder, this);
+        // Create and show the dialog.
+        productDialog.show(ft, "AddProductDialog");
+    }
+
+    public void EditLineFromExternal(NewOrderProductModel editedLine, NewOrderProductHolder holder){
+        SalesDetails sd =TempOrdersController.getInstance(activity).getTempSaleDetailByCodeProductAndCodeMeasure(editedLine.getCodeProduct(), editedLine.getMeasure());
+            if(sd == null){
+                saveOrderLine(editedLine);
+                holder.getBtnLess().setEnabled(true);//si se presiona el boton Less cuando el item ya es 0, se bloquea. por esto agrego esta linea, para que siempre la primera vez que se agregue el item se habilite el Less.
+                holder.getImgDelete().setVisibility(View.VISIBLE);
+
+            }else {
+                double newQuantity = Double.parseDouble(editedLine.getQuantity());
+                if (newQuantity > 0) {
+                    sd.setQUANTITY(newQuantity);
+                    updateOrderLine(sd);
+                    editedLine.setQuantity((int)newQuantity+"");
+                }
+            }
+            holder.getEtQuantity().setText(editedLine.getQuantity());
 
     }
 

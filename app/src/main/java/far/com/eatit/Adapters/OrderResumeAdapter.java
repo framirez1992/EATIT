@@ -3,6 +3,9 @@ package far.com.eatit.Adapters;
 import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -23,6 +26,7 @@ import far.com.eatit.Adapters.Models.OrderDetailModel;
 import far.com.eatit.CloudFireStoreObjects.SalesDetails;
 import far.com.eatit.Controllers.MeasureUnitsController;
 import far.com.eatit.Controllers.TempOrdersController;
+import far.com.eatit.Dialogs.AddProductDialog;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Interfases.ListableActivity;
 import far.com.eatit.MainOrders;
@@ -33,6 +37,7 @@ public class OrderResumeAdapter extends RecyclerView.Adapter<OrderResumeHolder> 
     ArrayList<OrderDetailModel> objects;
     ListableActivity listableActivity;
     Activity activity;
+    AddProductDialog productDialog;
 
     public OrderResumeAdapter(Activity act, ListableActivity la, ArrayList<OrderDetailModel> objs){
         this.activity = act;
@@ -46,7 +51,7 @@ public class OrderResumeAdapter extends RecyclerView.Adapter<OrderResumeHolder> 
     }
 
     @Override
-    public void onBindViewHolder(@NonNull OrderResumeHolder holder, final int position) {
+    public void onBindViewHolder(final OrderResumeHolder holder, final int position) {
 
         ArrayAdapter adapter = null;
         if( objects.get(position).getMeasures() != null &&  objects.get(position).getMeasures().size() >0){
@@ -85,7 +90,7 @@ public class OrderResumeAdapter extends RecyclerView.Adapter<OrderResumeHolder> 
                 }else{
                     objects.get(position).setQuantity(""+newQuantity);
                     sd.setQUANTITY(newQuantity);
-                    updateOrderLine(sd, position);
+                    updateOrderLine(sd);
                     etQuantity.setText(""+(int)newQuantity);
                 }
 
@@ -105,39 +110,18 @@ public class OrderResumeAdapter extends RecyclerView.Adapter<OrderResumeHolder> 
                 double newQuantity = sd.getQUANTITY() + 1;
                 if(newQuantity > 0){
                     sd.setQUANTITY(newQuantity);
-                    updateOrderLine(sd, position);
+                    updateOrderLine(sd);
                     etQuantity.setText(""+(int)newQuantity);
                 }
             }
         });
 
-      /*  holder.getSpnUnitMeasure().setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        etQuantity.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                SalesDetails sd = TempOrdersController.getInstance(activity).getTempSaleDetailByCodeProductAndCodeMeasure(
-                        objects.get(position).getCodeProduct(),
-                        objects.get(position).getCodeMeasure());
-
-                String newMeasure = ((KV)parent.getSelectedItem()).getKey();
-                if(newMeasure.equals(sd.getCODEUND())){
-                    return;
-                }
-
-                sd.setCODEUND(newMeasure);
-                objects.get(position).setCodeMeasure(newMeasure);
-                updateOrderLine(sd, position);
-
-
+            public void onClick(View v) {
+                callAddProductDialog(objects.get(position), holder);
             }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                if(parent!= null && parent.getSelectedItem()!= null){
-                    objects.get(position).setCodeMeasure(((KV)parent.getSelectedItem()).getKey());
-                }
-
-            }
-        });*/
+        });
 
 
     }
@@ -165,7 +149,7 @@ public class OrderResumeAdapter extends RecyclerView.Adapter<OrderResumeHolder> 
 
     }
 
-    public void updateOrderLine(SalesDetails sd, int lastPos){
+    public void updateOrderLine(SalesDetails sd){
         sd.setPOSITION(Integer.parseInt(Funciones.getSimpleTimeFormat().format(new Date())));
         TempOrdersController.getInstance(activity).update_Detail(sd);
 
@@ -195,5 +179,33 @@ public class OrderResumeAdapter extends RecyclerView.Adapter<OrderResumeHolder> 
             }
         }
         return false;
+    }
+
+
+    public void callAddProductDialog(OrderDetailModel obj, OrderResumeHolder holder){
+        FragmentTransaction ft = ((AppCompatActivity)activity).getSupportFragmentManager().beginTransaction();
+        Fragment prev = ((AppCompatActivity)activity).getSupportFragmentManager().findFragmentByTag("AddProductDialog");
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+        productDialog = AddProductDialog.newInstance(obj, holder, this);
+        // Create and show the dialog.
+        productDialog.show(ft, "AddProductDialog");
+    }
+
+    public void EditLineFromExternal(OrderDetailModel editedLine, OrderResumeHolder holder) {
+        SalesDetails sd = TempOrdersController.getInstance(activity).getTempSaleDetailByCodeProductAndCodeMeasure(editedLine.getCodeProduct(), editedLine.getCodeMeasure());
+        if (sd == null) {
+            return;
+
+        } else {
+            double newQuantity = Double.parseDouble(editedLine.getQuantity());
+            if (newQuantity > 0) {
+                sd.setQUANTITY(newQuantity);
+                updateOrderLine(sd);
+                holder.getEtCantidad().setText("" + (int) newQuantity);
+            }
+        }
     }
 }

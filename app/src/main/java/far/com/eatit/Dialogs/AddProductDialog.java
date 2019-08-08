@@ -6,16 +6,25 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.DialogFragment;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.util.UUID;
 
+import far.com.eatit.Adapters.Holders.NewOrderProductHolder;
+import far.com.eatit.Adapters.Holders.OrderResumeHolder;
+import far.com.eatit.Adapters.Models.NewOrderProductModel;
 import far.com.eatit.Adapters.Models.OrderDetailModel;
+import far.com.eatit.Adapters.Models.OrderReceiptModel;
+import far.com.eatit.Adapters.NewOrderProductRowAdapter;
+import far.com.eatit.Adapters.OrderResumeAdapter;
 import far.com.eatit.CloudFireStoreObjects.Products;
 import far.com.eatit.CloudFireStoreObjects.SalesDetails;
 import far.com.eatit.Controllers.MeasureUnitsController;
@@ -27,31 +36,21 @@ import far.com.eatit.Utils.Funciones;
 
 public class AddProductDialog  extends DialogFragment {
 
-    private static  Products tempObj;
-    private static OrderDetailModel tempOrderModel;
-    LinearLayout llSave;
+    Object tempOrderModel;
     TextView tvName;
-    Spinner spnUnidad;
+    TextView tvUnidad;
     TextInputEditText etCantidad;
     TempOrdersController tempOrdersController;
     MeasureUnitsController measureUnitsController;
+    TextView btnOK;
+    RecyclerView.Adapter adapter;
+    RecyclerView.ViewHolder holder;
 
-    public  static AddProductDialog newInstance(Object pt) {
-
-        if(pt instanceof Products){
-            tempObj = (Products)pt;
-            tempOrderModel = null;
-        }else if(pt instanceof OrderDetailModel){
-            tempOrderModel = (OrderDetailModel)pt;
-            tempObj = null;
-        }
+    public  static AddProductDialog newInstance(Object pt, RecyclerView.ViewHolder holder, RecyclerView.Adapter adapter) {
         AddProductDialog f = new AddProductDialog();
-
-        // Supply num input as an argument.
-      //  Bundle args = new Bundle();
-        //if(pt != null) {
-          //  f.setArguments(args);
-        //}
+        f.tempOrderModel = pt;
+        f.holder = holder;
+        f.adapter = adapter;
 
         return f;
     }
@@ -84,7 +83,6 @@ public class AddProductDialog  extends DialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         init(view);
 
     }
@@ -100,27 +98,22 @@ public class AddProductDialog  extends DialogFragment {
 
 
     public void init(View view){
-        llSave = view.findViewById(R.id.llSave);
         tvName = view.findViewById(R.id.tvName);
-        spnUnidad = view.findViewById(R.id.spnUnidad);
+        tvUnidad = view.findViewById(R.id.tvUnitMeasure);
         etCantidad = view.findViewById(R.id.etCantidad);
+        btnOK = view.findViewById(R.id.btnOK);
 
-        llSave.setOnClickListener(new View.OnClickListener() {
+        btnOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                llSave.setEnabled(false);
-                Save();
+                if(validate()){
+                   saveOrderLine();
+                }
 
             }
         });
 
-        measureUnitsController.fillSpinner(spnUnidad);
-
-        if(tempObj != null){
-            inicializeNewProduct();
-        }else if(tempOrderModel != null){
-            inicializeEditOrderLine();
-        }
+        inicializeEditOrderLine();
     }
 
 
@@ -128,65 +121,57 @@ public class AddProductDialog  extends DialogFragment {
         if(etCantidad.getText().toString().trim().equals("") || etCantidad.getText().toString().trim().equals(".") || etCantidad.getText().toString().trim().equals("0")){
             Snackbar.make(getView(), "La cantidad debe ser mayor a 0", Snackbar.LENGTH_SHORT).show();
             return false;
-        }else if(spnUnidad.getSelectedItem() == null){
-            Snackbar.make(getView(), "Debe seleccionar la unidad", Snackbar.LENGTH_SHORT).show();
-            return false;
         }
         return true;
     }
     public void Save(){
 
         if(validate()){
-            if(tempOrderModel != null){
-                editOrderLine();
-            }else {
-                saveOrderLine();
-            }
-        }else{
-            llSave.setEnabled(true);
+            saveOrderLine();
         }
 
     }
 
     public void saveOrderLine(){
-        String code = Funciones.generateCode();
-        String codeSale = ((MainOrders)getActivity()).getOrderCode();
-        String codeProduct = tempObj.getCODE();
-        String codeUnd =((KV)spnUnidad.getSelectedItem()).getKey();
-        int position = 0;
         double quantity = Double.parseDouble(etCantidad.getText().toString());
-        double unit = 0;
-        double price =0;
-        double discount = 0;
-        SalesDetails sd = new SalesDetails(code,codeSale, codeProduct, codeUnd, position, quantity, unit, price, discount);
-        tempOrdersController.insert_Detail(sd);
-
-        ((MainOrders)getActivity()).refreshResume();
-        dismiss();
-    }
-
-    public void editOrderLine(){
-        SalesDetails sd = tempOrdersController.getTempSaleDetailByCode(tempOrderModel.getCode());
-        sd.setCODEUND(((KV)spnUnidad.getSelectedItem()).getKey());
-        sd.setQUANTITY(Double.parseDouble(etCantidad.getText().toString()));
-        tempOrdersController.update_Detail(sd);
-
-        ((MainOrders)getActivity()).refreshResume();
-        dismiss();
-    }
-
-
-    public void inicializeNewProduct(){
-        tvName.setText(tempObj.getDESCRIPTION());
-    }
-    public void inicializeEditOrderLine(){
-        tvName.setText(tempOrderModel.getProduct_name());
-        etCantidad.setText(tempOrderModel.getQuantity());
-        for(int i = 0; i<spnUnidad.getAdapter().getCount(); i++){
-            if(((KV)spnUnidad.getAdapter().getItem(i)).getKey().equals(tempOrderModel.getCodeMeasure())){
-                spnUnidad.setSelection(i);
-                break;
-            }
+        if(adapter instanceof NewOrderProductRowAdapter){
+            ((NewOrderProductModel)tempOrderModel).setQuantity(String.valueOf((int)quantity));
+            ((NewOrderProductRowAdapter)adapter).EditLineFromExternal((NewOrderProductModel)tempOrderModel, (NewOrderProductHolder)holder);
+        }else if(adapter instanceof OrderResumeAdapter){
+            ((OrderDetailModel)tempOrderModel).setQuantity(String.valueOf((int)quantity));
+            ((OrderResumeAdapter)adapter).EditLineFromExternal((OrderDetailModel)tempOrderModel, (OrderResumeHolder)holder);
         }
+        dismiss();
     }
+
+
+    public void inicializeEditOrderLine(){
+        String name="";
+        String measure="";
+        String quantity = "";
+
+        if(tempOrderModel instanceof NewOrderProductModel){
+            NewOrderProductModel obj = (NewOrderProductModel)tempOrderModel;
+            name = obj.getName();
+            quantity = (obj.getQuantity().equals("0"))?"":obj.getQuantity();
+            for(KV m: obj.getMeasures()){
+                if(m.getKey().equals(obj.getMeasure())){
+                   measure = m.getValue();
+                    break;
+                }
+            }
+        }else if(tempOrderModel instanceof OrderDetailModel){
+            OrderDetailModel obj = (OrderDetailModel)tempOrderModel;
+            name = obj.getProduct_name();
+            quantity = obj.getQuantity();
+            measure = obj.getMeasureDescription();
+        }
+
+
+        tvName.setText(name);
+        tvUnidad.setText(measure);
+        etCantidad.setText(quantity);
+        etCantidad.setSelectAllOnFocus(true);
+    }
+
 }

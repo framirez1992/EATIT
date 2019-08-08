@@ -2,6 +2,7 @@ package far.com.eatit;
 
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -36,6 +37,7 @@ import far.com.eatit.Controllers.TempOrdersController;
 import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
+import far.com.eatit.Utils.Funciones;
 
 
 /**
@@ -57,6 +59,7 @@ public class ResumenOrderFragment extends Fragment {
     Spinner spnAreas, spnMesas;
 
     MainOrders parentActivity;
+    Dialog errorDialog;
 
     public ResumenOrderFragment() {
         // Required empty public constructor
@@ -178,6 +181,19 @@ public class ResumenOrderFragment extends Fragment {
             Snackbar.make(getView(), "Las cantidades deben ser mayor que 0", Snackbar.LENGTH_LONG).show();
             return false;
         }
+
+        Sales s = salesController.getSaleByCode(tempOrdersController.getTempSale().getCODE());
+        //VALIDAR SI LA ORDEN EXISTE. SI ESXISTE SE VA A EDITAR, SI ES ASI DEBEMOS VALIDAR SI ESA ORDEN AUN PERTENECE AL USUARIO QUE LA VA A EDITAR
+        //Y A LA MISMA MESA QUE TIENE ACTUALMENTE (ESTO ES POR SI EL USUARIO ESTA EN EL MODO EDICION y PIDE QUE CAMBIEN LA ORDEN DEL MESA O USUARIO)
+        if(s != null && !s.getCODEUSER().equals(Funciones.getCodeuserLogged(parentActivity))){
+            showErrorDialog("Error", "No es posible editar esta orden. Esta orden ya no pertenece a este usuario");
+            llCancel.performClick();
+            return false;
+        }else if(s!= null && s.getCODEAREADETAIL() != ((KV)spnAreas.getSelectedItem()).getKey()){
+            showErrorDialog("Error", "Esta orden fue movida de mesa. Edite nuevamente");
+            llCancel.performClick();
+            return false;
+        }
         return true;
     }
     public boolean validQuantitys(){
@@ -282,5 +298,17 @@ public class ResumenOrderFragment extends Fragment {
         spnAreas.setSelection(0);//TODOS
         spnAreas.setEnabled(true);
         spnMesas.setEnabled(true);
+    }
+
+    public void showErrorDialog(String title, String msg){
+      errorDialog = Funciones.getCustomDialog(parentActivity, title, msg, R.drawable.ic_error_white, new View.OnClickListener() {
+           @Override
+           public void onClick(View v) {
+               errorDialog.dismiss();
+               errorDialog=null;
+           }
+       });
+
+      errorDialog.show();
     }
 }

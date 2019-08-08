@@ -24,6 +24,7 @@ import far.com.eatit.CloudFireStoreObjects.Sales;
 import far.com.eatit.CloudFireStoreObjects.SalesDetails;
 import far.com.eatit.Controllers.ReceiptController;
 import far.com.eatit.Controllers.SalesController;
+import far.com.eatit.Dialogs.PaymentDialog;
 import far.com.eatit.Dialogs.WorkedOrdersDialog;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Interfases.ListableActivity;
@@ -40,6 +41,7 @@ public class MainReceipt extends AppCompatActivity implements ListableActivity, 
     Fragment lastFragment;
 
     WorkedOrdersDialog workedOrdersDialog;
+    PaymentDialog paymentDialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -159,5 +161,17 @@ public class MainReceipt extends AppCompatActivity implements ListableActivity, 
         workedOrdersDialog.setFromReceipts(codeAreaDetail);
         // Create and show the dialog.
         workedOrdersDialog.show(ft, "dialogWorkedOrders");
+    }
+
+    public void callPaymentDialog(String codeAreaDetail){
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        Fragment prev = getSupportFragmentManager().findFragmentByTag("dialogPaymentDialog");
+        if (prev != null) {
+            ft.remove(prev);
+        }
+        ft.addToBackStack(null);
+        paymentDialog =  PaymentDialog.newInstance(MainReceipt.this, codeAreaDetail);
+        // Create and show the dialog.
+        paymentDialog.show(ft, "dialogPaymentDialog");
     }
 }
