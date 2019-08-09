@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import far.com.eatit.CloudFireStoreObjects.Licenses;
+import far.com.eatit.CloudFireStoreObjects.Sales;
 import far.com.eatit.CloudFireStoreObjects.UserInbox;
 import far.com.eatit.DataBase.DB;
 import far.com.eatit.Generic.Objects.KV;
@@ -384,5 +385,28 @@ public class UserInboxController{
 
        massiveDelete(list);
 
+    }
+
+    public ArrayList<UserInbox> getUserInbox(String where, String[]args){
+        ArrayList<UserInbox> result = new ArrayList<>();
+        try {
+            Cursor c = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME, columns, where, args, null, null, null);
+            while(c.moveToNext()){
+                result.add(new UserInbox(c));
+            }c.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    /**
+     * elimina todos los mensajes relacionados a una orden. este tipo de mensajes tienen el msgID = Sales.Code. con el tipo CODES.CODE_TYPE_OPERATION_SALES
+     */
+    public ArrayList<UserInbox> getRelatedSalesMesage(Sales s){
+        String codeUser = Funciones.getCodeuserLogged(context);
+        String where = CODEMESSAGE+" = ? AND "+TYPE+" = ? AND ("+CODEUSER+" = ? OR "+CODESENDER+" = ?) ";
+        String[]args = new String[]{s.getCODE(),CODES.CODE_TYPE_OPERATION_SALES+"", codeUser, codeUser};
+        return getUserInbox(where, args);
     }
 }

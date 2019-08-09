@@ -97,6 +97,7 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
     OrderDetailModel objectToEditFromResume = null;
 
     public static final String KEY_ORDERCODE = "KEYORDERCODE";
+    boolean editingOrder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -172,6 +173,10 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
         rlNotifications.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(isEditingOrder()){
+                    return;
+                }
+
                 callNotificationsDialog();
             }
         });
@@ -319,16 +324,18 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
+        if(!isEditingOrder()) {
+            // Handle navigation view item clicks here.
+            int id = item.getItemId();
 
-        if(id == R.id.goMenu){
-            goToMenu();
-        } else if (id == R.id.openOrders) {
-            callWorkedOrdersDialog();
-        }else if(id == R.id.goReceip){
-             showReceiptFragment();
-         }
+            if (id == R.id.goMenu) {
+                goToMenu();
+            } else if (id == R.id.openOrders) {
+                callWorkedOrdersDialog();
+            } else if (id == R.id.goReceip) {
+                showReceiptFragment();
+            }
+        }
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -451,6 +458,7 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
     }
 
     public void prepareNewOrder(){
+        setEditing(false);
         tempOrdersController.delete(null, null);
         tempOrdersController.delete_Detail(null, null);
         orderCode  = Funciones.generateCode();
@@ -484,10 +492,6 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
     }
 
     public void notityOrdersReady(){
-       /* String where =SalesController.STATUS+" = ? ";
-        String[] args = new String[]{CODES.CODE_ORDER_STATUS_READY+""};
-        ArrayList<Sales> sales =  salesController.getSales(where, args);
-*/
         String where = UserInboxController.STATUS+" = ? ";
         String[] args = new String[]{CODES.CODE_USERINBOX_STATUS_NO_READ+""};
         String orderBy = UserInboxController.MDATE+" DESC, "+UserInboxController.CODEMESSAGE;
@@ -548,6 +552,7 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
             resumenFrameLayout.setVisibility(View.VISIBLE);
         }
 
+        setEditing(true);
     }
 
     public void deleteOrderLine(OrderDetailModel d){
@@ -642,4 +647,10 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
         }
     }
 
+    public void setEditing(boolean b){
+        this.editingOrder = b;
+    }
+    public boolean isEditingOrder(){
+        return this.editingOrder;
+    }
 }

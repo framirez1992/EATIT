@@ -35,6 +35,7 @@ import far.com.eatit.Controllers.AreasDetailController;
 import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Controllers.TempOrdersController;
 import far.com.eatit.Controllers.UserControlController;
+import far.com.eatit.Controllers.UserInboxController;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Utils.Funciones;
@@ -236,6 +237,7 @@ public class ResumenOrderFragment extends Fragment {
             s.setCODEAREADETAIL(((KV)spnMesas.getSelectedItem()).getKey());
 
             salesController.editDetailToFireBase(s, tempOrdersController.getTempSalesDetails(s));
+            UserInboxController.getInstance(parentActivity).massiveDelete(UserInboxController.getInstance(parentActivity).getRelatedSalesMesage(s));
 
             parentActivity.refresh();
             parentActivity.setThemeNormal();
