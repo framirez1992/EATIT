@@ -53,7 +53,6 @@ import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Controllers.TempOrdersController;
 import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Controllers.UserInboxController;
-import far.com.eatit.Dialogs.AddProductDialog;
 import far.com.eatit.Dialogs.MessageSendDialog;
 import far.com.eatit.Dialogs.NotificationsDialog;
 import far.com.eatit.Dialogs.WorkedOrdersDialog;
@@ -559,12 +558,14 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
     }
 
     public void showDetail(){
+        changeFragment(resumenOrderFragment, R.id.result);
         ((ViewGroup)findViewById(R.id.details)).setVisibility(View.GONE);
         ((ViewGroup)findViewById(R.id.result)).setVisibility(View.VISIBLE);
 
     }
 
     public void showMenu(){
+        changeFragment(newOrderFragment, R.id.details);
         ((ViewGroup)findViewById(R.id.details)).setVisibility(View.VISIBLE);
         ((ViewGroup)findViewById(R.id.result)).setVisibility(View.GONE);
     }

@@ -1,5 +1,6 @@
 package far.com.eatit;
 
+import android.app.Dialog;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.DialogFragment;
@@ -25,15 +26,20 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 
+import javax.annotation.Nullable;
+
 import far.com.eatit.Adapters.Models.OrderModel;
+import far.com.eatit.CloudFireStoreObjects.ProductsControl;
 import far.com.eatit.CloudFireStoreObjects.Sales;
 import far.com.eatit.CloudFireStoreObjects.SalesDetails;
 import far.com.eatit.CloudFireStoreObjects.UserInbox;
 import far.com.eatit.Controllers.AreasDetailController;
+import far.com.eatit.Controllers.ProductsControlController;
 import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Controllers.UserInboxController;
 import far.com.eatit.Dialogs.MessageSendDialog;
 import far.com.eatit.Dialogs.ProductBlockSelectionDialog;
+import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Interfases.ListableActivity;
 import far.com.eatit.Utils.Funciones;
@@ -42,8 +48,10 @@ public class MainOrderBoard extends AppCompatActivity implements ListableActivit
 
     OrdersBoardFragment ordersBoardFragment;
     SalesController salesController;
+    ProductsControlController productsControlController;
     CollectionReference salesReference;
     CollectionReference salesDetailReference;
+    CollectionReference productsControlReference;
     OrderModel currentOrder = null;
     ContextMenu contextMenu;
     ImageView imgDelete;
@@ -51,6 +59,7 @@ public class MainOrderBoard extends AppCompatActivity implements ListableActivit
 
     DrawerLayout drawer;
     NavigationView nav;
+    Dialog errorDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,8 +78,11 @@ public class MainOrderBoard extends AppCompatActivity implements ListableActivit
             });
 
             salesController = SalesController.getInstance(MainOrderBoard.this);
+            productsControlController = ProductsControlController.getInstance(MainOrderBoard.this);
+
             salesReference = salesController.getReferenceFireStore();
             salesDetailReference = salesController.getReferenceDetailFireStore();
+            productsControlReference = productsControlController.getReferenceFireStore();
 
             ordersBoardFragment = new OrdersBoardFragment();
             ordersBoardFragment.setParentActivity(this);
@@ -183,6 +195,20 @@ public class MainOrderBoard extends AppCompatActivity implements ListableActivit
             }
         });
 
+        productsControlReference.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
+                productsControlController.delete(null, null);
+                for(DocumentSnapshot ds : querySnapshot){
+                    ProductsControl pc = ds.toObject(ProductsControl.class);
+                    productsControlController.insert(pc);
+                }
+
+                reloadOrdersList();
+
+            }
+        });
+
     }
 
 
@@ -209,19 +235,23 @@ public class MainOrderBoard extends AppCompatActivity implements ListableActivit
     public void setOrderReady(){
         if(currentOrder != null){
             Sales s = salesController.getSaleByCode(currentOrder.getOrderNum());
-            s.setSTATUS(CODES.CODE_ORDER_STATUS_READY);
-
-            if(s != null) {
-                salesController.sendToFireBase(s, new ArrayList<SalesDetails>());//AQUI DEBEN ACTUALIZARSE A "LISTO" EL DETALLE DE LAS ORDENES
-                //Se le coloca el codigo de la orden en caso de que la orden pase a "LISTA" varias veces sobreescriba el mensaje en el server con Status "NO LEIDO"
-                String subject =  "Orden Lista: "+AreasDetailController.getInstance(MainOrderBoard.this).getAreasDetailByCode(s.getCODEAREADETAIL()).getDESCRIPTION();
-                String message = "La orden esta lista. Pase a recogerla";
-                UserInbox ui = new UserInbox(s.getCODE(), Funciones.getCodeuserLogged(MainOrderBoard.this), s.getCODEUSER(),s.getCODE(), subject,message,CODES.CODE_TYPE_OPERATION_SALES+"",CODES.CODE_ICON_MESSAGE_CHECK, CODES.CODE_USERINBOX_STATUS_NO_READ );
-                ArrayList<UserInbox> uis = new ArrayList<>(); uis.add(ui);
-                UserInboxController.getInstance(MainOrderBoard.this).sendToFireBase(uis);
-            }else{
-                Toast.makeText(MainOrderBoard.this, "Not in DATABASE", Toast.LENGTH_LONG).show();
+            if(s == null){
+                showErrorDialog("Error", "La orden ya no existe");
+                return;
             }
+            if(SalesController.getInstance(MainOrderBoard.this).orderContainsBlockedProduct(s)){
+                showErrorDialog("Alerta", "No puede despachar ordenes que contengan productos bloqueados:\n"+getBloquedProductsMessage(s));
+                return;
+            }
+
+            s.setSTATUS(CODES.CODE_ORDER_STATUS_READY);
+            salesController.sendToFireBase(s, new ArrayList<SalesDetails>());//AQUI DEBEN ACTUALIZARSE A "LISTO" EL DETALLE DE LAS ORDENES
+            //Se le coloca el codigo de la orden en caso de que la orden pase a "LISTA" varias veces sobreescriba el mensaje en el server con Status "NO LEIDO"
+            String subject =  "Orden Lista: "+AreasDetailController.getInstance(MainOrderBoard.this).getAreasDetailByCode(s.getCODEAREADETAIL()).getDESCRIPTION();
+            String message = "La orden esta lista. Pase a recogerla";
+            UserInbox ui = new UserInbox(s.getCODE(), Funciones.getCodeuserLogged(MainOrderBoard.this), s.getCODEUSER(),s.getCODE(), subject,message,CODES.CODE_TYPE_OPERATION_SALES+"",CODES.CODE_ICON_MESSAGE_CHECK, CODES.CODE_USERINBOX_STATUS_NO_READ );
+            ArrayList<UserInbox> uis = new ArrayList<>(); uis.add(ui);
+            UserInboxController.getInstance(MainOrderBoard.this).sendToFireBase(uis);
         }
     }
 
@@ -273,6 +303,24 @@ public class MainOrderBoard extends AppCompatActivity implements ListableActivit
         newFragment.show(ft, "dialog");
     }
 
+    public void showErrorDialog(String title, String msg){
+        errorDialog = null;
+        errorDialog = Funciones.getCustomDialog(MainOrderBoard.this, title, msg, R.drawable.ic_action_block, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                errorDialog.dismiss();
+            }
+        });
+
+        errorDialog.show();
+    }
 
 
+    private String getBloquedProductsMessage(Sales s){
+        String msg ="";
+        for(KV p : SalesController.getInstance(MainOrderBoard.this).getBloquedProductsInOrder(s)){
+            msg+=p.getValue()+"\n";
+        }
+        return msg;
+    }
 }

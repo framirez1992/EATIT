@@ -1437,4 +1437,36 @@ public class SalesController {
               addOnSuccessListener(success).
               addOnFailureListener(failure);
   }
+
+  public boolean orderContainsBlockedProduct(Sales s){
+      boolean result;
+      String sql = "SELECT sd."+CODE+" " +
+              "FROM "+TABLE_NAME_DETAIL +" sd "+
+              "INNER JOIN "+ProductsControlController.TABLE_NAME+" pc on pc."+ProductsControlController.CODEPRODUCT+" = sd."+DETAIL_CODEPRODUCT+" " +
+              "AND pc."+ProductsControlController.BLOQUED+" = '1' " +
+              "WHERE sd."+DETAIL_CODESALES+" = ? ";
+      Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, new String[]{s.getCODE()});
+      result = c.moveToFirst();
+      c.close();
+      return result;
+  }
+
+    public ArrayList<KV> getBloquedProductsInOrder(Sales s){
+       ArrayList<KV> result = new ArrayList<>();
+        String sql = "SELECT p."+ProductsController.CODE+", p."+ProductsController.DESCRIPTION+" " +
+                "FROM "+TABLE_NAME_DETAIL +" sd " +
+                "INNER JOIN "+ProductsControlController.TABLE_NAME+" pc on pc."+ProductsControlController.CODEPRODUCT+" = sd."+DETAIL_CODEPRODUCT+" " +
+                "AND pc."+ProductsControlController.BLOQUED+" = '1' " +
+                "INNER JOIN " +ProductsController.TABLE_NAME+" p on p."+ProductsController.CODE+" = pc."+ProductsControlController.CODEPRODUCT+" "+
+                "WHERE sd."+DETAIL_CODESALES+" = ? " +
+                "GROUP BY p."+ProductsController.CODE+", p."+ProductsController.DESCRIPTION+" " +
+                "ORDER BY p."+ProductsController.DESCRIPTION;
+
+        Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, new String[]{s.getCODE()});
+        while(c.moveToNext()){
+            result.add(new KV(c.getString(0), c.getString(1)));
+        }c.close();
+
+        return result;
+    }
 }

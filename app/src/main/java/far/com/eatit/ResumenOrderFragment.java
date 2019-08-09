@@ -182,6 +182,7 @@ public class ResumenOrderFragment extends Fragment {
             return false;
         }
 
+
         Sales s = salesController.getSaleByCode(tempOrdersController.getTempSale().getCODE());
         //VALIDAR SI LA ORDEN EXISTE. SI ESXISTE SE VA A EDITAR, SI ES ASI DEBEMOS VALIDAR SI ESA ORDEN AUN PERTENECE AL USUARIO QUE LA VA A EDITAR
         //Y A LA MISMA MESA QUE TIENE ACTUALMENTE (ESTO ES POR SI EL USUARIO ESTA EN EL MODO EDICION y PIDE QUE CAMBIEN LA ORDEN DEL MESA O USUARIO)
@@ -189,7 +190,7 @@ public class ResumenOrderFragment extends Fragment {
             showErrorDialog("Error", "No es posible editar esta orden. Esta orden ya no pertenece a este usuario");
             llCancel.performClick();
             return false;
-        }else if(s!= null && s.getCODEAREADETAIL() != ((KV)spnAreas.getSelectedItem()).getKey()){
+        }else if(s!= null && !s.getCODEAREADETAIL().equals(((KV)spnMesas.getSelectedItem()).getKey())){
             showErrorDialog("Error", "Esta orden fue movida de mesa. Edite nuevamente");
             llCancel.performClick();
             return false;
