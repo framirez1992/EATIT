@@ -38,6 +38,7 @@ import javax.annotation.Nullable;
 
 import far.com.eatit.CloudFireStoreObjects.Sales;
 import far.com.eatit.Controllers.SalesController;
+import far.com.eatit.Controllers.SalesHistoryController;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Interfases.FireBaseOK;
@@ -139,12 +140,21 @@ public class MainReports extends AppCompatActivity implements OnFailureListener,
                 processID = CODEPROCESS_SCANHISTORY;
                 String[] d1 = btnDesde.getText().toString().split("/");
                 String[] d2= btnHasta.getText().toString().split("/");
-                Calendar c1 = Calendar.getInstance();c1.set(Calendar.YEAR,Integer.parseInt(d1[2]));
-                c1.set(Calendar.MONTH,(Integer.parseInt(d1[1]) -1));c1.set(Calendar.DAY_OF_MONTH,Integer.parseInt(d1[0]));
-                c1.set(Calendar.HOUR_OF_DAY, 0);c1.set(Calendar.MINUTE, 0);c1.set(Calendar.SECOND, 0);
+                Calendar c1 = Calendar.getInstance();
+                c1.set(Calendar.YEAR,Integer.parseInt(d1[2]));
+                c1.set(Calendar.MONTH,(Integer.parseInt(d1[1]) -1));
+                c1.set(Calendar.DAY_OF_MONTH,Integer.parseInt(d1[0]));
+                c1.set(Calendar.HOUR_OF_DAY, 0);
+                c1.set(Calendar.MINUTE, 0);
+                c1.set(Calendar.SECOND, 0);
 
-                Calendar c2 = Calendar.getInstance();c2.set(Calendar.YEAR, Integer.parseInt(d2[2]));
-                c2.set(Calendar.MONTH, (Integer.parseInt(d2[1]) -1));c2.set(Calendar.DAY_OF_MONTH, Integer.parseInt(d2[0]));
+                Calendar c2 = Calendar.getInstance();
+                c2.set(Calendar.YEAR, Integer.parseInt(d2[2]));
+                c2.set(Calendar.MONTH, (Integer.parseInt(d2[1]) -1));
+                c2.set(Calendar.DAY_OF_MONTH, Integer.parseInt(d2[0]));
+                c2.set(Calendar.HOUR_OF_DAY, 23);
+                c2.set(Calendar.MINUTE, 59);
+                c2.set(Calendar.SECOND, 59);
                 //mantener la hora y los minutos para c2.
 
 
@@ -157,8 +167,8 @@ public class MainReports extends AppCompatActivity implements OnFailureListener,
                         status = CODES.CODE_ORDER_STATUS_CANCELED;
                     }
 
-                    Date lastMinDate = SalesController.getInstance(MainReports.this).getLastInitialDateSavedHistory(status);
-                    Date lastMaxDate = SalesController.getInstance(MainReports.this).getLastDateSavedHistory(status);
+                    Date lastMinDate = SalesHistoryController.getInstance(MainReports.this).getLastInitialDateSavedHistory(status);
+                    Date lastMaxDate = SalesHistoryController.getInstance(MainReports.this).getLastDateSavedHistory(status);
 
                     //validar que el rango de fhcas este correcto.
                     if(Funciones.fechaMayorQue(c1.getTime(), c2.getTime())){
@@ -172,7 +182,7 @@ public class MainReports extends AppCompatActivity implements OnFailureListener,
                     if(lastMinDate == null && lastMaxDate == null){//no hay data historica, buscar toda la data.
                         minFromDB = false;
                         maxFromDB = false;
-                        SalesController.getInstance(MainReports.this).getHistoricDataToSearch(status, c1.getTime(),
+                        SalesHistoryController.getInstance(MainReports.this).getHistoricDataToSearch(status, c1.getTime(),
                                 c2.getTime(),MainReports.this, MainReports.this, MainReports.this);
                     }else {
                         //Si ambas fechas  (inicio - fin) sobrepasan las seleccionadas por el usuario, se buscara directamente desde la base de datos.
@@ -183,17 +193,17 @@ public class MainReports extends AppCompatActivity implements OnFailureListener,
                             //en el server la data que este entre la digitada por el usuario hasta la fecha minima en mi base de datos.
                          }else if((lastMinDate != null && Funciones.fechaMenorQue(c1.getTime(), lastMinDate))
                                 && (lastMaxDate != null && Funciones.fechaMayorQue(lastMaxDate, c2.getTime()))){
-                            SalesController.getInstance(MainReports.this).getHistoricDataToSearch(status, c1.getTime(),
+                            SalesHistoryController.getInstance(MainReports.this).getHistoricDataToSearch(status, c1.getTime(),
                                     lastMinDate, MainReports.this, MainReports.this, MainReports.this);
                             //si la fecha de inicio(seleccionado) es mayor que la ultima (mas baja) en mi base de datos pero la fecha maxima es mayor a la ultima de mi base de datos,
                             //solo buscara en el server la data que este entre la ultima de mi base de datos y digitada la digitada por el usuario.
                         } else if((lastMinDate != null && Funciones.fechaMenorQue(lastMinDate, c1.getTime()))
                                 && (lastMaxDate != null && Funciones.fechaMayorQue(c2.getTime(), lastMaxDate))){
-                            SalesController.getInstance(MainReports.this).getHistoricDataToSearch(status,lastMaxDate,
+                            SalesHistoryController.getInstance(MainReports.this).getHistoricDataToSearch(status,lastMaxDate,
                                     c2.getTime(), MainReports.this, MainReports.this, MainReports.this);
                         }else{
                            //De lo contrario buscara lo que el usuario especifico.
-                            SalesController.getInstance(MainReports.this).getHistoricDataToSearch(status, c1.getTime(),
+                            SalesHistoryController.getInstance(MainReports.this).getHistoricDataToSearch(status, c1.getTime(),
                                     c2.getTime(), MainReports.this, MainReports.this, MainReports.this);
                         }
 
@@ -274,12 +284,17 @@ public class MainReports extends AppCompatActivity implements OnFailureListener,
 
         if(btnID == R.id.btnProducts) {
             i.putExtra(CODES.MAIN_REPORTS_TOTALORDERS, tvTotalOrders.getText().toString());
+            i.putExtra(CODES.MAIN_REPORTS_TOTALORDERSAMOUNT, tvTotal.getText().toString());
         }else if(btnID == R.id.btnMotivos){
             i.putExtra(CODES.MAIN_REPORTS_TOTALORDERS, tvTotalDevoluciones.getText().toString());
+            i.putExtra(CODES.MAIN_REPORTS_TOTALORDERSAMOUNT, tvTotalPerdidas.getText().toString());
         }else if(btnID == R.id.btnVendedorMasVendido){
             i.putExtra(CODES.MAIN_REPORTS_TOTALORDERS, tvTotalOrdenesVendedores.getText().toString());
+            i.putExtra(CODES.MAIN_REPORTS_TOTALORDERSAMOUNT, tvTotalGananciaVendedores.getText().toString());
         }else if(btnID == R.id.btnVendedorMasDevoluciones){
             i.putExtra(CODES.MAIN_REPORTS_TOTALORDERS, tvTotalDevolucionesVendedores.getText().toString());
+            i.putExtra(CODES.MAIN_REPORTS_TOTALORDERSAMOUNT, tvTotalPerdidasVendedores.getText().toString());
+
         }
 
         startActivity(i);
@@ -289,7 +304,7 @@ public class MainReports extends AppCompatActivity implements OnFailureListener,
     public void onSuccess(QuerySnapshot querySnapshot) {
         if(processID == CODEPROCESS_SCANHISTORY ){
             if(reporte.getKey().equals(CODES.REPORTS_FILTER_KEY_VENTAS) || reporte.getKey().equals(CODES.REPORTS_FILTER_KEY_DEVOLUCIONES)  || reporte.getKey().equals(CODES.REPORTS_FILTER_KEY_VENDEDORES)) {
-                SalesController.getInstance(MainReports.this).proccessQuerySnapshotHistoricData(querySnapshot);
+                SalesHistoryController.getInstance(MainReports.this).proccessQuerySnapshotHistoricData(querySnapshot);
                 fillData();
             }
 
@@ -301,7 +316,7 @@ public class MainReports extends AppCompatActivity implements OnFailureListener,
         String[] d1 = btnDesde.getText().toString().split("/");
         String[] d2= btnHasta.getText().toString().split("/");
         lastFechaIni = d1[2]+"-"+d1[1]+"-"+d1[0]+" 00:00:00";
-        lastFechaFin = d2[2]+"-"+d2[1]+"-"+d2[0]+" 24:59:59";
+        lastFechaFin = d2[2]+"-"+d2[1]+"-"+d2[0]+" 23:59:59";
         if(reporte.getKey().equals(CODES.REPORTS_FILTER_KEY_VENTAS)) {
            fillDataVentasReport();
         }else if(reporte.getKey().equals(CODES.REPORTS_FILTER_KEY_DEVOLUCIONES)){
@@ -313,21 +328,21 @@ public class MainReports extends AppCompatActivity implements OnFailureListener,
     }
 
     public void fillDataVentasReport(){
-        HashMap<String, String> map = SalesController.getInstance(MainReports.this).getVentasReport(lastFechaIni, lastFechaFin);
+        HashMap<String, String> map = SalesHistoryController.getInstance(MainReports.this).getVentasReport(lastFechaIni, lastFechaFin);
         tvTotalOrders.setText(map.get("TO"));
         tvTotal.setText(map.get("TP"));
         tvProduct.setText(map.get("MS"));
     }
     public void fillDataDevolucionesReport(){
-        HashMap<String, String> map = SalesController.getInstance(MainReports.this).getDevolucionesReport(lastFechaIni, lastFechaFin);
+        HashMap<String, String> map = SalesHistoryController.getInstance(MainReports.this).getDevolucionesReport(lastFechaIni, lastFechaFin);
         tvTotalDevoluciones.setText(map.get("TD"));
         tvTotalPerdidas.setText(map.get("TP"));
         tvMotivosFrecuentes.setText(map.get("MF"));
     }
 
     public void fillDataVendedoresReport(){
-        HashMap<String, String> mapSales = SalesController.getInstance(MainReports.this).getVentasReport(lastFechaIni, lastFechaFin);
-        HashMap<String, String> mapDevs = SalesController.getInstance(MainReports.this).getDevolucionesReport(lastFechaIni, lastFechaFin);
+        HashMap<String, String> mapSales = SalesHistoryController.getInstance(MainReports.this).getVentasReport(lastFechaIni, lastFechaFin);
+        HashMap<String, String> mapDevs = SalesHistoryController.getInstance(MainReports.this).getDevolucionesReport(lastFechaIni, lastFechaFin);
         tvTotalOrdenesVendedores.setText(mapSales.get("TO"));
         tvTotalGananciaVendedores.setText(mapSales.get("TP"));
         tvVendedorMasVendido.setText(mapSales.get("MSS"));

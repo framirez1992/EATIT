@@ -11,7 +11,7 @@ public class ReportsDetail extends AppCompatActivity {
 
     ReportsSimplePercentFragment simplePercentFragment;
     int idCaller;
-    String totalOrders, dateIni ,dateEnd;
+    String totalOrders,totalAmount, dateIni ,dateEnd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,11 +19,12 @@ public class ReportsDetail extends AppCompatActivity {
         setContentView(R.layout.activity_reports_detail);
         idCaller = getIntent().getExtras().getInt(CODES.MAIN_REPORTS_EXTRA_IDCALLER);
         totalOrders = getIntent().getExtras().getString(CODES.MAIN_REPORTS_TOTALORDERS);
+        totalAmount = getIntent().getExtras().getString(CODES.MAIN_REPORTS_TOTALORDERSAMOUNT);
         dateIni = getIntent().getExtras().getString(CODES.MAIN_REPORTS_EXTRA_LASTDATEINI);
         dateEnd = getIntent().getExtras().getString(CODES.MAIN_REPORTS_EXTRA_LASTDATEEND);
 
         simplePercentFragment = new ReportsSimplePercentFragment();
-        simplePercentFragment.setParams(idCaller,totalOrders, dateIni, dateEnd);
+        simplePercentFragment.setParams(idCaller,totalOrders,totalAmount, dateIni, dateEnd);
 
         changeFragment(simplePercentFragment, R.id.details);
     }

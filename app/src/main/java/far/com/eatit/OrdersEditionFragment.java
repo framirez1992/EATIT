@@ -36,6 +36,7 @@ import far.com.eatit.CloudFireStoreObjects.UserInbox;
 import far.com.eatit.Controllers.AreasController;
 import far.com.eatit.Controllers.AreasDetailController;
 import far.com.eatit.Controllers.SalesController;
+import far.com.eatit.Controllers.SalesHistoryController;
 import far.com.eatit.Controllers.TableCodeController;
 import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Controllers.UserInboxController;
@@ -219,7 +220,7 @@ public class OrdersEditionFragment extends Fragment {
             ///////////////////////////////////////////////////////////////////
             ///////////   ENVIANDO AL HISTORICO     ///////////////////////////
 
-            SalesController.getInstance(parent.getContext()).sendToHistory(s);
+            SalesHistoryController.getInstance(parent.getContext()).sendToHistory(s);
             ///////////////////////////////////////////////////////////////////
 
             ///////////////////////////////////////////////////////////////////
@@ -292,7 +293,7 @@ public class OrdersEditionFragment extends Fragment {
             ///////////   ENVIANDO AL HISTORICO     ///////////////////////////
             ArrayList<Sales> s = new ArrayList<>();
             s.add(sales);
-            SalesController.getInstance(parent.getContext()).sendToHistory(s);
+            SalesHistoryController.getInstance(parent.getContext()).sendToHistory(s);
             ///////////////////////////////////////////////////////////////////
 
             if(wasOpen) {

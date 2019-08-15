@@ -3,77 +3,44 @@ package far.com.eatit.Controllers;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
-
-//import com.example.bluetoothlibrary.Printer.Print;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
-import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.firestore.Transaction;
 import com.google.firebase.firestore.WriteBatch;
-
-import java.security.cert.TrustAnchor;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.annotation.meta.When;
 
 import far.com.eatit.Adapters.Models.OrderDetailModel;
 import far.com.eatit.Adapters.Models.OrderModel;
 import far.com.eatit.Adapters.Models.OrderReceiptModel;
-import far.com.eatit.Adapters.Models.PercentRowModel;
 import far.com.eatit.Adapters.Models.ReceiptResumeModel;
 import far.com.eatit.Adapters.Models.SelectableOrderRowModel;
 import far.com.eatit.Adapters.Models.WorkedOrdersRowModel;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
-import far.com.eatit.CloudFireStoreObjects.Products;
-import far.com.eatit.CloudFireStoreObjects.ProductsControl;
-import far.com.eatit.CloudFireStoreObjects.ProductsTypes;
 import far.com.eatit.CloudFireStoreObjects.Receipts;
 import far.com.eatit.CloudFireStoreObjects.Sales;
 import far.com.eatit.CloudFireStoreObjects.SalesDetails;
-import far.com.eatit.CloudFireStoreObjects.UserControl;
 import far.com.eatit.DataBase.DB;
 import far.com.eatit.Generic.Objects.KV;
-import far.com.eatit.Generic.Objects.KV2;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Globales.Tablas;
-import far.com.eatit.R;
 import far.com.eatit.Utils.Funciones;
 
 public class SalesController {
     public static final String TABLE_NAME = Tablas.generalUsersSales;
-    public static String TABLE_NAME_HISTORY = Tablas.generalUsersSalesHistory;
     public static String CODE = "code",STATUS = "status",NOTES = "notes", DATE = "date",MDATE = "mdate", TOTAL="total",TOTALDISCOUNT = "totaldiscount",
             CODEUSER = "codeuser",CODEAREADETAIL = "codeareadetail", CODEREASON = "codereason" , REASONDESCRIPTION = "reasondescription",
             CODEPRODUCTTYPE = "codeproducttype", CODEPRODUCTSUBTYPE="codeproductsubtype", CODESALESORIGEN = "codesalesorigen", CODERECEIPT = "codereceipt" ;
     String[]columns = new String[]{CODE,STATUS, NOTES, DATE, MDATE, TOTAL, TOTALDISCOUNT, CODEUSER,CODEAREADETAIL, CODEREASON, REASONDESCRIPTION, CODEPRODUCTTYPE, CODEPRODUCTSUBTYPE, CODESALESORIGEN, CODERECEIPT};
 
     public static final String TABLE_NAME_DETAIL = Tablas.generalUsersSalesDetails;
-    public static String TABLE_NAME_DETAIL_HISTORY = Tablas.generalUsersSalesDetailsHistory;
     public static String DETAIL_CODE = "code",DETAIL_CODESALES = "codesales", DETAIL_CODEPRODUCT = "codeproduct",
             DETAIL_DISCOUNT = "discount", DETAIL_POSITION = "position", DETAIL_PRICE = "price",
             DETAIL_QUANTITY = "quantity", DETAIL_UNIT = "unit", DETAIL_CODEUND = "codeund", DETAIL_DATE="date", DETAIL_MDATE="mdate";
@@ -97,29 +64,16 @@ public class SalesController {
         return instance;
     }
 
-    public static String  getQueryCreateSales(){
-        return getQueryCreateHead(false);
-    }
-    public static String getQueryCreateSalesDetail(){
-        return getQueryCreateDetail(false);
-    }
-    public static String getQueryCreateSalesHistory(){
-        return getQueryCreateHead(true);
-    }
-    public static String getQueryCreateSalesDetailHistory(){
-       return getQueryCreateDetail(true);
-    }
-
-    public static String getQueryCreateHead(boolean history){
-              String QUERY_CREATE = "CREATE TABLE "+((history)?TABLE_NAME_HISTORY:TABLE_NAME)+" ("
+    public static String getQueryCreateHead(){
+              String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+" ("
                 +CODE+" TEXT,"+STATUS+" TEXT,"+NOTES+" TEXT, "+DATE+" TEXT,"+MDATE+" TEXT, "+TOTAL+" DECIMAL(11, 3), "+TOTALDISCOUNT+" DECIMAL(11, 3), " +
                 CODEUSER+" TEXT,"+CODEAREADETAIL+" TEXT, "+CODEREASON+" TEXT, "+REASONDESCRIPTION+" TEXT, "+CODEPRODUCTTYPE+" TEXT, "+CODEPRODUCTSUBTYPE+" TEXT, " +
                 CODESALESORIGEN+" TEXT,"+CODERECEIPT+" TEXT )";
               return QUERY_CREATE;
     }
 
-    public static String getQueryCreateDetail(boolean history){
-              String QUERY_CREATE_DETAIL = "CREATE TABLE "+((history)?TABLE_NAME_DETAIL:TABLE_NAME_DETAIL_HISTORY)+" ("
+    public static String getQueryCreateDetail(){
+              String QUERY_CREATE_DETAIL = "CREATE TABLE "+TABLE_NAME_DETAIL+" ("
                 +DETAIL_CODE+" TEXT, "+DETAIL_CODESALES+" TEXT, "+DETAIL_CODEPRODUCT+" TEXT, "+DETAIL_DISCOUNT+" DECIMAL(11,3), "+DETAIL_POSITION+" INTEGER, "
                 +DETAIL_PRICE+" DECIMAL(11, 3), "+DETAIL_QUANTITY+" DOUBLE, "+DETAIL_UNIT+" DOUBLE, "+DETAIL_CODEUND+" TEXT, " +
                 DETAIL_DATE+" TEXT, "+DETAIL_MDATE+" TEXT)";
@@ -144,56 +98,6 @@ public class SalesController {
         return reference;
     }
 
-    public CollectionReference getReferenceMainHistoryFireStore(){
-        Licenses l = LicenseController.getInstance(context).getLicense();
-        if(l == null){
-            return null;
-        }
-
-        CollectionReference reference = db.collection(Tablas.generalUsers)
-                .document(l.getCODE()).collection(Tablas.generalUsersSalesHistory);
-        return reference;
-    }
-
-    public CollectionReference getReferenceHistoryFireStore(Sales s){
-        Licenses l = LicenseController.getInstance(context).getLicense();
-        if(l == null){
-            return null;
-        }
-
-        String date = Funciones.getFormatedDateNoTime(s.getDATE());
-        String year = date.substring(0, 4);
-        String moth = date.substring(4, 6);
-
-        CollectionReference reference = getReferenceMainHistoryFireStore()
-                /*.document(year).collection (moth)*/;
-        return reference;
-    }
-
-    public CollectionReference getReferenceDetailMainHistoryFireStore(){
-        Licenses l = LicenseController.getInstance(context).getLicense();
-        if(l == null){
-            return null;
-        }
-
-        CollectionReference reference = db.collection(Tablas.generalUsers)
-                .document(l.getCODE()).collection(Tablas.generalUsersSalesDetailsHistory);
-        return reference;
-    }
-
-    public CollectionReference getReferenceDetailHistoryFireStore(SalesDetails sd){
-        Licenses l = LicenseController.getInstance(context).getLicense();
-        if(l == null){
-            return null;
-        }
-        String date = Funciones.getFormatedDateNoTime(sd.getDATE());
-        String year = date.substring(0, 4);
-        String moth = date.substring(4, 6);
-
-        CollectionReference reference = getReferenceDetailMainHistoryFireStore()
-                .document(year).collection(moth);
-        return reference;
-    }
 
 
     public void save(String notes, String codeAreaDetail){
@@ -216,13 +120,7 @@ public class SalesController {
     }
 
     public long insert(Sales s){
-        return insert(s, false);
-    }
-    public long insertHistory(Sales s){
-        return insert(s, true);
-    }
-    public long insert(Sales s, boolean history){
-        String table = (history)?TABLE_NAME_HISTORY:TABLE_NAME;
+        String table = TABLE_NAME;
 
         ContentValues cv = new ContentValues();
         cv.put(CODE,s.getCODE());
@@ -246,12 +144,6 @@ public class SalesController {
     }
 
     public long update(Sales s){
-        return update(s, false);
-    }
-    public long updateHistory(Sales s){
-        return update(s, true);
-    }
-    public long update(Sales s, boolean history){
         ContentValues cv = new ContentValues();
         cv.put(CODE,s.getCODE());
         cv.put(STATUS, s.getSTATUS());
@@ -270,19 +162,13 @@ public class SalesController {
         cv.put(CODERECEIPT, s.getCODERECEIPT());
 
         String where = CODE+" = ? ";
-        String table = (history)?TABLE_NAME_HISTORY:TABLE_NAME;
+        String table = TABLE_NAME;
         long result = DB.getInstance(context).getWritableDatabase().update(table,cv,where, new String[]{s.getCODE()} );
         return result;
     }
 
     public long delete(String where, String[] args){
-        return delete(false, where, args);
-    }
-    public long deleteHistory(String where, String[] args){
-        return delete(true, where, args);
-    }
-    public long delete(boolean history, String where, String[] args){
-        String table =(history)?TABLE_NAME_HISTORY:TABLE_NAME;
+        String table =TABLE_NAME;
         long result = DB.getInstance(context).getWritableDatabase().delete(table,where, args);
         return result;
     }
@@ -303,14 +189,9 @@ public class SalesController {
         return result;
     }
 
+
     public long insert_Detail(SalesDetails sd){
-        return  insert_Detail(sd, false);
-    }
-    public long insert_DetailHistory(SalesDetails sd){
-        return  insert_Detail(sd, true);
-    }
-    public long insert_Detail(SalesDetails sd, boolean history){
-        String tabla = (history)?TABLE_NAME_DETAIL_HISTORY:TABLE_NAME_DETAIL;
+        String tabla = TABLE_NAME_DETAIL;
         ContentValues cv = new ContentValues();
         cv.put(DETAIL_CODE,sd.getCODE());
         cv.put(DETAIL_CODESALES, sd.getCODESALES());
@@ -349,13 +230,7 @@ public class SalesController {
 
 
     public ArrayList<Sales> getSales(String where, String[] args){
-        return getSales(false, where, args);
-    }
-    public ArrayList<Sales> getSalesHistory(String where, String[] args){
-        return getSales(true, where, args);
-    }
-    public ArrayList<Sales> getSales(boolean history, String where, String[] args){
-        String tabla = (history)?TABLE_NAME_HISTORY:TABLE_NAME;
+        String tabla = TABLE_NAME;
        ArrayList<Sales> result = new ArrayList<>();
 
         Cursor c = DB.getInstance(context).getReadableDatabase().query(tabla,columns,where, args,null,null,null);
@@ -371,13 +246,7 @@ public class SalesController {
         return getSalesDetails(where, new String[]{code});
     }
     public ArrayList<SalesDetails> getSalesDetails(String where, String[] args){
-        return getSalesDetails(false, where, args);
-    }
-    public ArrayList<SalesDetails> getSalesDetailsHistory(String where, String[] args){
-        return getSalesDetails(true, where, args);
-    }
-    public ArrayList<SalesDetails> getSalesDetails(boolean history, String where, String[] args){
-        String tabla = (history)?TABLE_NAME_DETAIL_HISTORY:TABLE_NAME_DETAIL;
+        String tabla = TABLE_NAME_DETAIL;
         ArrayList<SalesDetails> result = new ArrayList<>();
         Cursor c = DB.getInstance(context).getReadableDatabase().query(tabla,columnsDetails,where, args,null,null,null);
         while(c.moveToNext()){
@@ -388,13 +257,7 @@ public class SalesController {
     }
 
     public Sales getSaleByCode(String code){
-        return getSaleByCode(false, code);
-    }
-    public Sales getSaleHistoryByCode(String code){
-        return getSaleByCode(true, code);
-    }
-    public Sales getSaleByCode(boolean history, String code){
-        String table = (history)?TABLE_NAME_HISTORY:TABLE_NAME;
+        String table = TABLE_NAME;
         Sales s = null;
         String where = CODE+" = ?";
         String[]args = new String[]{code};
@@ -406,15 +269,9 @@ public class SalesController {
         return s;
     }
 
-    public long delete_Detail(String where, String[] args){
-        return delete_Detail(false, where, args);
-    }
-    public long delete_DetailHistory(String where, String[] args){
-        return delete_Detail(true, where, args);
-    }
 
-    public long delete_Detail(boolean history, String where, String[] args){
-        String table = (history)?TABLE_NAME_DETAIL_HISTORY:TABLE_NAME_DETAIL;
+    public long delete_Detail(String where, String[] args){
+        String table = TABLE_NAME_DETAIL;
         long result = DB.getInstance(context).getWritableDatabase().delete(table,where, args);
         return result;
     }
@@ -693,51 +550,6 @@ public class SalesController {
         }
     }
 
-/*
-    public void getAllDataHistoryFromFireBase(OnFailureListener onFailureListener){
-        try {
-            Task<QuerySnapshot> reference = getReferenceHistoryFireStore().get();
-            reference.addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot querySnapshot) {
-                    if(querySnapshot != null && querySnapshot.getDocumentChanges()!= null && !querySnapshot.getDocumentChanges().isEmpty()){
-                        for(DocumentChange dc : querySnapshot.getDocumentChanges()) {
-                            Sales object = dc.getDocument().toObject(Sales.class);
-                            String where = CODE+" = ?";
-                            String[]args = new String[]{object.getCODE()};
-                            deleteHistory(where, args);
-                            insertHistory(object);
-                        }
-                    }
-                }
-            }).addOnFailureListener(onFailureListener);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    public void getAllDataDetailHistoryFromFireBase(OnFailureListener onFailureListener){
-        try {
-            Task<QuerySnapshot> reference = getReferenceDetailHistoryFireStore().get();
-            reference.addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot querySnapshot) {
-                    if(querySnapshot != null && querySnapshot.getDocumentChanges()!= null && !querySnapshot.getDocumentChanges().isEmpty()){
-                        for(DocumentChange dc : querySnapshot.getDocumentChanges()) {
-                            SalesDetails object = dc.getDocument().toObject(SalesDetails.class);
-                            String where = CODE+" = ?";
-                            String[]args = new String[]{object.getCODE()};
-                            delete_DetailHistory(where, args);
-                            insert_DetailHistory(object);
-                        }
-                    }
-                }
-            }).addOnFailureListener(onFailureListener);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }*/
-
 
 
     public void massiveDelete(ArrayList<Sales> sales){
@@ -787,26 +599,6 @@ public class SalesController {
     }
 
 
-    public void sendToHistory(ArrayList<Sales> sales){
-        try {
-            WriteBatch lote = db.batch();
-            for(Sales s: sales){
-                s.setDetails( getSalesDetailsByCodeSales(s.getCODE()));
-                HashMap<String, Object> map =  s.toMap();
-                lote.set(getReferenceHistoryFireStore(s).document(s.getCODE()),map);
-            }
-            lote.commit().addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    e.printStackTrace();
-                }
-            });
-
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-
 
     public ArrayList<SalesDetails> getdifference(ArrayList<SalesDetails> sdOriginal, ArrayList<SalesDetails> newsalesDetails){
         ArrayList<SalesDetails>toDelete = new ArrayList<>();
@@ -847,439 +639,7 @@ public class SalesController {
     }
 
 
-    public HashMap<String, String> getVentasReport(String dateIni, String dateEnd){
-        HashMap<String, String> map = new HashMap<>();
-        map.put("TO", "0");//TOTAL ORDERS
-        map.put("TP", "0");//TOTAL GANADO
-        map.put("MS", "");//MOST SALE (mas vendido)
-        map.put("MSS", "");//MOST SALE SELLER
-        try {
-            String sql = "SELECT count(s." + CODE + "), sum(s." + TOTAL + ") " +
-                    "FROM " + TABLE_NAME_HISTORY + " s "+
-                    "WHERE s."+STATUS+" = '"+CODES.CODE_ORDER_STATUS_CLOSED+"' " +
-                    "AND julianday(substr(s."+DATE+",1,4)||'-'||substr(s."+DATE+",5,2)||'-'||substr(s."+DATE+",7,2)||' '||substr(s."+DATE+",10,length(s."+DATE+")))  " +
-                    "BETWEEN julianday('"+dateIni+"') AND julianday('"+dateEnd+"') ";
-            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
-            while (c.moveToNext()) {
-                String totalOrdenes = c.getString(0);
-                String totalMonto = c.getString(1);
-                map.put("TO", totalOrdenes);
-                map.put("TP", totalMonto);
-            }
-            c.close();
 
-            sql = "SELECT sum(sd." + DETAIL_QUANTITY + "), p."+ProductsController.DESCRIPTION+" " +
-                    "FROM " + TABLE_NAME_DETAIL_HISTORY + " sd " +
-                    "INNER JOIN " + TABLE_NAME_HISTORY + " s on s." + CODE + " = sd." + DETAIL_CODESALES + "  AND s."+STATUS+" = '"+CODES.CODE_ORDER_STATUS_CLOSED+"' "+
-                    "INNER JOIN "+ ProductsController.TABLE_NAME+" p on p."+ProductsController.CODE+" = sd."+DETAIL_CODEPRODUCT+" "+
-                    "WHERE s."+STATUS+" = '"+CODES.CODE_ORDER_STATUS_CLOSED+"'  AND julianday(substr(s."+DATE+",1,4)||'-'||substr(s."+DATE+",5,2)||'-'||substr(s."+DATE+",7,2)||' '||substr(s."+DATE+",10,length(s."+DATE+")))  " +
-                    "BETWEEN julianday('"+dateIni+"') AND julianday('"+dateEnd+"') "+
-                    "GROUP BY sd." + DETAIL_CODEPRODUCT + ", p."+ProductsController.DESCRIPTION+" " +
-                    "ORDER BY 1 DESC " +
-                    "LIMIT 1 ";
-            Cursor c2 = DB.getInstance(context).getReadableDatabase().rawQuery(sql,null);
-            if (c2.moveToFirst()) {
-                map.put("MS", c2.getString(1));
-            }
-            c2.close();
-
-            sql = "SELECT count(s."+CODE+"), s."+CODEUSER+",u."+UsersController.USERNAME+" " +
-                    "FROM "+TABLE_NAME_HISTORY+" s " +
-                    "INNER JOIN "+UsersController.TABLE_NAME+" u on u."+UsersController.CODE+" = s."+CODEUSER+" " +
-                    "WHERE s."+STATUS+" = '"+CODES.CODE_ORDER_STATUS_CLOSED+"' "+
-                    "GROUP BY s."+CODEUSER+", u."+UsersController.USERNAME+" " +
-                    "ORDER BY 1 DESC " +
-                    "LIMIT 1";
-
-            Cursor c3 = DB.getInstance(context).getReadableDatabase().rawQuery(sql,null);
-            if (c3.moveToFirst()) {
-                map.put("MSS", c3.getString(2));
-            }
-            c3.close();
-
-       /* sql = "SELECT ";
-        Cursor c3 =*/
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        return map;
-    }
-
-    public ArrayList<PercentRowModel> getVentasReportSellers(String status, String dateIni, String dateEnd){
-
-        ArrayList<PercentRowModel> list = new ArrayList<>();
-        int total = 0;
-        try {
-            String sql = "SELECT count(s." + CODE + ") " +
-                    "FROM " + TABLE_NAME_HISTORY + " s "+
-                    "WHERE s."+STATUS+" = '"+status+"' " +
-                    "AND julianday(substr(s."+DATE+",1,4)||'-'||substr(s."+DATE+",5,2)||'-'||substr(s."+DATE+",7,2)||' '||substr(s."+DATE+",10,length(s."+DATE+")))  " +
-                    "BETWEEN julianday('"+dateIni+"') AND julianday('"+dateEnd+"') ";
-            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
-            if (c.moveToFirst()) {
-                total = c.getInt(0);
-            }c.close();
-
-
-            sql = "SELECT count(s." + CODE + ") as cantidad, sum(s."+TOTAL+") as monto, s."+CODEUSER+",u."+UsersController.USERNAME+" as description, ut."+UserTypesController.DESCRIPTION+" as rol " +
-                    ",( CAST(count(s." + CODE + ") AS REAL) * 100.0 /(" + total + ")) as percent   " +
-                    "FROM " + TABLE_NAME_HISTORY + " s  " +
-                    "INNER JOIN "+UsersController.TABLE_NAME+" u on u."+UsersController.CODE+" = s."+CODEUSER+" "+
-                    "INNER JOIN "+UserTypesController.TABLE_NAME+" ut on ut."+UserTypesController.CODE+" = u."+UsersController.ROLE+" "+
-                    "WHERE s."+STATUS+" = '"+status+"'  AND julianday(substr(s."+DATE+",1,4)||'-'||substr(s."+DATE+",5,2)||'-'||substr(s."+DATE+",7,2)||' '||substr(s."+DATE+",10,length(s."+DATE+")))  " +
-                    "BETWEEN julianday('"+dateIni+"') AND julianday('"+dateEnd+"') "+
-                    "GROUP BY s." + CODEUSER + ", u."+UsersController.USERNAME+", ut."+UserTypesController.DESCRIPTION+" " +
-                    "ORDER BY 6 DESC, 5 DESC ";
-            Cursor c2 = DB.getInstance(context).getReadableDatabase().rawQuery(sql,null);
-            while (c2.moveToNext()) {
-                list.add(new PercentRowModel(Math.round(c2.getDouble(c2.getColumnIndex("percent"))) + "%",
-                        c2.getString(c2.getColumnIndex("description")),
-                        c2.getString(c2.getColumnIndex("cantidad")),
-                        c2.getString(c2.getColumnIndex("monto"))));
-            }c2.close();
-
-       /* sql = "SELECT ";
-        Cursor c3 =*/
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public HashMap<String, String> getDevolucionesReport(String dateIni, String dateEnd){
-        HashMap<String, String> map = new HashMap<>();
-        map.put("TD", "0");//TOTAL DEVUELTO
-        map.put("TP", "0");//TOTAL PERDIDA
-        map.put("MF", "");//MOTIVO FRECUENTE
-        map.put("MRS", "");//MOST RETURN SELLER
-        try {
-            String sql = "SELECT count(s." + CODE + "), sum(s." + TOTAL + ") " +
-                    "FROM " + TABLE_NAME_HISTORY + " s "+
-                    "WHERE s."+STATUS+" = '"+CODES.CODE_ORDER_STATUS_CANCELED+"' " +
-                    "AND julianday(substr(s."+DATE+",1,4)||'-'||substr(s."+DATE+",5,2)||'-'||substr(s."+DATE+",7,2)||' '||substr(s."+DATE+",10,length(s."+DATE+")))  " +
-                    "BETWEEN julianday('"+dateIni+"') AND julianday('"+dateEnd+"') ";
-            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
-            while (c.moveToNext()) {
-                String totalOrdenes = c.getString(0);
-                String totalMonto = c.getString(1);
-                map.put("TD", totalOrdenes);
-                map.put("TP", totalMonto);
-            }
-            c.close();
-
-            sql = "SELECT count(s." + CODE + "), s."+REASONDESCRIPTION+" " +
-                    "FROM " + TABLE_NAME_HISTORY + " s  "+
-                    "WHERE s."+STATUS+" = '"+CODES.CODE_ORDER_STATUS_CANCELED+"'  AND julianday(substr(s."+DATE+",1,4)||'-'||substr(s."+DATE+",5,2)||'-'||substr(s."+DATE+",7,2)||' '||substr(s."+DATE+",10,length(s."+DATE+")))  " +
-                    "BETWEEN julianday('"+dateIni+"') AND julianday('"+dateEnd+"') "+
-                    "GROUP BY s." + REASONDESCRIPTION +" " +
-                    "ORDER BY 1 DESC " +
-                    "LIMIT 1 ";
-            Cursor c2 = DB.getInstance(context).getReadableDatabase().rawQuery(sql,null);
-            if (c2.moveToFirst()) {
-                map.put("MF", c2.getString(1));
-            }
-            c2.close();
-
-            sql = "SELECT count(s."+CODE+"), s."+CODEUSER+",u."+UsersController.USERNAME+" " +
-                  "FROM "+TABLE_NAME_HISTORY+" s " +
-                  "INNER JOIN "+UsersController.TABLE_NAME+" u on u."+UsersController.CODE+" = s."+CODEUSER+" " +
-                  "WHERE s."+STATUS+" = '"+CODES.CODE_ORDER_STATUS_CANCELED+"' "+
-                  "GROUP BY s."+CODEUSER+", u."+UsersController.USERNAME+" " +
-                  "ORDER BY 1 DESC " +
-                  "LIMIT 1";
-
-            Cursor c3 = DB.getInstance(context).getReadableDatabase().rawQuery(sql,null);
-            if (c3.moveToFirst()) {
-                map.put("MRS", c3.getString(2));
-            }
-            c3.close();
-
-       /* sql = "SELECT ";
-        Cursor c3 =*/
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        return map;
-    }
-/*
-    public ArrayList<KV2> getTopSalesProducts(String dateIni, String dateEnd){
-        ArrayList<KV2> list = new ArrayList<>();
-        try {
-            String where = STATUS + " = '" + CODES.CODE_ORDER_STATUS_CLOSED + "' " +
-            "AND julianday(substr("+DATE+",1,4)||'-'||substr("+DATE+",5,2)||'-'||substr("+DATE+",7,2)||' '||substr("+DATE+",10,length("+DATE+")))  "+
-            "BETWEEN julianday('"+dateIni+"') AND julianday('"+dateEnd+"') ";
-            double totalCloseSales = getCountHistory(where);
-
-            String sql = "SELECT count(sd." + DETAIL_CODEPRODUCT + "), p." + ProductsController.DESCRIPTION + " as description, ( CAST(count(sd." + DETAIL_CODEPRODUCT + ") AS REAL) * 100.0 /(" + totalCloseSales + ")) as percent," +
-                    "pt."+ProductsTypesController.DESCRIPTION+" as familia " +
-                    "FROM " + TABLE_NAME_DETAIL_HISTORY + " sd " +
-                    "INNER JOIN " + TABLE_NAME_HISTORY + " s on s." + CODE + " = sd." + DETAIL_CODESALES + "  AND s." + STATUS + " = '" + CODES.CODE_ORDER_STATUS_CLOSED + "' " +
-                    "INNER JOIN " + ProductsController.TABLE_NAME + " p on p." + ProductsController.CODE + " = sd." + DETAIL_CODEPRODUCT + " " +
-                    "INNER JOIN "+ ProductsTypesController.TABLE_NAME+" pt on pt."+ProductsTypesController.CODE+" = p."+ProductsController.TYPE+" "+
-                    "WHERE s." + STATUS + " = '" + CODES.CODE_ORDER_STATUS_CLOSED + "' " +
-                    "AND julianday(substr(s."+DATE+",1,4)||'-'||substr(s."+DATE+",5,2)||'-'||substr(s."+DATE+",7,2)||' '||substr(s."+DATE+",10,length(s."+DATE+")))  " +
-                    "BETWEEN julianday('"+dateIni+"') AND julianday('"+dateEnd+"') "+
-                    "GROUP BY pt." + ProductsTypesController.DESCRIPTION + ", sd." + DETAIL_CODEPRODUCT + ", p." + ProductsController.DESCRIPTION + " " +
-                    "HAVING  ( CAST(count(sd." + DETAIL_CODEPRODUCT + ") AS REAL) * 100.0 /(" + totalCloseSales + ")) > 0 "+
-                    "ORDER BY 4 DESC, 3 DESC, 2 DESC ";//tipo, porcentaje, descripcion;
-            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
-            while (c.moveToNext()) {
-                list.add(new KV2(Math.round(c.getDouble(c.getColumnIndex("percent"))) + "%",
-                        c.getString(c.getColumnIndex("description")),
-                        c.getString(c.getColumnIndex("familia"))));
-            }c.close();
-        }catch(Exception e){
-           e.printStackTrace();
-        }
-
-       return list;
-    }*/
-
-
-    public ArrayList<PercentRowModel> getTopSalesProducts(String familia, String grupo, String dateIni, String dateEnd){
-        ArrayList<PercentRowModel> list = new ArrayList<>();
-        try {
-            String wFamilia = (familia != null && !familia.equals("0"))?" AND p."+ ProductsController.TYPE+" = '"+familia+"' ":" ";
-            String wGrupo = (grupo != null && !grupo.equals("0"))?" AND p."+ ProductsController.SUBTYPE+" = '"+grupo+"' ":" ";
-            String where = " WHERE "+STATUS + " = '" + CODES.CODE_ORDER_STATUS_CLOSED + "' " +
-                    "AND julianday(substr(s."+DATE+",1,4)||'-'||substr(s."+DATE+",5,2)||'-'||substr(s."+DATE+",7,2)||' '||substr(s."+DATE+",10,length(s."+DATE+")))  "+
-                    "BETWEEN julianday('"+dateIni+"') AND julianday('"+dateEnd+"') ";//+
-            //        wFamilia+
-            //        wGrupo;
-            String queryCount = "SELECT sum(sd." + DETAIL_QUANTITY + ") " +
-                    "FROM " + TABLE_NAME_DETAIL_HISTORY + " sd " +
-                    "INNER JOIN " + TABLE_NAME_HISTORY + " s on s." + CODE + " = sd." + DETAIL_CODESALES + "  " +
-                    "INNER JOIN " + ProductsController.TABLE_NAME + " p on p." + ProductsController.CODE + " = sd." + DETAIL_CODEPRODUCT + " " +
-                    where;
-
-            Cursor cu = DB.getInstance(context).getReadableDatabase().rawQuery(queryCount, null);
-            double totalCloseSales = 0.0;
-            if(cu.moveToFirst()){
-            totalCloseSales = cu.getDouble(0);
-            }cu.close();
-
-            String sql = "SELECT sum(sd." + DETAIL_QUANTITY + ") as cantidad, sum(ifnull(sd."+DETAIL_PRICE+", 0.0)) as monto, p." + ProductsController.DESCRIPTION + " as description, ( CAST(sum(sd." + DETAIL_QUANTITY + ") AS REAL) * 100.0 /(" + totalCloseSales + ")) as percent," +
-                    "p."+ProductsController.TYPE+" as "+ProductsController.TYPE+", p."+ProductsController.SUBTYPE+" as "+ProductsController.SUBTYPE+"  " +
-                    "FROM " + TABLE_NAME_DETAIL_HISTORY + " sd " +
-                    "INNER JOIN " + TABLE_NAME_HISTORY + " s on s." + CODE + " = sd." + DETAIL_CODESALES + "  AND s." + STATUS + " = '" + CODES.CODE_ORDER_STATUS_CLOSED + "' " +
-                    "INNER JOIN " + ProductsController.TABLE_NAME + " p on p." + ProductsController.CODE + " = sd." + DETAIL_CODEPRODUCT + " " +
-                    "INNER JOIN "+ ProductsTypesController.TABLE_NAME+" pt on pt."+ProductsTypesController.CODE+" = p."+ProductsController.TYPE+" "+
-                    "WHERE s." + STATUS + " = '" + CODES.CODE_ORDER_STATUS_CLOSED + "' " +
-                    "AND julianday(substr(s."+DATE+",1,4)||'-'||substr(s."+DATE+",5,2)||'-'||substr(s."+DATE+",7,2)||' '||substr(s."+DATE+",10,length(s."+DATE+")))  " +
-                    "BETWEEN julianday('"+dateIni+"') AND julianday('"+dateEnd+"') "+
-                     wFamilia+
-                     wGrupo+
-                    "GROUP BY pt." + ProductsTypesController.DESCRIPTION + ", sd." + DETAIL_CODEPRODUCT + ", p." + ProductsController.DESCRIPTION + " " +
-                    "HAVING  ( CAST(count(sd." + DETAIL_CODEPRODUCT + ") AS REAL) * 100.0 /(" + totalCloseSales + ")) > 0 ";
-
-            if((familia != null && !familia.equals("0"))){
-                sql = "SELECT * FROM ("+sql+") as tabla WHERE "+ProductsController.TYPE+" = '"+familia+"' ";
-                if(grupo != null && !grupo.equals("0")){
-                   sql+= " AND "+ProductsController.SUBTYPE+" = '"+grupo+"' ";
-                }
-            }
-            sql+= "ORDER BY 4 DESC, 3 DESC ";//porcentaje, descripcion;
-
-            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
-            while (c.moveToNext()) {
-                list.add(new PercentRowModel(Math.round(c.getDouble(c.getColumnIndex("percent"))) + "%",
-                        c.getString(c.getColumnIndex("description")),
-                        c.getString(c.getColumnIndex("cantidad")),
-                        c.getString(c.getColumnIndex("monto"))));
-            }c.close();
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-
-        return list;
-    }
-
-    public ArrayList<PercentRowModel> getTopSalesGeneraldata(String familia,String dateIni, String dateEnd){
-        ArrayList<PercentRowModel> list = new ArrayList<>();
-        try {
-            String wFamilia = (familia.equals("1"))?" AND p."+ ProductsController.TYPE+" = '"+familia+"' ":" ";
-            String where = " WHERE "+STATUS + " = '" + CODES.CODE_ORDER_STATUS_CLOSED + "' " +
-                    "AND julianday(substr(s."+DATE+",1,4)||'-'||substr(s."+DATE+",5,2)||'-'||substr(s."+DATE+",7,2)||' '||substr(s."+DATE+",10,length(s."+DATE+")))  "+
-                    "BETWEEN julianday('"+dateIni+"') AND julianday('"+dateEnd+"') "+
-                    wFamilia;
-
-            String queryCount = "SELECT sum(sd." + DETAIL_QUANTITY + ") " +
-                    "FROM " + TABLE_NAME_DETAIL_HISTORY + " sd " +
-                    "INNER JOIN " + TABLE_NAME_HISTORY + " s on s." + CODE + " = sd." + DETAIL_CODESALES + "  " +
-                    "INNER JOIN " + ProductsController.TABLE_NAME + " p on p." + ProductsController.CODE + " = sd." + DETAIL_CODEPRODUCT + " " +
-                    where;
-
-            Cursor cu = DB.getInstance(context).getReadableDatabase().rawQuery(queryCount, null);
-            double totalCloseSales = 0.0;
-            if(cu.moveToFirst()){
-                totalCloseSales = cu.getDouble(0);
-            }cu.close();
-
-
-            String sql = "SELECT sum(sd."+DETAIL_QUANTITY+") AS cantidad, sum(ifnull(sd."+DETAIL_PRICE+", 0.0)) as monto,  pt."+ProductsTypesController.DESCRIPTION+" as description, ( CAST(sum(sd."+DETAIL_QUANTITY+") AS REAL) * 100.0 /(" + totalCloseSales + ")) as percent," +
-                    "p."+ProductsController.TYPE+" as "+ProductsController.TYPE+", p."+ProductsController.SUBTYPE+" as "+ProductsController.SUBTYPE+" " +
-                    "FROM " + TABLE_NAME_DETAIL_HISTORY + " sd " +
-                    "INNER JOIN " + TABLE_NAME_HISTORY + " s on s." + CODE + " = sd." + DETAIL_CODESALES + "  " +
-                    "INNER JOIN " + ProductsController.TABLE_NAME + " p on p." + ProductsController.CODE + " = sd." + DETAIL_CODEPRODUCT + " " +
-                    "INNER JOIN "+ ProductsTypesController.TABLE_NAME+" pt on pt."+ProductsTypesController.CODE+" = p."+ProductsController.TYPE+" "+
-                    "WHERE s." + STATUS + " = '" + CODES.CODE_ORDER_STATUS_CLOSED + "' " +
-                    "AND julianday(substr(s."+DATE+",1,4)||'-'||substr(s."+DATE+",5,2)||'-'||substr(s."+DATE+",7,2)||' '||substr(s."+DATE+",10,length(s."+DATE+")))  " +
-                    "BETWEEN julianday('"+dateIni+"') AND julianday('"+dateEnd+"') "+
-                    wFamilia+
-                    "GROUP BY p." + ProductsController.TYPE + " " ;
-                    //"HAVING  ( CAST(count(sd." + DETAIL_CODEPRODUCT + ") AS REAL) * 100.0 /(" + totalCloseSales + ")) > 0 "+
-
-
-            if(!familia.equals("0")){
-                 sql = "SELECT * FROM ("+sql+") as tabla where "+ProductsController.TYPE+" = '"+familia+"' ";
-            }
-
-            sql +=  "ORDER BY 4 DESC, 3 DESC ";// descripcion;
-            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
-            while (c.moveToNext()) {
-                list.add(new PercentRowModel(Math.round(c.getDouble(c.getColumnIndex("percent"))) + "%",
-                        c.getString(c.getColumnIndex("description")),
-                        c.getString(c.getColumnIndex("cantidad")),
-                        c.getString(c.getColumnIndex("monto"))));
-            }c.close();
-
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-
-        return list;
-    }
-
-
-    public ArrayList<PercentRowModel> getTopDevolucionesGeneraldata(String dateIni, String dateEnd){
-        ArrayList<PercentRowModel> list = new ArrayList<>();
-        try {
-            String where = " WHERE s."+STATUS + " = '" + CODES.CODE_ORDER_STATUS_CANCELED + "' " +
-                    "AND julianday(substr(s."+DATE+",1,4)||'-'||substr(s."+DATE+",5,2)||'-'||substr(s."+DATE+",7,2)||' '||substr(s."+DATE+",10,length(s."+DATE+")))  "+
-                    "BETWEEN julianday('"+dateIni+"') AND julianday('"+dateEnd+"') ";
-
-            String queryCount = "SELECT count(s." + CODE + ") " +
-                    "FROM " + TABLE_NAME_HISTORY + " s " +
-                    where;
-
-            Cursor cu = DB.getInstance(context).getReadableDatabase().rawQuery(queryCount, null);
-            double totalSales = 0.0;
-            if(cu.moveToFirst()){
-                totalSales = cu.getDouble(0);
-            }cu.close();
-
-            String sql = "SELECT count(s."+CODE+") AS cantidad, sum(ifnull(sd."+DETAIL_PRICE+", 0.0)) as monto,s."+CODEREASON+",  s."+REASONDESCRIPTION+" as description, ( CAST(count(s."+CODE+") AS REAL) * 100.0 /(" + totalSales + ")) as percent " +
-                    "FROM " + TABLE_NAME_DETAIL_HISTORY + " sd " +
-                    "INNER JOIN " + TABLE_NAME_HISTORY + " s on s." + CODE + " = sd." + DETAIL_CODESALES + "  " +
-                    "WHERE s." + STATUS + " = '" + CODES.CODE_ORDER_STATUS_CANCELED + "' " +
-                    "AND julianday(substr(s."+DATE+",1,4)||'-'||substr(s."+DATE+",5,2)||'-'||substr(s."+DATE+",7,2)||' '||substr(s."+DATE+",10,length(s."+DATE+")))  " +
-                    "BETWEEN julianday('"+dateIni+"') AND julianday('"+dateEnd+"') "+
-                    "GROUP BY s." + CODEREASON + " " ;
-
-
-            sql +=  "ORDER BY 5 DESC, 4 DESC ";// descripcion;
-            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
-            while (c.moveToNext()) {
-                list.add(new PercentRowModel(Math.round(c.getDouble(c.getColumnIndex("percent"))) + "%",
-                        c.getString(c.getColumnIndex("description")),
-                        c.getString(c.getColumnIndex("cantidad")),
-                        c.getString(c.getColumnIndex("monto"))));
-            }c.close();
-
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-
-        return list;
-    }
-
-
-
-    public void getHistoricDataToSearch(int status, Date dateIni, Date dateEnd, OnSuccessListener<QuerySnapshot> success, OnCompleteListener<QuerySnapshot> complete,  OnFailureListener failute){
-       if(status == -1){
-           getReferenceMainHistoryFireStore().
-                   whereGreaterThan(DATE, dateIni).//mayor que, ya que las fechas (la que buscamos de la DB) tienen hora, minuto y segundos.
-                   whereLessThanOrEqualTo(DATE, dateEnd).get().
-                   addOnSuccessListener(success).addOnCompleteListener(complete).
-                   addOnFailureListener(failute);
-       }else {
-           getReferenceMainHistoryFireStore().whereEqualTo(STATUS, status).
-                   whereGreaterThan(DATE, dateIni).//mayor que, ya que las fechas (la que buscamos de la DB) tienen hora, minuto y segundos.
-                   whereLessThanOrEqualTo(DATE, dateEnd).get().
-                   addOnSuccessListener(success).addOnCompleteListener(complete).
-                   addOnFailureListener(failute);
-       }
-
-    }
-
-
-    public void proccessQuerySnapshotHistoricData(QuerySnapshot querySnapshot){
-        try {
-            if (!querySnapshot.isEmpty()) {
-
-                for (DocumentSnapshot doc : querySnapshot) {
-                    Sales s = doc.toObject(Sales.class);
-                    if (updateHistory(s) <= 0){
-                        insertHistory(s);
-                    List<Map<String, Object>> x = (List<Map<String, Object>>) doc.getData().get("salesdetails");
-                    for (Map<String, Object> m : x) {
-                        insert_DetailHistory(new SalesDetails(m));
-                    }
-                }
-
-                }
-
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public Date getLastDateSavedHistory(int status){
-        Date date = null;
-        String sql = "SELECT "+DATE+" as DATE " +
-                "FROM "+TABLE_NAME_HISTORY+" " +
-                "WHERE "+STATUS+" = '"+status+"' "+
-                "ORDER BY "+DATE+" DESC " +
-                "LIMIT 1 ";
-        Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
-        if(c.moveToFirst()){
-            date = Funciones.parseStringToDate(c.getString(c.getColumnIndex("DATE")));
-        }c.close();
-        return date;
-    }
-
-    /**
-     * obtiene la fecha mas baja guardada en la base de datos local en la tabla de historico.
-     * @param status
-     * @return
-     */
-    public Date getLastInitialDateSavedHistory(int status){
-        Date date = null;
-        String sql = "SELECT "+DATE+" as DATE " +
-                "FROM "+TABLE_NAME_HISTORY+" " +
-                "WHERE "+STATUS+" = '"+status+"' "+
-                "ORDER BY "+DATE+" ASC " +
-                "LIMIT 1 ";
-        Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
-        if(c.moveToFirst()){
-            date = Funciones.parseStringToDate(c.getString(c.getColumnIndex("DATE")));
-        }c.close();
-        return date;
-    }
-
-    public double getCountHistory(String where){
-        double result = 0.0;
-        String sql = "SELECT COUNT(*) " +
-                "FROM "+TABLE_NAME_HISTORY;
-        sql+=(where != null)?" WHERE "+where: "";
-        Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
-        if(c.moveToFirst()){
-            result = c.getDouble(0);
-        }c.close();
-        return result;
-    }
 
     public void fillSpnVista(Spinner spn){
         ArrayList<KV> spnList = new ArrayList<>();
@@ -1383,7 +743,7 @@ public class SalesController {
             ///////////////////////////////////////////////////////////////////
             ///////////   ENVIANDO AL HISTORICO     ///////////////////////////
 
-            sendToHistory(deliveredSales);
+            SalesHistoryController.getInstance(context).sendToHistory(deliveredSales);
             ///////////////////////////////////////////////////////////////////
 
             ///////////////////////////////////////////////////////////////////
