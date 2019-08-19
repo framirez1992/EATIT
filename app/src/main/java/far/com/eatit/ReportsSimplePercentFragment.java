@@ -41,11 +41,13 @@ public class ReportsSimplePercentFragment extends Fragment {
     Spinner spnVista, spnFamilia, spnGrupo;
     LinearLayout llGrupo;
     TextView tvTotalOrders,tvTotalMonto, tvDateIni, tvDateEnd;
-    Button btnSearch;
+    Button btnSearch, btnChart;
     Activity parent;
     KV lastVista, lastFamilia, lastGrupo;
     int idCaller;
     String totalOrders,totalAmount, dateIni, dateEnd;
+    ArrayList<PercentRowModel> list;
+
     public ReportsSimplePercentFragment() {
         // Required empty public constructor
     }
@@ -73,6 +75,7 @@ public class ReportsSimplePercentFragment extends Fragment {
         rvList.setLayoutManager(new LinearLayoutManager(parent));
 
         btnSearch = v.findViewById(R.id.btnSearch);
+        btnChart = v.findViewById(R.id.btnChart);
         tvTotalOrders = v.findViewById(R.id.tvTotalOrders);
         tvTotalMonto = v.findViewById(R.id.tvTotalMonto);
         tvDateIni = v.findViewById(R.id.tvFechaDesde);
@@ -92,6 +95,12 @@ public class ReportsSimplePercentFragment extends Fragment {
             public void onClick(View v) {
                 idCaller = v.getId();
                 fillList();
+            }
+        });
+        btnChart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((ReportsDetail)parent).showChart(getLabel(),list);
             }
         });
         spnVista.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -155,7 +164,7 @@ public class ReportsSimplePercentFragment extends Fragment {
     }
 
     public void fillList(){
-        ArrayList<PercentRowModel> list = new ArrayList<>();
+        list = new ArrayList<>();
         if(idCaller == R.id.btnProducts){
             list = SalesHistoryController.getInstance(parent).getTopSalesProducts(null, null, dateIni, dateEnd);
         }else if(idCaller == R.id.btnMotivos){
@@ -196,4 +205,21 @@ public class ReportsSimplePercentFragment extends Fragment {
             ((LinearLayout)v.findViewById(R.id.llFiltros)).setVisibility(View.GONE);
         }
     }
+
+
+    public String getLabel(){
+        if(idCaller == R.id.btnProducts){
+            return "Mas vendidos";
+        }else if(idCaller == R.id.btnMotivos){
+            return "Motivos devolucion";
+        }else if(idCaller == R.id.btnVendedorMasVendido){
+            return "Vendedor mas ventas";
+        }else if(idCaller == R.id.btnVendedorMasDevoluciones){
+            return "Vendedor mas devoluciones";
+
+        }
+        return "";
 }
+}
+
+

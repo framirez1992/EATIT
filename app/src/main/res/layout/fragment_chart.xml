@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ChartFragment"
+    android:background="@color/gray_900">
+
+   <LinearLayout android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       android:orientation="vertical">
+
+       <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="vertical">
+
+           <LinearLayout android:id="@+id/llGoBack"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:orientation="horizontal"
+               android:paddingTop="20dp"
+               android:paddingLeft="20dp"
+               android:gravity="left">
+
+               <LinearLayout
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:orientation="horizontal"
+                   android:background="?attr/selectableItemBackgroundBorderless"
+                   android:padding="5dp">
+                   <ImageView
+                       android:layout_width="30dp"
+                       android:layout_height="30dp"
+                       android:src="@drawable/ic_arrow_back"
+                       android:tint="@color/white"/>
+                   <TextView
+                       android:layout_width="wrap_content"
+                       android:layout_height="match_parent"
+                       android:text="Back"
+                       android:gravity="center_vertical"
+                       android:textStyle="bold"
+                       android:textSize="16dp"
+                       android:textColor="@color/white"/>
+               </LinearLayout>
+
+
+
+           </LinearLayout>
+
+           <TextView android:id="@+id/tvTitle"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:gravity="center_horizontal"
+               android:textStyle="bold"
+               android:textSize="20sp"
+               android:textColor="@color/white"/>
+
+           <LinearLayout android:layout_width="match_parent"
+               android:layout_height="0dp"
+               android:layout_weight="0.1"
+               android:orientation="horizontal"
+               android:gravity="center_horizontal">
+               <TextView
+                   android:layout_width="wrap_content"
+                   android:layout_height="match_parent"
+                   android:text="Tota:"
+                   android:layout_marginRight="5dp"
+                   android:textColor="@color/white"/>
+               <TextView android:id="@+id/tvQuantity"
+                   android:layout_width="wrap_content"
+                   android:layout_height="match_parent"
+                   android:layout_marginRight="20dp"
+                   android:textColor="@color/white"/>
+
+               <TextView
+                   android:layout_width="wrap_content"
+                   android:layout_height="match_parent"
+                   android:text="Monto:"
+                   android:layout_marginRight="5dp"
+                   android:textColor="@color/white"/>
+
+               <TextView android:id="@+id/tvAmount"
+                   android:layout_width="wrap_content"
+                   android:layout_height="match_parent"
+                   android:textColor="@color/white"/>
+           </LinearLayout>
+       </LinearLayout>
+
+       <com.github.mikephil.charting.charts.PieChart
+           android:layout_width="match_parent"
+           android:layout_height="0dp"
+           android:id="@+id/pieChart"
+           android:layout_weight="1"/>
+
+   </LinearLayout>
+
+</FrameLayout>

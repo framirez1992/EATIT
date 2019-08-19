@@ -5,11 +5,15 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import java.util.ArrayList;
+
+import far.com.eatit.Adapters.Models.PercentRowModel;
 import far.com.eatit.Globales.CODES;
 
 public class ReportsDetail extends AppCompatActivity {
 
     ReportsSimplePercentFragment simplePercentFragment;
+    ChartFragment chartFragment;
     int idCaller;
     String totalOrders,totalAmount, dateIni ,dateEnd;
 
@@ -25,8 +29,11 @@ public class ReportsDetail extends AppCompatActivity {
 
         simplePercentFragment = new ReportsSimplePercentFragment();
         simplePercentFragment.setParams(idCaller,totalOrders,totalAmount, dateIni, dateEnd);
+        chartFragment = new ChartFragment();
+        chartFragment.setParent(this);
+        chartFragment.setParams(idCaller,totalOrders,totalAmount, dateIni, dateEnd);
 
-        changeFragment(simplePercentFragment, R.id.details);
+       showDetail();
     }
 
 
@@ -37,4 +44,15 @@ public class ReportsDetail extends AppCompatActivity {
 
         ft.commit();
     }
+
+    public void showChart(String label, ArrayList<PercentRowModel> data){
+        chartFragment.setData(label, data);
+        changeFragment(chartFragment,  R.id.details);
+    }
+
+    public void showDetail(){
+        changeFragment(simplePercentFragment, R.id.details);
+    }
+
+
 }

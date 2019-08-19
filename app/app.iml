@@ -177,6 +177,7 @@
     <orderEntry type="library" name="Gradle: com.google.firebase:firebase-measurement-connector-impl:17.0.3@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-measurement-api:16.0.3@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-compat:27.1.1@aar" level="project" />
+    <orderEntry type="library" name="Gradle: androidx.annotation:annotation:1.0.0@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-media-compat:27.1.1@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-basement:16.0.1@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-fragment:27.1.1@aar" level="project" />
@@ -189,6 +190,7 @@
     <orderEntry type="library" name="Gradle: com.google.errorprone:error_prone_annotations:2.0.19@jar" level="project" />
     <orderEntry type="library" name="Gradle: io.grpc:grpc-protobuf-lite:1.8.0@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.google.firebase:firebase-measurement-connector:17.0.1@aar" level="project" />
+    <orderEntry type="library" name="Gradle: com.github.PhilJay:MPAndroidChart:v3.1.0@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-tasks:16.0.1@aar" level="project" />
   </component>
 </module>
