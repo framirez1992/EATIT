@@ -22,6 +22,7 @@ import far.com.eatit.CloudFireStoreObjects.Receipts;
 import far.com.eatit.CloudFireStoreObjects.Sales;
 import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Controllers.UserControlController;
+import far.com.eatit.Dialogs.PaymentDialog;
 import far.com.eatit.Interfases.ListableActivity;
 import far.com.eatit.Interfases.ReceiptableActivity;
 import far.com.eatit.Utils.Funciones;
@@ -86,20 +87,6 @@ public class ReceiptResumeFragment extends Fragment {
         btnCollect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-              /*  ArrayList<Sales> sales = SalesController.getInstance(activity).getDeliveredOrdersByCodeAreadetail(codeAreaDetail);
-                if(sales.size() == 0){
-                    return;
-                }
-                Receipts receipt = SalesController.getInstance(activity).getReceiptByCodeAreadetail(codeAreaDetail);
-                if(receipt == null){
-                    return;
-                }
-
-                llBack.setEnabled(false);
-                ((ReceiptableActivity)activity).closeOrders(receipt, sales);
-                codeAreaDetail = null;
-                ((ReceiptableActivity)activity).showReceiptFragment();
-                llBack.setEnabled(true);*/
                 if(activity instanceof MainReceipt){
                     ((MainReceipt)activity).callPaymentDialog(codeAreaDetail);
                 }
@@ -145,8 +132,13 @@ public class ReceiptResumeFragment extends Fragment {
             tvTotal.setText("$"+receipt.getTotal());
         }
 
-        if(activity instanceof MainReceipt && ((MainReceipt)activity).paymentDialog != null && ((MainReceipt)activity).paymentDialog.getDialog().isShowing()){
-            ((MainReceipt)activity).paymentDialog.refreshAmount();
+
+
+        if(activity instanceof MainReceipt){
+            PaymentDialog p = ((MainReceipt)activity).paymentDialog;
+            if(p != null && p.getDialog()!= null && p.getDialog().isShowing()){
+                p.refreshAmount();
+            }
         }
 
     }

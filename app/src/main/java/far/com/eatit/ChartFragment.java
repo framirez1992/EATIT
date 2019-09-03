@@ -98,15 +98,15 @@ public class ChartFragment extends Fragment {
         tvAmount.setText("$"+Funciones.formatDecimal(Double.parseDouble(totalAmount)));
 
         pieChart.clear();
-        pieChart.setUsePercentValues(true);
+        pieChart.setUsePercentValues(true);//agrega [%] a los porcentajes PieEntry
         //pieChart.getDescription().setEnabled(false);
         pieChart.setExtraOffsets(10,15,10,15);
         pieChart.setDragDecelerationFrictionCoef(0.95f);
 
         pieChart.setDrawHoleEnabled(false);
-        //pieChart.setDrawRoundedSlices(true);
         //pieChart.setHoleColor(getResources().getColor(R.color.gray_900));
         //pieChart.setTransparentCircleRadius(61f);
+        //pieChart.setDrawRoundedSlices(true);
 
         Legend l = pieChart.getLegend();
         l.setVerticalAlignment(Legend.LegendVerticalAlignment.TOP);
@@ -136,6 +136,14 @@ public class ChartFragment extends Fragment {
         dataSet.setSliceSpace(3f);
         dataSet.setSelectionShift(5f);
         dataSet.setColors(MATERIAL_COLORS);
+
+        dataSet.setValueLinePart1OffsetPercentage(80.f);
+        dataSet.setValueLinePart1Length(0.2f);
+        dataSet.setValueLinePart2Length(0.4f);
+        dataSet.setYValuePosition(PieDataSet.ValuePosition.INSIDE_SLICE);//numero porcentual
+        dataSet.setXValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);//texto del PieEntry
+
+
 
         PieData pdata = new PieData(dataSet);
         pdata.setValueTextSize(15f);

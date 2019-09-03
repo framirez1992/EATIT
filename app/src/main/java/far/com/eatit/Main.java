@@ -417,7 +417,7 @@ public class Main extends AppCompatActivity
         reportes.setVisible(false);
 
         if(usersController.isSuperUser() || usersController.isAdmin()){//SU o Administrador
-            mantenimientoInventario.setVisible(usersController.isSuperUser());
+            //mantenimientoInventario.setVisible(usersController.isSuperUser());
             mantenimientoProductos.setVisible(usersController.isSuperUser());
             mantenimientoUsuarios.setVisible(usersController.isSuperUser());
             mantenimientoAreas.setVisible(usersController.isSuperUser());
