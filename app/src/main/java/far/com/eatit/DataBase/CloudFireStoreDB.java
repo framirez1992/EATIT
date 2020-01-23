@@ -38,6 +38,7 @@ import far.com.eatit.CloudFireStoreObjects.UserControl;
 import far.com.eatit.CloudFireStoreObjects.UserInbox;
 import far.com.eatit.CloudFireStoreObjects.UserTypes;
 import far.com.eatit.CloudFireStoreObjects.Users;
+import far.com.eatit.CloudFireStoreObjects.UsersDevices;
 import far.com.eatit.Controllers.AreasController;
 import far.com.eatit.Controllers.AreasDetailController;
 import far.com.eatit.Controllers.CombosController;
@@ -168,8 +169,8 @@ public class CloudFireStoreDB {
 
         ////////////////////////////////////////////////////////////////////////
         ////////  JERARQUIA DE LICENCIAS         //////////////////////////////
-        String client =Funciones.generateCode();
-        Licenses licencia = new Licenses(client,client ,/*Funciones.getFormatedDate()*/new Date(),Funciones.sumaDiasFecha(370), 0, 370, 5, true,true,new Date(),1);
+        String licCode = Funciones.generateCode();
+        Licenses licencia = new Licenses(licCode,licCode ,"",new Date(),Funciones.sumaDiasFecha(370), 0, 370, 5, true,true,new Date(),1);
 
         //creando documento con el key del nuevo cliente en la coleccion GENERAL_LICENSES
         CollectionReference GeneralLicensesCollection = fs.collection(Tablas.generalLicencias);
@@ -179,7 +180,6 @@ public class CloudFireStoreDB {
 
 
         //agregando el primer dispositivo
-        CollectionReference DevicesCollection =  Cliente.collection(Tablas.generalLicenciasDevices);
         devicesController.RegisterDevice(licencia);
 
         //////////////////////////////////////////////////////////////////////
@@ -196,26 +196,25 @@ public class CloudFireStoreDB {
 
         /////////////////////////////////////////////////////////////////////
         //////////// JERARQUIA USUARIOS      ///////////////////////////////
-        HashMap<String, String> x = new HashMap<>();
-        x.put("CREATED", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-
         CollectionReference GeneralUsersCollection = fs.collection(Tablas.generalUsers);
         DocumentReference userLicense = GeneralUsersCollection.document(licencia.getCODE());
-        userLicense.set(x);
+        userLicense.collection(Tablas.generalUsersUsers).add(new Users("Admin", "0", "admin1212345", "admin", "", "", true).toMap());
+        UsersDevices ud = new UsersDevices();
+        ud.setCODE(Funciones.generateCode());
+        ud.setCODEDEVICE(Funciones.getPhoneID(context));
+        ud.setCODEUSER("Admin");
+        userLicense.collection(Tablas.generalUsersUsersDevices).add(ud);
+
 
     }
-
-    public void CargaInicial(Licenses lic, boolean registerDevice){
+    public void CargaInicial(Licenses lic/*, boolean registerDevice*/){
 
         this.license = lic;
         //////       BEGIN TRANSACTION      ////////
-       // sqlWritable.beginTransaction();
+        // sqlWritable.beginTransaction();
         ////////////////////////////////////////////
 
         try {
-            if (registerDevice) {
-                devicesController.RegisterDevice(license);
-            }
             //////////////////////////////////////////////////
             //////////        LICENSES        ////////////////
             licenseController.delete("", null);
@@ -229,7 +228,7 @@ public class CloudFireStoreDB {
         }catch(Exception e){
             e.printStackTrace();
         }finally {
-           // sqlWritable.endTransaction();
+            // sqlWritable.endTransaction();
         }
     }
 

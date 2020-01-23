@@ -55,6 +55,8 @@ public class CODES {
 
 
     //PREFERENCES
+    //CARGA INICIAL
+    public static final String PREFERENCE_LICENSE_CODE = "LICENSE_CODE_PREFERENCE";//CODIGO DE USUARIO
     //LOGIN
     public static final String PREFERENCE_USERSKEY_CODE = "USERSKEY_CODE";//CODIGO DE USUARIOI
     public static final String PREFERENCE_USERSKEY_USERTYPE = "USERSKEY_USERTYPE";//TIPO DE USUARIO
@@ -126,6 +128,10 @@ public class CODES {
     public static final String EXTRA_TYPE_FAMILY = "MAINTENANCE_PRODUCT_TYPE_EXTRA_ENTITY_TYPE";
 
     public static final String EXTRA_SECURITY_ERROR_CODE = "SECURITY_ERROR_CODE";
+
+    public static final String EXTRA_ADMIN_LICENSE = "EXTRA_ADMIN_LICENSE";
+
+    public static final String PREFERENCE_BLUETOOTH_MAC_ADDRESS="BLUETOOTH_MAC_ADDRESS";
 
     //indica la tabla con la que se va a trabajar en el activity MainAssignation.java
     public static final String EXTRA_MAINASSIGNATION_TABLE = "MAINASSIGNATION_TABLE";

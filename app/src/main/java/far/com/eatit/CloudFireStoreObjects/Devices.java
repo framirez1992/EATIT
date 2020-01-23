@@ -2,10 +2,14 @@ package far.com.eatit.CloudFireStoreObjects;
 
 import android.database.Cursor;
 
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.IgnoreExtraProperties;
 import com.google.firebase.firestore.ServerTimestamp;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import far.com.eatit.Controllers.DevicesController;
 import far.com.eatit.Utils.Funciones;
@@ -14,7 +18,9 @@ import far.com.eatit.Utils.Funciones;
 public class Devices {
     private String CODE;
     private boolean ENABLED;
-    private @ServerTimestamp Date DATE, MDATE;
+    private @ServerTimestamp
+    Date DATE, MDATE;
+    DocumentReference documentReference;
     public Devices(){
 
     }
@@ -26,6 +32,15 @@ public class Devices {
         this.ENABLED = c.getInt(c.getColumnIndex(DevicesController.ENABLED)) == 1;
         this.DATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(DevicesController.DATE)));
         this.MDATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(DevicesController.MDATE)));
+    }
+
+    public Map<String, Object> toMap(){
+        HashMap<String, Object> map = new HashMap<>();
+        map.put(DevicesController.CODE, CODE);
+        map.put(DevicesController.ENABLED, ENABLED);
+        map.put(DevicesController.DATE, (DATE == null)? FieldValue.serverTimestamp():DATE);
+        map.put(DevicesController.MDATE, (MDATE == null)? FieldValue.serverTimestamp():MDATE);
+        return map;
     }
 
     public String getCODE() {
@@ -58,5 +73,13 @@ public class Devices {
 
     public void setMDATE(Date MDATE) {
         this.MDATE = MDATE;
+    }
+
+    public DocumentReference getDocumentReference() {
+        return documentReference;
+    }
+
+    public void setDocumentReference(DocumentReference documentReference) {
+        this.documentReference = documentReference;
     }
 }

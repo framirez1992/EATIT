@@ -2,6 +2,7 @@ package far.com.eatit.CloudFireStoreObjects;
 
 import android.database.Cursor;
 
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.IgnoreExtraProperties;
 import com.google.firebase.firestore.ServerTimestamp;
@@ -18,6 +19,7 @@ public class Users {
     private String CODE,SYSTEMCODE, PASSWORD, USERNAME,COMPANY,ROLE;
     private  boolean ENABLED;
     private @ServerTimestamp Date DATE, MDATE;
+    DocumentReference documentReference;
 
     public Users(){
 
@@ -27,6 +29,12 @@ public class Users {
         this.CODE = cod; this.SYSTEMCODE = systemCode; this.PASSWORD = passwrd; this.USERNAME = usrName;
         this.ROLE = role; this.ENABLED = enabled;this.COMPANY = company;
     }
+    public Users(String cod, String systemCode, String passwrd, String usrName,String company,  boolean enabled){
+
+        this.CODE = cod; this.SYSTEMCODE = systemCode; this.PASSWORD = passwrd; this.USERNAME = usrName;
+        this.ROLE = ""; this.ENABLED = enabled;this.COMPANY = company;
+    }
+
 
     public HashMap<String, Object> toMap(){
         HashMap<String, Object> map = new HashMap<>();
@@ -125,5 +133,12 @@ public class Users {
 
     public void setSYSTEMCODE(String SYSTEMCODE) {
         this.SYSTEMCODE = SYSTEMCODE;
+    }
+    public DocumentReference getDocumentReference() {
+        return documentReference;
+    }
+
+    public void setDocumentReference(DocumentReference documentReference) {
+        this.documentReference = documentReference;
     }
 }

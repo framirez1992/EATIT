@@ -141,4 +141,12 @@ public class RolesController {
         }
     }
 
+    public void fillGeneralRolesLocal(Spinner spn){
+        ArrayList<KV> spnList = new ArrayList<>();
+        spnList.add(new KV("0", "Super User"));
+        spnList.add(new KV("1", "Administrator"));
+        spnList.add(new KV("2", "User"));
+        spn.setAdapter(new ArrayAdapter<KV>(context, android.R.layout.simple_list_item_1,spnList));
+    }
+
 }

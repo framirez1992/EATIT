@@ -16,7 +16,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainOrderReasignation"></activity>
+        <activity android:name=".AdminLicenseUsers"></activity>
+        <activity android:name=".AdminLicenseDevices" />
+        <activity android:name=".AdminLicenseTokens" />
+        <activity android:name=".AdminLicenseUserDevice" />
+        <activity android:name=".AdminConfiguration" />
+        <activity
+            android:name=".UserMenu.MainUserMenu"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity android:name=".MainOrderReasignation" />
         <activity android:name=".MainAssignation" />
         <activity android:name=".MainReceiptsSaved" />
         <activity

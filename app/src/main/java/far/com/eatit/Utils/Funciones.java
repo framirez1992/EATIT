@@ -8,12 +8,14 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.support.v4.widget.ImageViewCompat;
 import android.support.v7.widget.CardView;
 import android.telephony.SmsManager;
 import android.util.DisplayMetrics;
@@ -137,6 +139,16 @@ public class Funciones {
         return message;
     }
 
+    public static String getCodeLicense(Context context){
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return preferences.getString(CODES.PREFERENCE_LICENSE_CODE, "");
+    }
+
+
+    public static String getMacAddress(Context context){
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return preferences.getString(CODES.PREFERENCE_BLUETOOTH_MAC_ADDRESS, "");
+    }
     public static boolean isNetDisponible(Context context) {
 
         ConnectivityManager connectivityManager = (ConnectivityManager)
@@ -270,6 +282,22 @@ public class Funciones {
 
             Calendar c1 = Calendar.getInstance();c1.setTime(sdf.parse(fechaProtagonista));
             Calendar c2 = Calendar.getInstance();c2.setTime(sdf.parse(fecha));
+
+            double d = c1.getTimeInMillis() - c2.getTimeInMillis();
+
+            long dias = Math.round(d / ( 24 * 60 * 60 * 1000));
+            return ((int) dias);
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    public static int calcularDias(Date dateEnd, Date dateIni){
+        try {
+            Calendar c1 = Calendar.getInstance();c1.setTime(dateEnd);
+            Calendar c2 = Calendar.getInstance();c2.setTime(dateIni);
 
             double d = c1.getTimeInMillis() - c2.getTimeInMillis();
 
@@ -433,6 +461,29 @@ public class Funciones {
         return d;
     }
 
+    public static Dialog getCustomDialog2Btn(Context context,int color,  String title, String msg, int icon, View.OnClickListener positive, View.OnClickListener negative){
+        Dialog d = new Dialog(context);
+        d.setContentView(R.layout.msg_2_buttons);
+        d.setCancelable(false);
+        ((CardView)d.findViewById(R.id.cvCard)).setCardBackgroundColor(color);
+        ((TextView)d.findViewById(R.id.tvTitle)).setText(title);
+        ((TextView)d.findViewById(R.id.tvMsg)).setText(msg);
+        ImageView img = ((ImageView)d.findViewById(R.id.img));
+        img.setImageResource(icon);
+        ImageViewCompat.setImageTintList(img, ColorStateList.valueOf(color));
+        CardView btnPositive = ((CardView)d.findViewById(R.id.btnPositive));
+        btnPositive.setCardBackgroundColor(color);
+        btnPositive.setOnClickListener(positive);
+        ((CardView)d.findViewById(R.id.btnNegative)).setOnClickListener(negative);
+        try{
+            d.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return d;
+    }
+
     public static String generateCode(){
         Calendar calendar = Calendar.getInstance();
         String year =  String.format("%04d", calendar.get(Calendar.YEAR));
@@ -513,4 +564,5 @@ public class Funciones {
         ((TextView)d.findViewById(R.id.tvMsg)).setText(msg);
         return d;
     }
+
 }

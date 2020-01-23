@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
 
+import com.example.bluetoothlibrary.Printer.Print;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -16,11 +17,13 @@ import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
 
+import far.com.eatit.Adapters.Models.ReceiptResumeModel;
 import far.com.eatit.Adapters.Models.ReceiptSavedModel;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.Receipts;
 import far.com.eatit.DataBase.DB;
 import far.com.eatit.Globales.Tablas;
+import far.com.eatit.R;
 import far.com.eatit.Utils.Funciones;
 
 public class ReceiptController {
@@ -178,5 +181,11 @@ public class ReceiptController {
         return result;
 
     }
+
+
+
+
+
+
 
 }

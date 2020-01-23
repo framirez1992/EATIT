@@ -25,6 +25,9 @@ import java.util.Date;
 
 import far.com.eatit.CloudFireStoreObjects.Devices;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
+import far.com.eatit.CloudFireStoreObjects.Roles;
+import far.com.eatit.CloudFireStoreObjects.Users;
+import far.com.eatit.CloudFireStoreObjects.UsersDevices;
 import far.com.eatit.DataBase.DB;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Globales.Tablas;
@@ -33,12 +36,12 @@ import far.com.eatit.Utils.Receiver;
 
 public class LicenseController  {
     public static final String TABLE_NAME = "LICENSE";
-    public static String CODE = "code", DATEINI= "dateini", DATEEND = "dateend",DAYS = "days",COUNTER = "counter",
+    public static String CODE = "code",CLIENTNAME="clientname", DATEINI= "dateini", DATEEND = "dateend",DAYS = "days",COUNTER = "counter",
             UPDATED = "updated",STATUS = "status", LASTUPDATE ="lastupdate", PASSWORD = "password", DEVICES = "devices", ENABLED = "enabled";
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+" ("
-            +CODE+" TEXT, "+DATEINI+" TEXT,"+DATEEND+" TEXT, "+DAYS+" INTEGER, "+COUNTER+" INTEGER, "+UPDATED+" TEXT, "+STATUS+" INTEGER ," +
+            +CODE+" TEXT,"+CLIENTNAME+" TEXT, "+DATEINI+" TEXT,"+DATEEND+" TEXT, "+DAYS+" INTEGER, "+COUNTER+" INTEGER, "+UPDATED+" TEXT, "+STATUS+" INTEGER ," +
             LASTUPDATE+" TEXT, "+PASSWORD+" TEXT, "+DEVICES+" INTEGER, "+ENABLED+" TEXT)";
-    private String[]colums = new String[]{CODE,DATEINI,DATEEND,DAYS,COUNTER,UPDATED,STATUS,LASTUPDATE,PASSWORD,DEVICES,ENABLED};
+    private String[]colums = new String[]{CODE,CLIENTNAME, DATEINI,DATEEND,DAYS,COUNTER,UPDATED,STATUS,LASTUPDATE,PASSWORD,DEVICES,ENABLED};
 
     FirebaseFirestore db;
     Context context;
@@ -67,11 +70,12 @@ public class LicenseController  {
         return reference;
     }
 
-    public ArrayList<Licenses> select(String where,String[] whereArgs, String orderBy){
+    public ArrayList<Licenses> select(String where, String[] whereArgs, String orderBy){
         ArrayList<Licenses> lic = new ArrayList<>();
         Cursor c = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME,colums,where,whereArgs,null,null,null);
         while(c.moveToNext()){
-            Licenses l = new Licenses(c.getString(c.getColumnIndex(CODE)),c.getString(c.getColumnIndex(PASSWORD)),
+            Licenses l = new Licenses(c.getString(c.getColumnIndex(CODE)),c.getString(c.getColumnIndex(CLIENTNAME)),
+                    c.getString(c.getColumnIndex(PASSWORD)),
                     Funciones.parseStringToDate(c.getString(c.getColumnIndex(DATEINI))),Funciones.parseStringToDate(c.getString(c.getColumnIndex(DATEEND))),c.getInt(c.getColumnIndex(COUNTER)), c.getInt(c.getColumnIndex(DAYS)),
                     c.getInt(c.getColumnIndex(DEVICES)),c.getString(c.getColumnIndex(ENABLED)).equals("1"),
                     c.getString(c.getColumnIndex(UPDATED)).equals("1"),Funciones.parseStringToDate(c.getString(c.getColumnIndex(LASTUPDATE))), c.getInt(c.getColumnIndex(STATUS)));
@@ -92,10 +96,10 @@ public class LicenseController  {
         }
         //Validando vigencia de la licencia.
         if(Funciones.fechaMayorQue(Funciones.getFormatedDate(lic.getLASTUPDATE()), Funciones.getFormatedDate(lic.getDATEEND()))){
-           return CODES.CODE_LICENSE_EXPIRED;
+            return CODES.CODE_LICENSE_EXPIRED;
 
         }else if(lic.getSTATUS() == CODES.CODE_LICENSE_DISABLED){ //Validando vigencia de la licencia.
-           return CODES.CODE_LICENSE_DISABLED;
+            return CODES.CODE_LICENSE_DISABLED;
         }else if(!lic.isENABLED()){ //Validar si la licencia esta activa
             return CODES.CODE_LICENSE_DISABLED;
         }
@@ -105,6 +109,7 @@ public class LicenseController  {
     public long insert(Licenses l){
         ContentValues cv = new ContentValues();
         cv.put(CODE, l.getCODE());
+        cv.put(CLIENTNAME, l.getCLIENTNAME());
         cv.put(DATEINI, Funciones.getFormatedDate((Date) l.getDATEINI()));
         cv.put(DATEEND, Funciones.getFormatedDate((Date) l.getDATEEND()));
         cv.put(DAYS, l.getDAYS());
@@ -117,12 +122,13 @@ public class LicenseController  {
         cv.put(ENABLED, l.isENABLED());
 
         long result = DB.getInstance(context).getWritableDatabase().insert(TABLE_NAME,null,cv);
-       return result;
+        return result;
     }
 
     public long update(Licenses l){
         ContentValues cv = new ContentValues();
         cv.put(CODE, l.getCODE());
+        cv.put(CLIENTNAME, l.getCLIENTNAME());
         cv.put(DATEINI, Funciones.getFormatedDate((Date) l.getDATEINI()));
         cv.put(DATEEND, Funciones.getFormatedDate((Date) l.getDATEEND()));
         cv.put(DAYS, l.getDAYS());
@@ -256,14 +262,14 @@ public class LicenseController  {
         }*/
     }
 
-    public PendingIntent getAlarmPendingIntent(String extra){
+    /*public PendingIntent getAlarmPendingIntent(String extra){
         Intent intent = new Intent(context, Receiver.class);
         intent.setAction("far.com.eatit.ALARM");
         intent.putExtra("fecha", extra);
         PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         return alarmIntent;
-    }
+    }*/
 
     public void getQueryLicenceByCode(String code, OnSuccessListener<QuerySnapshot> success, OnCompleteListener<QuerySnapshot> complete, OnFailureListener failute){
         getReferenceFireStore().
@@ -273,5 +279,110 @@ public class LicenseController  {
                 addOnFailureListener(failute);
 
     }
+
+
+    public void getAllLicenses(OnSuccessListener<QuerySnapshot> success, OnCompleteListener<QuerySnapshot> complete, OnFailureListener failure){
+
+        db.collection(Tablas.generalLicencias).
+                get().
+                addOnSuccessListener(success).addOnCompleteListener(complete).
+                addOnFailureListener(failure);
+
+    }
+
+   /* public void consumeQuerySnapshot(QuerySnapshot querySnapshot){
+        delete(null, null);
+        if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
+            for(DocumentSnapshot doc: querySnapshot){
+                Licenses obj = doc.toObject(Licenses.class);
+                insert(obj);
+            }
+        }
+
+    }*/
+
+    public void createNewLicense(boolean first, Licenses l){
+
+        FirebaseFirestore fs = FirebaseFirestore.getInstance();
+        ////////////////////////////////////////////////////////////////////////
+        ////////  JERARQUIA DE LICENCIAS         //////////////////////////////
+        /*String licCode = Funciones.generateCode();
+        Licenses licencia = new Licenses(licCode,licCode ,"",new Date(),Funciones.sumaDiasFecha(370), 0, 370, 5, true,true,new Date(),1);
+         */
+        //creando documento con el key del nuevo cliente en la coleccion GENERAL_LICENSES
+        CollectionReference GeneralLicensesCollection = fs.collection(Tablas.generalLicencias);
+        DocumentReference Cliente = GeneralLicensesCollection.document(l.getCODE());
+        //Creando y llenando el documento Cliente
+        Cliente.set(l.toMap());
+
+        //agregando el primer dispositivo
+        DevicesController.getInstance(context).RegisterDevice(l);
+
+        if(first){
+
+            //////////////////////////////////////////////////////////////////////
+            //////////// JERARQUIA DE ROLES     /////////////////////////////////
+            CollectionReference GeneralRolesCollection = fs.collection(Tablas.generalRoles);
+
+            Roles su = new Roles("0","SU");
+            Roles admin = new Roles("1","Administrador");
+            Roles usuario = new Roles("2", "Usuario");
+
+            GeneralRolesCollection.document(su.getCODE()).set(su);
+            GeneralRolesCollection.document(admin.getCODE()).set(admin);
+            GeneralRolesCollection.document(usuario.getCODE()).set(usuario);
+        }
+        /////////////////////////////////////////////////////////////////////
+        //////////// JERARQUIA USUARIOS      ///////////////////////////////
+        CollectionReference GeneralUsersCollection = fs.collection(Tablas.generalUsers);
+        DocumentReference userLicense = GeneralUsersCollection.document(l.getCODE());
+        userLicense.collection(Tablas.generalUsersUsers).add(new Users("Admin", "0", "admin1212345", "admin", "", "", true).toMap());
+        UsersDevices ud = new UsersDevices();
+        ud.setCODE(Funciones.generateCode());
+        ud.setCODEDEVICE(Funciones.getPhoneID(context));
+        ud.setCODEUSER("Admin");
+        userLicense.collection(Tablas.generalUsersUsersDevices).add(ud);
+
+
+    }
+
+
+    public void updateLicense(Licenses l){
+        FirebaseFirestore fs = FirebaseFirestore.getInstance();
+        //creando documento con el key del nuevo cliente en la coleccion GENERAL_LICENSES
+        CollectionReference GeneralLicensesCollection = fs.collection(Tablas.generalLicencias);
+        DocumentReference Cliente = GeneralLicensesCollection.document(l.getCODE());
+        //Creando y llenando el documento Cliente
+        Cliente.set(l.toMap());
+    }
+
+    public void deleteLicence(final Licenses l){
+
+        final FirebaseFirestore fs = FirebaseFirestore.getInstance();
+        CollectionReference GeneralLicensesDevices = fs.collection(Tablas.generalLicenciasDevices);
+
+        GeneralLicensesDevices.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot querySnapshot) {
+                CollectionReference GeneralLicensesDevicesCollection = fs.collection(Tablas.generalLicenciasDevices);
+                CollectionReference GeneralLicensesCollection = fs.collection(Tablas.generalLicencias);
+                for(DocumentSnapshot ds: querySnapshot){
+
+                }
+
+                GeneralLicensesCollection.document(l.getCODE()).delete();
+            }
+        });
+
+
+
+        /////////////////////////////////////////////////////////////////////
+        //////////// JERARQUIA USUARIOS      ///////////////////////////////
+        CollectionReference GeneralUsersCollection = fs.collection(Tablas.generalUsers);
+        GeneralUsersCollection.document(l.getCODE()).delete();
+
+    }
+
+
 
 }
