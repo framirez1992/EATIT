@@ -2,6 +2,7 @@ package far.com.eatit.CloudFireStoreObjects;
 
 import android.database.Cursor;
 
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.ServerTimestamp;
 import java.util.Date;
@@ -14,6 +15,7 @@ public class UserTypes {
     private String CODE, DESCRIPTION;
     private int ORDEN;
     private @ServerTimestamp Date DATE, MDATE;
+    private DocumentReference documentReference;
 
     public UserTypes(){
 
@@ -78,5 +80,13 @@ public class UserTypes {
 
     public void setMDATE(Date MDATE) {
         this.MDATE = MDATE;
+    }
+
+    public DocumentReference getDocumentReference() {
+        return documentReference;
+    }
+
+    public void setDocumentReference(DocumentReference documentReference) {
+        this.documentReference = documentReference;
     }
 }

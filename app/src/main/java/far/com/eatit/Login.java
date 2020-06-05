@@ -58,7 +58,11 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
     DevicesController devicesController;
     UsersController usersController;
 
+    Token tokenCargaInicial;
     Licenses license = null;
+    Devices device = null;
+    Users users = null;
+
     Dialog cargaInicialDialog;
     LinearLayout llProgressBar;
     EditText etUser, etPassword;
@@ -76,7 +80,6 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
 
     Users lastUser;
     Devices lastDevice;
-    UsersDevices usersDevice;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,11 +105,6 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
         }
     }
 
-   /* public void startActivityLoginFromBegining(){
-        Intent intent = new Intent(getApplicationContext(), Login.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
-    }*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -268,6 +266,9 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
     @Override
     public void OnFireBaseEndContact(int code) {
         if(code == 1){
+            if(tokenCargaInicial.isAutodelete()){
+                TokenController.getInstance(Login.this).deleteToken(license.getCODE(), tokenCargaInicial.getCode());
+            }
             Toast.makeText(Login.this, "Finalizado", Toast.LENGTH_LONG).show();
             endLoading();
             tvMessageDialog.setText("Finalizado");
@@ -275,7 +276,13 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
             recreate();
 
         }
+        license = null;
+        users = null;
+        device = null;
+        tokenCargaInicial = null;
     }
+
+
 
     @Override
     public void sendMessage(String message) {
@@ -303,8 +310,6 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
 
                 if(document != null){
                     lastUser = document.toObject(Users.class);
-                    usersController.delete(null, null);
-
                     if(!isValidUser(lastUser)){
                         btnLogin.setEnabled(true);
                         findViewById(R.id.llProgress).setVisibility(View.INVISIBLE);
@@ -341,15 +346,11 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
 
         if(code == CODES.CODE_DEVICES_UNREGISTERED){
             Snackbar.make(findViewById(R.id.root), "Dispositivo no registrado. Contacte con el administrador", Snackbar.LENGTH_LONG).show();
-            //Toast.makeText(Login.this, "Dispositivo no registrado. Contacte con el administrador", Toast.LENGTH_LONG).show();
-            //startActivityLoginFromBegining();
             return false;
         }
 
         if(code == CODES.CODE_DEVICES_DISABLED){
             Snackbar.make(findViewById(R.id.root), "Dispositivo inactivo. Contacte con el administrador", Snackbar.LENGTH_LONG).show();
-            //Toast.makeText(Login.this, "Dispositivo inactivo. Contacte con el administrador", Toast.LENGTH_LONG).show();
-            //startActivityLoginFromBegining();
             return false;
         }
 
@@ -376,7 +377,7 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
 
     public boolean validateUserCargaInicial(Users u){
 
-        int code = (u != null)?usersController.validateUser(usersController.getUserByCode(u.getCODE())):CODES.CODE_USERS_INVALID;
+        int code = (u != null)?usersController.validateUser(u):CODES.CODE_USERS_INVALID;
 
         if(code == CODES.CODE_USERS_INVALID || code == CODES.CODE_USERS_DISBLED) {
             setMessageCargaInicial(Funciones.gerErrorMessage(code), R.color.red_700);
@@ -444,8 +445,19 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
                             setMessageCargaInicial("Debe llenar los campos KEY y USER");
                             return;
                         }
+                        tokenCargaInicial = null;
                         startLoading();
-                        licenseController.getDataFromFireBase(etKeyDialog.getText().toString(), LicenceListener, Login.this);
+                        Licenses tempLicense = new Licenses();
+                        tempLicense.setCODE(etKeyDialog.getText().toString());
+
+                        UsersDevicesController.getInstance(Login.this).getUserDeviceFromFireBase(tempLicense, etUserDialog.getText().toString(), Funciones.getPhoneID(Login.this), onSuccessUserDevice, new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                setMessageCargaInicial(e.getMessage());
+                                endLoading();
+                            }
+                        });
+
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -489,7 +501,7 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
                         return;
                     }
                     startLoadingToken();
-                    TokenController.getInstance(Login.this).getQueryTokenByCode(token, onSuccessToken, onCompleteToken, onFailureToken);
+                    TokenController.getInstance(Login.this).getTokenByCode(token, onSuccessTokenDesbloqueo, onFailureToken);
                 }
             });
 
@@ -514,11 +526,9 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
     public OnSuccessListener<DocumentSnapshot> LicenceListener = new OnSuccessListener<DocumentSnapshot>() {
         @Override
         public void onSuccess(DocumentSnapshot documentSnapshot) {
+            license = null;
             if(documentSnapshot.exists()){
-                try {
                     license = documentSnapshot.toObject(Licenses.class);
-                    licenseController.delete(null, null);
-                    licenseController.insert(license);
                     int code = licenseController.validateLicense(license);
                     String msg = ""; int color = R.color.red_700;
                     switch (code){
@@ -526,15 +536,11 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
                         case  CODES.CODE_LICENSE_DISABLED: msg = Funciones.gerErrorMessage(CODES.CODE_LICENSE_DISABLED);  endLoading(); break;
                         case  CODES.CODE_LICENSE_VALID:
                             color = android.R.color.black;
-                            //UsersController.getInstance(Login.this).getQueryUsersByCode(license,etUserDialog.getText().toString(),onSuccessUsers, onComplete,Login.this);
                             DevicesController.getInstance(Login.this).getFindThisDeviceFromFireBase(license, onSuccessDeviceCargaInicial,Login.this);
                             break;
                         default:msg = Funciones.gerErrorMessage(CODES.CODE_LICENSE_INVALID);  endLoading(); break;
                     }
                     setMessageCargaInicial(msg, color);
-                }catch(Exception e){
-                    e.printStackTrace();
-                }
                 return;
             }else{
                 setMessageCargaInicial(Funciones.gerErrorMessage(CODES.CODE_LICENSE_INVALID), R.color.red_700);
@@ -545,17 +551,15 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
     public OnSuccessListener<QuerySnapshot> onSuccessUsersCargaInicial = new OnSuccessListener<QuerySnapshot>() {
         @Override
         public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-            Users u = null;
+            users = null;
             if(queryDocumentSnapshots != null && queryDocumentSnapshots.size() >0 ){
                 DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
-                u = doc.toObject(Users.class);
-                usersController.delete(null, null);
-                usersController.insert(u);
-
+                users = doc.toObject(Users.class);
             }
 
-            if (validateUserCargaInicial(u)) {
-                UsersDevicesController.getInstance(Login.this).getQueryusersDevices(license,u.getCODE(),Funciones.getPhoneID(Login.this),onSuccessUsersDevicesCargaInicial,onComplete,Login.this);
+            if (validateUserCargaInicial(users)) {
+                CloudFireStoreDB.getInstance(Login.this, Login.this, Login.this).CargaInicial(license);
+                setMessageCargaInicial("Cargando datos...", android.R.color.black);
             }
         }
     };
@@ -563,11 +567,11 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
     public OnSuccessListener<QuerySnapshot> onSuccessDeviceCargaInicial = new OnSuccessListener<QuerySnapshot>() {
         @Override
         public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-            Devices d = null;
+            device = null;
             if(queryDocumentSnapshots != null && queryDocumentSnapshots.size() >0 ){
                 DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
-                d = doc.toObject(Devices.class);
-                if(!d.isENABLED()){
+                device = doc.toObject(Devices.class);
+                if(!device.isENABLED()){
                     setMessageCargaInicial(Funciones.gerErrorMessage(CODES.CODE_DEVICES_DISABLED), R.color.red_700);
                     endLoading();
                 }else{
@@ -598,7 +602,6 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
 
                 if(document != null ){
                     lastDevice = document.toObject(Devices.class);
-                    devicesController.delete(null, null);
 
                     if(!validateDevice(lastDevice)){
                         lastUser = null;
@@ -607,7 +610,7 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
                         return;
                     }
 
-                    UsersDevicesController.getInstance(Login.this).getUserDeviceFromFireBase(licenseController.getLicense(), lastUser.getCODE(), lastDevice.getCODE(), onSuccessUserDevice, new OnFailureListener() {
+                    /*UsersDevicesController.getInstance(Login.this).getUserDeviceFromFireBase(licenseController.getLicense(), lastUser.getCODE(), lastDevice.getCODE(), onSuccessUserDevice, new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
                             findViewById(R.id.llProgress).setVisibility(View.INVISIBLE);
@@ -615,7 +618,32 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
                             Snackbar.make(findViewById(R.id.root), e.getMessage(), Snackbar.LENGTH_LONG).show();
                             return;
                         }
-                    });
+                    });*/
+
+                    String lastLicenseCodeSaved = Funciones.getCodeLicense(Login.this);
+                    String lastSavedMacAddress = Funciones.getMacAddress(Login.this);
+                    if(lastLicenseCodeSaved.isEmpty()){
+                        Snackbar.make(findViewById(R.id.root), "Realize una carga inicial. No se encontro licencia", Snackbar.LENGTH_LONG).show();
+                    }else{
+                        Funciones.clearPreference(Login.this);
+                        Funciones.savePreferences(Login.this, CODES.PREFERENCE_LICENSE_CODE, lastLicenseCodeSaved);
+                        Funciones.savePreferences(Login.this, CODES.PREFERENCE_USERSKEY_CODE, lastUser.getCODE());
+                        Funciones.savePreferences(Login.this, CODES.PREFERENCE_USERSKEY_USERTYPE, lastUser.getROLE());
+                        Funciones.savePreferences(Login.this, CODES.PREFERENCE_BLUETOOTH_MAC_ADDRESS, lastSavedMacAddress);
+
+                        UsersController.getInstance(Login.this).delete(null, null);
+                        DevicesController.getInstance(Login.this).delete(null, null);
+
+                        UsersController.getInstance(Login.this).insert(lastUser);
+                        DevicesController.getInstance(Login.this).insert(lastDevice);
+                        lastUser = null;
+                        lastDevice=null;
+
+                        ((TextView)findViewById(R.id.tvErrorMsg)).setText("");
+
+                        Intent i = new Intent(Login.this, Main.class);
+                        startActivity(i);
+                    }
 
 
 
@@ -636,59 +664,33 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
         public void onSuccess(QuerySnapshot querySnapshot) {
 
             if(querySnapshot == null || (querySnapshot != null && querySnapshot.isEmpty()) ){
-                btnLogin.setEnabled(true);
-                findViewById(R.id.llProgress).setVisibility(View.INVISIBLE);
-                Snackbar.make(findViewById(R.id.root), "El dispositivo no esta asignado al usuario", Snackbar.LENGTH_LONG).show();
-                return;
+               endLoading();
+               setMessageCargaInicial("No se encontraron coincidencias");
+               return;
             }
 
             for (DocumentSnapshot document : querySnapshot.getDocuments()) {
 
                 if(document != null){
                     UsersDevices ud = document.toObject(UsersDevices.class);
-
-                    String lastLicenseCodeSaved = Funciones.getCodeLicense(Login.this);
-                    String lastSavedMacAddress = Funciones.getMacAddress(Login.this);
-                    if(lastLicenseCodeSaved.isEmpty()){
-                        Snackbar.make(findViewById(R.id.root), "Realize una carga inicial. No se encontro licencia", Snackbar.LENGTH_LONG).show();
-                    }else{
-                        Funciones.clearPreference(Login.this);
-                        Funciones.savePreferences(Login.this, CODES.PREFERENCE_LICENSE_CODE, lastLicenseCodeSaved);
-                        Funciones.savePreferences(Login.this, CODES.PREFERENCE_USERSKEY_CODE, lastUser.getCODE());
-                        Funciones.savePreferences(Login.this, CODES.PREFERENCE_USERSKEY_USERTYPE, lastUser.getROLE());
-
-                        Funciones.savePreferences(Login.this, CODES.PREFERENCE_BLUETOOTH_MAC_ADDRESS, lastSavedMacAddress);
-                        ((TextView)findViewById(R.id.tvErrorMsg)).setText("");
-
-                        UsersController.getInstance(Login.this).insert(lastUser);
-                        DevicesController.getInstance(Login.this).insert(lastDevice);
-
-
-                        Intent i = new Intent(Login.this, Main.class);
-                        startActivity(i);
-                    }
-
-
+                    TokenController.getInstance(Login.this).getTokenByCode(etKeyDialog.getText().toString(), ud.getCODE(), onSuccessTokenCargaInicial, Login.this);
                 }else{
-                    Snackbar.make(findViewById(R.id.root), "ERROR obteniendo UserDevice", Snackbar.LENGTH_LONG).show();
+                    endLoading();
+                    setMessageCargaInicial("No se encontraron coincidencias");
                 }
             }
-
-            btnLogin.setEnabled(true);
-            findViewById(R.id.llProgress).setVisibility(View.INVISIBLE);
 
         }
 
     };
 
 
-    public OnSuccessListener<QuerySnapshot> onSuccessUsersDevicesCargaInicial = new OnSuccessListener<QuerySnapshot>() {
+   /* public OnSuccessListener<QuerySnapshot> onSuccessUsersDevicesCargaInicial = new OnSuccessListener<QuerySnapshot>() {
         @Override
         public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
             if(queryDocumentSnapshots != null && queryDocumentSnapshots.size() >0 ){
                 DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
                 UsersDevices ud = doc.toObject(UsersDevices.class);
-                //devicesController.getDevices(license, DevicesValidationListener);
                 CloudFireStoreDB.getInstance(Login.this, Login.this, Login.this).CargaInicial(license);
                 setMessageCargaInicial("Cargando datos...", android.R.color.black);
                 return;
@@ -696,10 +698,10 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
             setMessageCargaInicial("Este dispositivo no esta asociado al usuario", R.color.red_700);
             endLoading();
         }
-    };
+    };*/
 
 
-    public OnSuccessListener<QuerySnapshot> onSuccessToken = new OnSuccessListener<QuerySnapshot>() {
+    public OnSuccessListener<QuerySnapshot> onSuccessTokenDesbloqueo = new OnSuccessListener<QuerySnapshot>() {
         @Override
         public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
             if(queryDocumentSnapshots != null && queryDocumentSnapshots.size() >0 ){
@@ -728,23 +730,36 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
 
 
 
+    public OnSuccessListener<QuerySnapshot> onSuccessTokenCargaInicial = new OnSuccessListener<QuerySnapshot>() {
+        @Override
+        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+            if(queryDocumentSnapshots != null && queryDocumentSnapshots.size() >0 ){
+
+                DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
+                tokenCargaInicial = doc.toObject(Token.class);
+                if(tokenCargaInicial.getType().equals(CODES.TOKEN_TYPE_INITIAL_LOAD)){
+                    licenseController.getDataFromFireBase(etKeyDialog.getText().toString(), LicenceListener, Login.this);
+                }else{
+                    endLoading();
+                    setMessageCargaInicial("Solicite un token para carga inicial");
+                }
+
+            }else{
+                endLoading();
+                setMessageCargaInicial("Solicite un token para carga inicial");
+            }
+
+        }
+    };
+
+
+
     public OnCompleteListener onComplete = new OnCompleteListener() {
         @Override
         public void onComplete(@NonNull Task task) {
             //Fin de query
             if(task.getException() != null){
                 tvMessageDialog.setText(task.getException().getMessage().toString());
-                endLoading();
-            }
-        }
-    };
-
-    public OnCompleteListener onCompleteToken = new OnCompleteListener() {
-        @Override
-        public void onComplete(@NonNull Task task) {
-            //Fin de query
-            if(task.getException() != null){
-                tvMsgToken.setText(task.getException().getMessage().toString());
                 endLoading();
             }
         }

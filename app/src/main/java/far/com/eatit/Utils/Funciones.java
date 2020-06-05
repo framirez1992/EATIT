@@ -5,6 +5,7 @@ import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.PendingIntent;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,6 +13,7 @@ import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -21,17 +23,20 @@ import android.telephony.SmsManager;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import org.json.JSONArray;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -51,6 +56,12 @@ public class Funciones {
     public static String getPhoneID(Context context){
         return Settings.Secure.getString(context.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
+    }
+
+    public static String getFileExtension(Context context, Uri uri){
+        ContentResolver cr = context.getContentResolver();
+        MimeTypeMap mime = MimeTypeMap.getSingleton();
+        return mime.getExtensionFromMimeType(cr.getType(uri));
     }
 
     public static String getFormatedDate(){
@@ -103,6 +114,19 @@ public class Funciones {
             e.printStackTrace();
         }
         return d;
+    }
+
+    public static String formatPhone(String phone){
+        String formatted =phone;
+        if(phone.length() == 10){
+            formatted = phone.substring(0, 3)+"-"+phone.substring(3, 6)+"-"+phone.substring(6);
+        }
+        return formatted;
+    }
+
+    public static String formatMoney(double amount){
+        DecimalFormat formatter = new DecimalFormat("###,###,##0.00");
+        return formatter.format(amount);
     }
 
     public static Date sumaDiasFecha(int dias){
@@ -563,6 +587,11 @@ public class Funciones {
         d.setContentView(R.layout.loading);
         ((TextView)d.findViewById(R.id.tvMsg)).setText(msg);
         return d;
+    }
+
+    public static String toJson(ArrayList data){
+        JSONArray array = new JSONArray(data);
+        return array.toString();
     }
 
 }

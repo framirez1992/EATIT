@@ -5,6 +5,8 @@ import java.util.Map;
 
 public class Token {
     private String code;
+    private String type;
+    private String extradata;
     private boolean autodelete;
 
     public Token(){
@@ -15,12 +17,19 @@ public class Token {
         this.autodelete = autodelete;
     }
 
-    public String getCODE() {
+    public Token(String code,String type, String extradata, boolean autodelete){
+        this.code = code;
+        this.type = type;
+        this.extradata = extradata;
+        this.autodelete = autodelete;
+    }
+
+    public String getCode() {
         return code;
     }
 
-    public void setCODE(String CODE) {
-        this.code = CODE;
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public boolean isAutodelete() {
@@ -31,9 +40,27 @@ public class Token {
         this.autodelete = autodelete;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getExtradata() {
+        return extradata;
+    }
+
+    public void setExtradata(String extradata) {
+        this.extradata = extradata;
+    }
+
     public Map<String, Object> toMap(){
         HashMap<String, Object> map = new HashMap<>();
         map.put("code", code);
+        map.put("type", type);
+        map.put("extradata", extradata);
         map.put("autodelete", autodelete);
         return map;
     }

@@ -82,7 +82,9 @@ public class UserRowModel {
     }
 
     public String getSystemCodeDescription(){
-        if(systemCode.equals(CODES.USER_SYSTEM_CODE_SU)){
+        if(systemCode == null){
+            return "NONE";
+        }else if(systemCode.equals(CODES.USER_SYSTEM_CODE_SU)){
             return "Super User";
         }else if(systemCode.equals(CODES.USER_SYSTEM_CODE_ADMIN)){
             return "Adminitrator";

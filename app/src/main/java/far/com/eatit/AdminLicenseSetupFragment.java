@@ -24,7 +24,7 @@ public class AdminLicenseSetupFragment extends Fragment {
 
     AdminConfiguration adminConfiguration;
     Licenses licenses;
-    ImageView btnDevices, btnTokens, btnUserDevices, btnUsers, btnControls;
+    ImageView btnDevices, btnTokens, btnUserDevices, btnUsers, btnUserTypes, btnCompany;
 
     public AdminLicenseSetupFragment() {
         // Required empty public constructor
@@ -43,9 +43,10 @@ public class AdminLicenseSetupFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         btnDevices = view.findViewById(R.id.btnDevices);
         btnTokens = view.findViewById(R.id.btnTokens);
+        btnCompany = view.findViewById(R.id.btnCompany);
         btnUserDevices = view.findViewById(R.id.btnUserDevices);
         btnUsers = view.findViewById(R.id.btnUsers);
-        //btnControls = view.findViewById(R.id.btnControls);
+        btnUserTypes = view.findViewById(R.id.btnUserTypes);
 
         btnTokens.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -82,14 +83,24 @@ public class AdminLicenseSetupFragment extends Fragment {
             }
         });
 
-        /*btnControls.setOnClickListener(new View.OnClickListener() {
+        btnCompany.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(getContext(), MaintenanceUsersControl.class);
+                Intent i = new Intent(getContext(), AdminLicenseCompany.class);
                 i.putExtra(CODES.EXTRA_ADMIN_LICENSE, licenses);
                 startActivity(i);
             }
-        });*/
+        });
+
+
+        btnUserTypes.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(getContext(), AdminLicenseUserTypes.class);
+                i.putExtra(CODES.EXTRA_ADMIN_LICENSE, licenses);
+                startActivity(i);
+            }
+        });
 
         if(licenses != null){
             ((TextView)view.findViewById(R.id.tvLicenceDescription)).setText(licenses.getCODE()+" - "+licenses.getCLIENTNAME());

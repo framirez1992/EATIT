@@ -239,13 +239,13 @@ public class CloudFireStoreDB {
                 Licenses license = documentSnapshot.toObject(Licenses.class);
                 licenseController.insert(license);
 
-                okListener.sendMessage("CARGANDO AREAS ");
-                areasController.getDataFromFireBase(license.getCODE(),onSuccessListenerArea,failureListener);
+                okListener.sendMessage("CARGANDO USERS ");
+                areasController.getDataFromFireBase(license.getCODE(),onSuccessListenerUsers,failureListener);
             }
         }
     };
 
-    public OnSuccessListener<QuerySnapshot> onSuccessListenerArea = new OnSuccessListener<QuerySnapshot>() {
+   /* public OnSuccessListener<QuerySnapshot> onSuccessListenerArea = new OnSuccessListener<QuerySnapshot>() {
         @Override
         public void onSuccess(QuerySnapshot querySnapshot) {
             areasController.delete("", null);
@@ -267,7 +267,7 @@ public class CloudFireStoreDB {
             okListener.sendMessage("CARGANDO USERS ");
             usersController.getDataFromFireBase(license.getCODE(), onSuccessListenerUsers, failureListener);
         }
-    };
+    };*/
 
     public OnSuccessListener<QuerySnapshot> onSuccessListenerUsers = new OnSuccessListener<QuerySnapshot>() {
         @Override
@@ -276,11 +276,11 @@ public class CloudFireStoreDB {
                 for (DocumentSnapshot doc : querySnapshot) {
                     usersController.insert(doc.toObject(Users.class));
                 }
-                okListener.sendMessage("CARGANDO COMBOS ");
-                combosController.getDataFromFireBase(license.getCODE(), onSuccessListenerCombos, failureListener);
+                okListener.sendMessage("CARGANDO DEVICE ");
+                combosController.getDataFromFireBase(license.getCODE(), onSuccessListenerDevice, failureListener);
         }
     };
-    public OnSuccessListener<QuerySnapshot> onSuccessListenerCombos = new OnSuccessListener<QuerySnapshot>() {
+   /* public OnSuccessListener<QuerySnapshot> onSuccessListenerCombos = new OnSuccessListener<QuerySnapshot>() {
         @Override
         public void onSuccess(QuerySnapshot querySnapshot) {
             combosController.delete("", null);
@@ -302,7 +302,7 @@ public class CloudFireStoreDB {
             okListener.sendMessage("CARGANDO DEVICES ");
             devicesController.getDataFromFireBase(license.getCODE(), onSuccessListenerDevice, failureListener);
         }
-    };
+    };*/
 
     public OnSuccessListener<QuerySnapshot> onSuccessListenerDevice = new OnSuccessListener<QuerySnapshot>() {
         @Override
@@ -311,12 +311,12 @@ public class CloudFireStoreDB {
             for (DocumentSnapshot doc : querySnapshot) {
                 devicesController.insert(doc.toObject(Devices.class));
             }
-            okListener.sendMessage("CARGANDO MEASURE UNITS ");
-            measureUnitsController.getDataFromFireBase(license.getCODE(), onSuccessListenerMeasureUnits, failureListener);
+            okListener.sendMessage("CARGANDO ROLES ");
+            measureUnitsController.getDataFromFireBase(license.getCODE(), onSuccessListenerRoles, failureListener);
         }
     };
 
-    public OnSuccessListener<QuerySnapshot> onSuccessListenerMeasureUnits = new OnSuccessListener<QuerySnapshot>() {
+  /*  public OnSuccessListener<QuerySnapshot> onSuccessListenerMeasureUnits = new OnSuccessListener<QuerySnapshot>() {
         @Override
         public void onSuccess(QuerySnapshot querySnapshot) {
             measureUnitsController.delete("", null);
@@ -424,7 +424,7 @@ public class CloudFireStoreDB {
             okListener.sendMessage("CARGANDO ROLES ");
             rolesController.getDataFromFireBase(onSuccessListenerRoles, failureListener);
         }
-    };
+    };*/
 
 
     public OnSuccessListener<QuerySnapshot> onSuccessListenerRoles = new OnSuccessListener<QuerySnapshot>() {
@@ -434,13 +434,13 @@ public class CloudFireStoreDB {
             for (DocumentSnapshot doc : querySnapshot) {
                 rolesController.insert(doc.toObject(Roles.class));
             }
-            okListener.sendMessage("CARGANDO PRODUCTS SUB TYPES ");
-            productsSubTypesController.getDataFromFireBase(license.getCODE(), onSuccessListenerProductsSubTypes, failureListener);
+            okListener.sendMessage("CARGANDO USERS TYPES ");
+            productsSubTypesController.getDataFromFireBase(license.getCODE(), onSuccessListenerUserTypes, failureListener);
         }
     };
 
 
-    public OnSuccessListener<QuerySnapshot> onSuccessListenerProductsSubTypes = new OnSuccessListener<QuerySnapshot>() {
+   /* public OnSuccessListener<QuerySnapshot> onSuccessListenerProductsSubTypes = new OnSuccessListener<QuerySnapshot>() {
         @Override
         public void onSuccess(QuerySnapshot querySnapshot) {
             productsSubTypesController.delete("", null);
@@ -538,7 +538,7 @@ public class CloudFireStoreDB {
             okListener.sendMessage("CARGANDO USER TYPES ");
             userTypesController.getDataFromFireBase(license.getCODE(),onSuccessListenerUserTypes, failureListener);
         }
-    };
+    };*/
 
     public OnSuccessListener<QuerySnapshot> onSuccessListenerUserTypes = new OnSuccessListener<QuerySnapshot>() {
         @Override
@@ -547,11 +547,15 @@ public class CloudFireStoreDB {
             for (DocumentSnapshot doc : querySnapshot) {
                 userTypesController.insert(doc.toObject(UserTypes.class));
             }
-            okListener.sendMessage("CARGANDO TABLE CODE ");
-            tableCodeController.getDataFromFireBase(license.getCODE(), onSuccessListenerTableCode, failureListener);
+            Funciones.savePreferences(context, CODES.PREFERENCE_LICENSE_CODE, license.getCODE());
+            okListener.sendMessage("FINALIZADO CORRECTAMENTE ");
+            okListener.OnFireBaseEndContact(1);
+
+           /* okListener.sendMessage("CARGANDO TABLE CODE ");
+            tableCodeController.getDataFromFireBase(license.getCODE(), onSuccessListenerTableCode, failureListener);*/
         }
     };
-    public OnSuccessListener<QuerySnapshot> onSuccessListenerTableCode = new OnSuccessListener<QuerySnapshot>() {
+   /* public OnSuccessListener<QuerySnapshot> onSuccessListenerTableCode = new OnSuccessListener<QuerySnapshot>() {
         @Override
         public void onSuccess(QuerySnapshot querySnapshot) {
             tableCodeController.delete("", null);
@@ -569,10 +573,12 @@ public class CloudFireStoreDB {
             for (DocumentSnapshot doc : querySnapshot) {
                 tableFilterController.insert(doc.toObject(TableFilter.class));
             }
+
+            Funciones.savePreferences(context, CODES.PREFERENCE_LICENSE_CODE, license.getCODE());
             okListener.sendMessage("FINALIZADO CORRECTAMENTE ");
             okListener.OnFireBaseEndContact(1);
         }
-    };
+    };*/
 
 
     public void ActualizarTabla(String key, KV tabla){

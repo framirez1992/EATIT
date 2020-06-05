@@ -227,7 +227,7 @@ public class LicenseController  {
 
     }
 
-    public void setLastUpdateToFireBase(){
+   /* public void setLastUpdateToFireBase(){
         try {
             WriteBatch lote = db.batch();
             lote.update(getReferenceFireStore().document(getLicense().getCODE()),LASTUPDATE, FieldValue.serverTimestamp());
@@ -236,7 +236,7 @@ public class LicenseController  {
             e.printStackTrace();
         }
 
-    }
+    }*/
 
     public void setAlarm(String fecha, int hora, int minutos){
     /*    try {

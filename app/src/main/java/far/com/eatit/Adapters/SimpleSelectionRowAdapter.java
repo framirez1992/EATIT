@@ -46,9 +46,10 @@ public class SimpleSelectionRowAdapter  extends RecyclerView.Adapter<SimpleSelec
     @Override
     public void onBindViewHolder(@NonNull SimpleSelectionRowHolder holder, final int position) {
 
-        if(isSelected(objects.get(position))){
-            objects.get(position).setChecked(true);
-        }
+
+        objects.get(position).setChecked(isSelected(objects.get(position)));
+
+
         CheckBox cb =  holder.getCbCheck();
         cb.setOnCheckedChangeListener(null);
         holder.fillData(objects.get(position));
@@ -116,6 +117,15 @@ public class SimpleSelectionRowAdapter  extends RecyclerView.Adapter<SimpleSelec
         return  -1;
     }
 
+    public void setSelectAll(boolean s){
+        selectedObjects.clear();
+        if(s) {
+            for (SimpleSeleccionRowModel o : objects) {
+                selectedObjects.add(o);
+            }
+        }
+        notifyDataSetChanged();
+    }
     public ArrayList<SimpleSeleccionRowModel> getSelectedObjects() {
         return selectedObjects;
     }

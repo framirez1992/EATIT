@@ -31,6 +31,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-firestore:16.0.0'
     implementation 'com.google.firebase:firebase-core:16.0.5'
     implementation 'com.google.firebase:firebase-database:16.0.5'
+    implementation 'com.google.firebase:firebase-storage:16.0.4'
     implementation 'com.android.support:support-v4:27.1.1'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
@@ -43,6 +44,8 @@ dependencies {
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
     implementation 'com.synnapps:carouselview:0.1.5'
     implementation 'com.squareup.picasso:picasso:2.5.2'
+    //implementation 'com.google.code.gson:gson:2.8.6'
+
     implementation project(path: ':bluetoothlibrary')
     implementation project(path: ':farpdf')
 }

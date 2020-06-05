@@ -156,6 +156,10 @@ public class CODES {
     public static final String ENTITY_TYPE_EXTRA_PRODUCTSFORSALE = "ENTITY_TYPE_EXTRA_PRODUCTSFORSALE";
 
 
-
+    //////////////////////////////////////
+    //// TOKEN
+    public static final String TOKEN_TYPE_LOGIN="0";//cuando el app bloquea el acceso a la app.
+    public static final String TOKEN_TYPE_INITIAL_LOAD="1";//para permitir hacer carga inicial
+    public static final String TOKEN_TYPE_ACTUALIZATION="2";//para mermitir actualizacion con Actualization Center
 
 }

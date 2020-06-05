@@ -29,7 +29,6 @@ import javax.annotation.Nullable;
 
 import far.com.eatit.CloudFireStoreObjects.Devices;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
-import far.com.eatit.CloudFireStoreObjects.ProductsControl;
 import far.com.eatit.CloudFireStoreObjects.UserControl;
 import far.com.eatit.CloudFireStoreObjects.UserInbox;
 import far.com.eatit.CloudFireStoreObjects.Users;
@@ -63,11 +62,13 @@ public class Main extends AppCompatActivity
 
     DrawerLayout drawer;
     NavigationView nav;
+    boolean exit;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-       // Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        // Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         //setSupportActionBar(toolbar);
 
         licenseController = LicenseController.getInstance(Main.this);
@@ -82,7 +83,7 @@ public class Main extends AppCompatActivity
         cvNotificacions = findViewById(R.id.cvNotifications);
         tvNotificationsNumber = findViewById(R.id.tvNotificationNumber);
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        nav = (NavigationView)findViewById(R.id.nav_view);
+        nav = (NavigationView) findViewById(R.id.nav_view);
         nav.setNavigationItemSelectedListener(this);
         imgMenu = findViewById(R.id.imgMenu);
 
@@ -98,7 +99,7 @@ public class Main extends AppCompatActivity
                     } else {
                         drawer.openDrawer(nav);
                     }
-                }catch(Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -111,17 +112,6 @@ public class Main extends AppCompatActivity
             }
         });
 
-
-
-       /* FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });*/
-
         setUpForUserType();
         setInitialFragment();
 
@@ -131,54 +121,17 @@ public class Main extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-
-        productsControlController.getReferenceFireStore().addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
-                try {
-                    productsControlController.delete(null, null);
-                    for (DocumentSnapshot doc : querySnapshot) {
-                        ProductsControl pc = doc.toObject(ProductsControl.class);
-                        productsControlController.insert(pc);
-
-                    }
-                }catch(Exception e1){
-                    e1.printStackTrace();
-                }
-            }
-        });
-
-        licenseController.getReferenceFireStore().addSnapshotListener(licenceListener);
-        usersController.getReferenceFireStore().addSnapshotListener(usersListener);
-        devicesController.getReferenceFireStore(licenseController.getLicense()).addSnapshotListener(deviceListener);
-        usersDevicesController.getReferenceFireStore(licenseController.getLicense()).addSnapshotListener(userDevicesListener);
-        userControlController.getReferenceFireStore().addSnapshotListener(userControlListener);
-
-      /*  userInboxController.getReferenceFireStore().addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                try {
-                    userInboxController.delete(null, null);
-                    for (DocumentSnapshot doc : querySnapshot) {
-                        UserInbox ui = doc.toObject(UserInbox.class);
-                        if (ui.getCODEUSER().equals(Funciones.getPreferences(Main.this, CODES.PREFERENCE_USERS, CODES.PREFERENCE_USERSKEY_CODE))) {
-                            userInboxController.insert(ui);
-                        }
-
-                    }
-                    notityUnreadMessages();
-                }catch(Exception e1){
-                    e1.printStackTrace();
-                }
-            }
-        });*/
+        licenseController.getReferenceFireStore().addSnapshotListener(this, licenceListener);
+        usersController.getReferenceFireStore().addSnapshotListener(this, usersListener);
+        devicesController.getReferenceFireStore(licenseController.getLicense()).addSnapshotListener(this, deviceListener);
+        usersDevicesController.getReferenceFireStore(licenseController.getLicense()).addSnapshotListener(this, userDevicesListener);
 
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        licenseController.setLastUpdateToFireBase();//Actualiza la licencia
+        //licenseController.setLastUpdateToFireBase();//Actualiza la licencia
     }
 
     @Override
@@ -187,7 +140,8 @@ public class Main extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            //super.onBackPressed();
+            return;
         }
     }
 
@@ -226,13 +180,13 @@ public class Main extends AppCompatActivity
         } else if (id == R.id.goReports) {
             goToReports();
 
-        } else if(id == R.id.goReceip){
+        } else if (id == R.id.goReceip) {
             goToReceipts();
-        }else if(id == R.id.goSavedReceipts){
+        } else if (id == R.id.goSavedReceipts) {
             goToSavedReceipts();
-        }else if(id == R.id.goConfiguration){
+        } else if (id == R.id.goConfiguration) {
             //startActivity(new Intent(this, BluetoothScan.class));
-        } else  {
+        } else {
             changeModule(id);
         }
 
@@ -241,38 +195,51 @@ public class Main extends AppCompatActivity
         return true;
     }
 
-  public EventListener<QuerySnapshot> licenceListener =  new EventListener<QuerySnapshot>() {
+
+    public EventListener<QuerySnapshot> licenceListener =  new EventListener<QuerySnapshot>() {
         @Override
         public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
 
-            if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
-
-                   /* Licenses actualLicence = licenseController.getLicense();
-                    if (actualLicence == null) {
-                        Toast.makeText(Login.this, "Realize una carga inicial ", Toast.LENGTH_LONG).show();
-                        return;
-                    }*/
-                Licenses lic = querySnapshot.getDocuments().get(0).toObject(Licenses.class);
-                licenseController.delete(null, null);
-                licenseController.insert(lic);
+            if(e != null){
+                Toast.makeText(Main.this, e.getMessage()+" - "+e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                return;
             }
-            validateLicence(licenseController.getLicense());
+            Licenses lic = null;
+            if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
+                licenseController.delete(null, null);
+                for(DocumentSnapshot ds: querySnapshot){
+                    lic = ds.toObject(Licenses.class);
+                    if(lic.getCODE().equals(Funciones.getCodeLicense(Main.this))){
+                        licenseController.insert(lic);
+                    }
+                }
+            }
+            validateLicence(lic);
         }
     };
 
     public EventListener<QuerySnapshot> usersListener =  new EventListener<QuerySnapshot>() {
         @Override
         public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
+            if(e != null){
+                Toast.makeText(Main.this, e.getMessage()+" - "+e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                return;
+            }
 
+            Users u = null;
             if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
                 usersController.delete(null, null);
+
                 for(DocumentSnapshot doc: querySnapshot){
-                    Users u = doc.toObject(Users.class);
-                    usersController.insert(u);
-                        //break;
+                    u = doc.toObject(Users.class);
+                    if(u.getCODE().equals(Funciones.getCodeuserLogged(Main.this))){
+                        usersController.insert(u);
+                        break;
+                    }u = null;
+
                 }
             }
-            validateUser();
+            validateUser(u);
         }
     };
 
@@ -280,16 +247,23 @@ public class Main extends AppCompatActivity
         @Override
         public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
 
+            if(e != null){
+                Toast.makeText(Main.this, e.getMessage()+" - "+e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                return;
+            }
+            Devices devices =null;
             if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
                 devicesController.delete(null, null);
+
                 for(DocumentSnapshot doc: querySnapshot){
-                    Devices d = doc.toObject(Devices.class);
-                    if(d.getCODE().equals(Funciones.getPhoneID(Main.this))) {
-                        devicesController.insert(d);
-                    }
+                    devices = doc.toObject(Devices.class);
+                    if(devices.getCODE().equals(Funciones.getPhoneID(Main.this))) {
+                        devicesController.insert(devices);
+                        break;
+                    }devices = null;
                 }
             }
-            validateDevices();
+            validateDevices(devices);
         }
     };
 
@@ -297,87 +271,35 @@ public class Main extends AppCompatActivity
         @Override
         public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
 
+            if(e != null){
+                Toast.makeText(Main.this, e.getMessage()+" - "+e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                return;
+            }
+
             boolean valid = false;
             if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
                 for(DocumentSnapshot doc: querySnapshot){
                     UsersDevices ud = doc.toObject(UsersDevices.class);
                     if(ud.getCODEDEVICE().equals(Funciones.getPhoneID(Main.this))
                             && ud.getCODEUSER().equals(Funciones.getCodeuserLogged(Main.this))){
-                          valid = true;
+                        valid = true;
                         break;
-                    }
+                    }ud = null;
                 }
-
-               if(!valid){
-                   startActivityLoginFromBegining(CODES.CODE_DEVICES_NOT_ASSIGNED_TO_USER);
-               }
+            }
+            if(!valid){
+                exitWithNoLoginCode(CODES.CODE_DEVICES_NOT_ASSIGNED_TO_USER);
             }
         }
     };
 
-    public EventListener<QuerySnapshot> userControlListener = new EventListener<QuerySnapshot>() {
-        @Override
-        public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
-            if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
-                userControlController.delete(null, null);
-                for(DocumentSnapshot doc: querySnapshot){
-                    UserControl uc = doc.toObject(UserControl.class);
-                    userControlController.insert(uc);
-                }
-        }
-            setUpForUserType();
-    }
-    };
-    public void goToOrders(){
-
-        startActivity(new Intent(Main.this, MainOrders.class));
-    }
-    public void goToOrdersBoard(){
-        startActivity(new Intent(Main.this, MainOrderBoard.class));
-    }
-    public void goToReports(){
-        startActivity(new Intent(Main.this, MainReports.class));
-    }
-    public void goToReceipts(){
-        startActivity(new Intent(Main.this, MainReceipt.class));
-    }
-    public void goToSavedReceipts(){
-        startActivity(new Intent(Main.this, MainReceiptsSaved.class));
-    }
 
 
-    public void notityUnreadMessages(){
-        String where =UserInboxController.STATUS+" = ? ";
-        String[] args = new String[]{CODES.CODE_USERINBOX_STATUS_NO_READ+""};
-        String orderBy = UserInboxController.MDATE+" DESC, "+UserInboxController.CODEMESSAGE;
-        ArrayList<UserInbox> msgs =  userInboxController.getUserInbox(where, args, orderBy);
+    public boolean validateUser(Users u) {
 
-        if(msgs.size()>0){
-            cvNotificacions.setVisibility(View.VISIBLE);
-            tvNotificationsNumber.setText(msgs.size()+"");
-        }else{
-            cvNotificacions.setVisibility(View.GONE);
-            tvNotificationsNumber.setText("0");
-        }
-    }
+        int code = usersController.validateUser(u);
 
-    public boolean validateUser(){
-
-        int code = usersController.validateUser(usersController.getUserByCode(Funciones.getCodeuserLogged(Main.this)));
-
-        if(code == CODES.CODE_USERS_INVALID || code == CODES.CODE_USERS_DISBLED) {
-           exitWithNoLoginCode(code);
-            return false;
-        }
-
-        return true;
-    }
-
-    public boolean validateDevices(){
-
-        int code = DevicesController.getInstance(Main.this).validateDevice();
-
-        if(code == CODES.CODE_DEVICES_UNREGISTERED || code == CODES.CODE_DEVICES_DISABLED) {
+        if (code == CODES.CODE_USERS_INVALID || code == CODES.CODE_USERS_DISBLED) {
             exitWithNoLoginCode(code);
             return false;
         }
@@ -385,15 +307,77 @@ public class Main extends AppCompatActivity
         return true;
     }
 
-    public void startActivityLoginFromBegining(int code){
-            Intent intent = new Intent(getApplicationContext(), Login.class);
-            intent.putExtra(CODES.EXTRA_SECURITY_ERROR_CODE, code);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
+    public boolean validateDevices(Devices d) {
+
+        int code = DevicesController.getInstance(Main.this).validateDevice(d);
+
+        if (code == CODES.CODE_DEVICES_UNREGISTERED || code == CODES.CODE_DEVICES_DISABLED) {
+            exitWithNoLoginCode(code);
+            return false;
+        }
+
+        return true;
+    }
+
+    public void goToOrders() {
+
+        startActivity(new Intent(Main.this, MainOrders.class));
+    }
+
+    public void goToOrdersBoard() {
+        startActivity(new Intent(Main.this, MainOrderBoard.class));
+    }
+
+    public void goToReports() {
+        startActivity(new Intent(Main.this, MainReports.class));
+    }
+
+    public void goToReceipts() {
+        startActivity(new Intent(Main.this, MainReceipt.class));
+    }
+
+    public void goToSavedReceipts() {
+        startActivity(new Intent(Main.this, MainReceiptsSaved.class));
+    }
+
+
+    public void notityUnreadMessages() {
+        String where = UserInboxController.STATUS + " = ? ";
+        String[] args = new String[]{CODES.CODE_USERINBOX_STATUS_NO_READ + ""};
+        String orderBy = UserInboxController.MDATE + " DESC, " + UserInboxController.CODEMESSAGE;
+        ArrayList<UserInbox> msgs = userInboxController.getUserInbox(where, args, orderBy);
+
+        if (msgs.size() > 0) {
+            cvNotificacions.setVisibility(View.VISIBLE);
+            tvNotificationsNumber.setText(msgs.size() + "");
+        } else {
+            cvNotificacions.setVisibility(View.GONE);
+            tvNotificationsNumber.setText("0");
+        }
+    }
+
+    public boolean validateUser() {
+
+        int code = usersController.validateUser(usersController.getUserByCode(Funciones.getCodeuserLogged(Main.this)));
+
+        if (code == CODES.CODE_USERS_INVALID || code == CODES.CODE_USERS_DISBLED) {
+            exitWithNoLoginCode(code);
+            return false;
+        }
+
+        return true;
+    }
+
+
+    public void startActivityLoginFromBegining(int code) {
+        Intent intent = new Intent(getApplicationContext(), Login.class);
+        intent.putExtra(CODES.EXTRA_SECURITY_ERROR_CODE, code);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
 
     }
 
-    public void setUpForUserType(){
+    public void setUpForUserType() {
         MenuItem mantenimientoInventario = nav.getMenu().findItem(R.id.goMantInventario);
         MenuItem mantenimientoProductos = nav.getMenu().findItem(R.id.goMantProductos);
         MenuItem mantenimientoUsuarios = nav.getMenu().findItem(R.id.goMantUsuarios);
@@ -416,7 +400,7 @@ public class Main extends AppCompatActivity
         recibos.setVisible(false);
         reportes.setVisible(false);
 
-        if(usersController.isSuperUser() || usersController.isAdmin()){//SU o Administrador
+        if (usersController.isSuperUser() || usersController.isAdmin()) {//SU o Administrador
             //mantenimientoInventario.setVisible(usersController.isSuperUser());
             mantenimientoProductos.setVisible(usersController.isSuperUser());
             mantenimientoUsuarios.setVisible(usersController.isSuperUser());
@@ -428,14 +412,14 @@ public class Main extends AppCompatActivity
             facturar.setVisible(usersController.isSuperUser());
             recibos.setVisible(true);
             reportes.setVisible(true);
-        }else {
-            if(UserControlController.getInstance(Main.this).dispatchOrders()){
+        } else {
+            if (UserControlController.getInstance(Main.this).dispatchOrders()) {
                 nav.getMenu().findItem(R.id.goPendingOrders).setVisible(true);
             }
-            if(UserControlController.getInstance(Main.this).createOrders()){
+            if (UserControlController.getInstance(Main.this).createOrders()) {
                 nav.getMenu().findItem(R.id.goMenu).setVisible(true);
             }
-            if(UserControlController.getInstance(Main.this).chargeOrders()){
+            if (UserControlController.getInstance(Main.this).chargeOrders()) {
                 nav.getMenu().findItem(R.id.goReceip).setVisible(true);
             }
 
@@ -444,14 +428,14 @@ public class Main extends AppCompatActivity
 
     }
 
-    public void setInitialFragment(){
-        if(usersController.isSuperUser() || usersController.isAdmin()) {//SU o Administrador
+    public void setInitialFragment() {
+        if (usersController.isSuperUser() || usersController.isAdmin()) {//SU o Administrador
             fragmentMaintenance = new MaintenanceFragment();
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.details, fragmentMaintenance);
             ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
             ft.commit();
-        }else {
+        } else {
             logoFragment = new LogoFragment();
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.details, logoFragment);
@@ -461,9 +445,9 @@ public class Main extends AppCompatActivity
     }
 
 
-    public void changeModule(int id){
+    public void changeModule(int id) {
 
-        if((usersController.isSuperUser() || usersController.isAdmin())) {
+        if ((usersController.isSuperUser() || usersController.isAdmin())) {
             fragmentMaintenance.llMaintenanceInventory.setVisibility((id == R.id.goMantInventario) ? View.VISIBLE : View.GONE);
             fragmentMaintenance.llMaintenanceProducts.setVisibility((id == R.id.goMantProductos) ? View.VISIBLE : View.GONE);
             fragmentMaintenance.llMaintenanceUsers.setVisibility((id == R.id.goMantUsuarios) ? View.VISIBLE : View.GONE);
@@ -475,10 +459,10 @@ public class Main extends AppCompatActivity
 
     }
 
-    public boolean validateLicence(Licenses lic){
+    public boolean validateLicence(Licenses lic) {
 
         int code = licenseController.validateLicense(lic);
-        switch (code){
+        switch (code) {
             //Validando vigencia de la licencia.
             case CODES.CODE_LICENSE_EXPIRED:
             case CODES.CODE_LICENSE_DISABLED:
@@ -492,57 +476,16 @@ public class Main extends AppCompatActivity
         return true;
     }
 
-/*
-    public OnSuccessListener<QuerySnapshot> onSuccessUsers = new OnSuccessListener<QuerySnapshot>() {
-        @Override
-        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-            if(queryDocumentSnapshots != null && queryDocumentSnapshots.size() >0 ){
-                DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
-                Users u = doc.toObject(Users.class);
-                UsersController.getInstance(Main.this).delete(null, null);
-                UsersController.getInstance(Main.this).insert(u);
-            }
 
-            if(validateUser()){
-                DevicesController.getInstance(Main.this).getQueryDevicesByCode(licenseController.getLicense(), Funciones.getPhoneID(Main.this), onSuccessDevice, null, null);
-            }
+    public void exitWithNoLoginCode(int code) {
+        if (!exit) {
+            exit = true;
+            Toast.makeText(Main.this, Funciones.gerErrorMessage(code), Toast.LENGTH_LONG).show();
+            Funciones.savePreferences(Main.this, CODES.PREFERENCE_LOGIN_BLOQUED, "1");
+            Funciones.savePreferences(Main.this, CODES.PREFERENCE_LOGIN_BLOQUED_REASON, code + "");
+            startActivityLoginFromBegining(code);
         }
-    };
-
-    public OnSuccessListener<QuerySnapshot> onSuccessDevice = new OnSuccessListener<QuerySnapshot>() {
-        @Override
-        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-            if(queryDocumentSnapshots != null && queryDocumentSnapshots.size() >0 ){
-                DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
-                Devices d = doc.toObject(Devices.class);
-                DevicesController.getInstance(Main.this).delete(null, null);
-                DevicesController.getInstance(Main.this).insert(d);
-            }
-
-            if(validateDevices()){
-                UsersDevicesController.getInstance(Main.this).getQueryusersDevices(licenseController.getLicense(), Funciones.getCodeuserLogged(Main.this), Funciones.getPhoneID(Main.this), onSuccessUsersDevices, null, null);
-            }
-        }
-    };
-
-    public OnSuccessListener<QuerySnapshot> onSuccessUsersDevices = new OnSuccessListener<QuerySnapshot>() {
-        @Override
-        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-            if(queryDocumentSnapshots != null && queryDocumentSnapshots.size() >0 ){
-                return;
-            }
-
-                Toast.makeText(Main.this, Funciones.gerErrorMessage(CODES.CODE_DEVICES_NOT_ASSIGNED_TO_USER), Toast.LENGTH_LONG).show();
-                Funciones.savePreferences(Main.this, CODES.PREFERENCE_LOGIN_BLOQUED, "1");
-                Funciones.savePreferences(Main.this, CODES.PREFERENCE_LOGIN_BLOQUED_REASON, CODES.CODE_DEVICES_NOT_ASSIGNED_TO_USER+"");
-                startActivityLoginFromBegining(CODES.CODE_DEVICES_NOT_ASSIGNED_TO_USER);
-
-        }
-    };*/
-    public void exitWithNoLoginCode(int code){
-        Toast.makeText(Main.this, Funciones.gerErrorMessage(code), Toast.LENGTH_LONG).show();
-        Funciones.savePreferences(Main.this, CODES.PREFERENCE_LOGIN_BLOQUED, "1");
-        Funciones.savePreferences(Main.this, CODES.PREFERENCE_LOGIN_BLOQUED_REASON, code+"");
-        startActivityLoginFromBegining(code);
     }
+
+
 }

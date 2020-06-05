@@ -6,31 +6,60 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.DialogFragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.WriteBatch;
 
+import java.util.ArrayList;
+
+import far.com.eatit.Adapters.Models.SimpleRowModel;
+import far.com.eatit.Adapters.Models.SimpleSeleccionRowModel;
+import far.com.eatit.Adapters.SimpleRowEditionAdapter;
+import far.com.eatit.Adapters.SimpleSelectionRowAdapter;
+import far.com.eatit.AdminLicenseDevices;
 import far.com.eatit.AdminLicenseTokens;
+import far.com.eatit.CloudFireStoreObjects.Devices;
 import far.com.eatit.CloudFireStoreObjects.Token;
+import far.com.eatit.CloudFireStoreObjects.UsersDevices;
+import far.com.eatit.Generic.Objects.KV;
+import far.com.eatit.Globales.CODES;
 import far.com.eatit.Globales.Tablas;
+import far.com.eatit.Interfases.ListableActivity;
 import far.com.eatit.R;
 import far.com.eatit.Utils.Funciones;
 
-public class TokenDialogFragment extends DialogFragment implements OnFailureListener {
+public class TokenDialogFragment extends DialogFragment implements ListableActivity, OnFailureListener {
 
     AdminLicenseTokens adminLicenseTokens;
     public Token tempObj;
     public String codeLicense;
 
-    LinearLayout llSave;
-    TextInputEditText etCode;
-    CheckBox cbAutoDelete;
+    LinearLayout llMain, llTables, llSave, llSave2, llBack, llNext;
+    CheckBox cbAutoDelete, cbAllTables;
+    Spinner spnTokenType;
 
+    RecyclerView rvDevices, rvTables;
+    ArrayList<SimpleSeleccionRowModel> userDevicesList, selectedUserDevicesList, tablesList, selectedTablesList;
+    SimpleSelectionRowAdapter adapter, adapterTables;
+    FirebaseFirestore fs;
+    ArrayList<UsersDevices> userDevices;
 
     /**
      * Create a new instance of MyDialogFragment, providing "num"
@@ -42,6 +71,7 @@ public class TokenDialogFragment extends DialogFragment implements OnFailureList
         f.adminLicenseTokens = adminLicenseTokens;
         f.tempObj = token;
         f.codeLicense = codeLicense;
+        f.fs = FirebaseFirestore.getInstance();
 
         // Supply num input as an argument.
         Bundle args = new Bundle();
@@ -79,7 +109,20 @@ public class TokenDialogFragment extends DialogFragment implements OnFailureList
     @Override
     public void onStart() {
         super.onStart();
-        Funciones.showKeyBoard(etCode);
+        fs.collection(Tablas.generalUsers).document(codeLicense)
+                .collection(Tablas.generalUsersUsersDevices)
+                .addSnapshotListener(getActivity(), new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
+                        userDevices = new ArrayList<>();
+                        for (DocumentSnapshot ds : querySnapshot) {
+                            UsersDevices t = ds.toObject(UsersDevices.class);
+                            userDevices.add(t);
+                        }
+                        refreshDevicesList();
+
+                    }
+                });
     }
 
     @Override
@@ -93,30 +136,115 @@ public class TokenDialogFragment extends DialogFragment implements OnFailureList
 
 
     public void init(View view){
+        llMain = view.findViewById(R.id.llMain);
         llSave = view.findViewById(R.id.llSave);
-        etCode = view.findViewById(R.id.etCode);
+        llNext = view.findViewById(R.id.llNext);
         cbAutoDelete = view.findViewById(R.id.cbAutoDelete);
+        spnTokenType = view.findViewById(R.id.spn);
+        rvDevices = view.findViewById(R.id.rvDevices);
+
+        llTables = view.findViewById(R.id.llTables);
+        llSave2 = view.findViewById(R.id.llSave2);
+        llBack = view.findViewById(R.id.llBack);
+        cbAllTables = view.findViewById(R.id.cbAllTables);
+        rvTables = view.findViewById(R.id.rvTables);
 
         llSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                llSave.setEnabled(false);
-                if(tempObj == null){
-                    Save();
-                }else{
-                    EditLicense();
-                }
+             saveEvent();
             }
         });
+
+        llSave2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveEvent();
+            }
+        });
+
+        llNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                llMain.setVisibility(View.GONE);
+                llTables.setVisibility(View.VISIBLE);
+            }
+        });
+
+        llBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                llMain.setVisibility(View.VISIBLE);
+                llTables.setVisibility(View.GONE);
+            }
+        });
+
+        cbAllTables.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                adapterTables.setSelectAll(isChecked);
+            }
+        });
+
+        ArrayList<KV> tokentype = new ArrayList<>();
+        tokentype.add(new KV(CODES.TOKEN_TYPE_LOGIN, "Desbloqueo"));
+        tokentype.add(new KV(CODES.TOKEN_TYPE_INITIAL_LOAD, "Carga inicial"));
+        tokentype.add(new KV(CODES.TOKEN_TYPE_ACTUALIZATION, "Actualizacion"));
+        spnTokenType.setAdapter(new ArrayAdapter<KV>(getContext(),android.R.layout.simple_list_item_1, tokentype));
+        spnTokenType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    llSave.setVisibility(((KV)parent.getAdapter().getItem(position)).getKey().equals(CODES.TOKEN_TYPE_ACTUALIZATION)?View.GONE:View.VISIBLE);
+                    llNext.setVisibility(((KV)parent.getAdapter().getItem(position)).getKey().equals(CODES.TOKEN_TYPE_ACTUALIZATION)?View.VISIBLE:View.GONE);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        userDevicesList = new ArrayList<>();
+        selectedUserDevicesList = new ArrayList<>();
+        LinearLayoutManager manager = new LinearLayoutManager(getActivity());
+        rvDevices.setLayoutManager(manager);
+        adapter = new SimpleSelectionRowAdapter(getActivity(), userDevicesList,selectedUserDevicesList);
+        rvDevices.setAdapter(adapter);
+
+
+
+        tablesList = new ArrayList<>();
+        for(String i :Tablas.tablesFireBase){
+            tablesList.add(new SimpleSeleccionRowModel(i,i,false));
+        }
+
+        selectedTablesList = new ArrayList<>();
+        LinearLayoutManager manager2 = new LinearLayoutManager(getActivity());
+        rvTables.setLayoutManager(manager2);
+        adapterTables = new SimpleSelectionRowAdapter(getActivity(), tablesList,selectedTablesList);
+        rvTables.setAdapter(adapterTables);
+
 
         if(tempObj != null){//EDIT
             setUpToEditProductType();
         }
     }
 
-    public boolean validateProductType(){
-        if(etCode.getText().toString().trim().equals("")){
-            Snackbar.make(getView(), "Especifique un codigo", Snackbar.LENGTH_SHORT).show();
+    public void saveEvent(){
+        llSave.setEnabled(false);
+        if(tempObj == null){
+            Save();
+        }else{
+            EditLicense();
+        }
+    }
+
+    public boolean validateToken(){
+        if(selectedUserDevicesList.size() == 0){
+            Snackbar.make(getView(), "Debe seleccionar al menos 1 device", Snackbar.LENGTH_SHORT).show();
+            return false;
+        }else if(((KV)spnTokenType.getSelectedItem()).getKey().equals(CODES.TOKEN_TYPE_ACTUALIZATION) && selectedTablesList.size() == 0){
+            Snackbar.make(getView(), "Debe seleccionar las tablas a para la actualizacion", Snackbar.LENGTH_SHORT).show();
             return false;
         }
 
@@ -125,21 +253,35 @@ public class TokenDialogFragment extends DialogFragment implements OnFailureList
 
 
     public void Save(){
-        if(validateProductType()) {
-            SaveProductType();
+        if(validateToken()) {
+            SaveToken();
         }
 
         llSave.setEnabled(true);
 
     }
 
-    public void SaveProductType(){
+    public void SaveToken(){
         try {
-            String code = etCode.getText().toString();
-            Token t = new Token(code, cbAutoDelete.isChecked());
+            WriteBatch lote = adminLicenseTokens.getFs().batch();
 
-            adminLicenseTokens.getFs().collection(Tablas.generalUsers).document(codeLicense).collection(Tablas.generalUsersToken).document(t.getCODE()).set(t.toMap())
-                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+            Token t = new Token();
+            t.setAutodelete(cbAutoDelete.isChecked());
+            KV tokenType =((KV)spnTokenType.getSelectedItem());
+            if(tokenType.getKey().equals(CODES.TOKEN_TYPE_ACTUALIZATION)){
+                ArrayList<String>  data = new ArrayList<>();
+                for(SimpleSeleccionRowModel tables: selectedTablesList){
+                data.add(tables.getCode());
+                }
+                t.setExtradata(Funciones.toJson(data));
+            }
+            t.setType(tokenType.getKey());
+            for(SimpleSeleccionRowModel dev: selectedUserDevicesList){
+              t.setCode(dev.getCode());
+              lote.set(adminLicenseTokens.getFs().collection(Tablas.generalUsers).document(codeLicense).collection(Tablas.generalUsersToken).document(t.getCode()), t.toMap());
+            }
+
+            lote.commit().addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
                             dismiss();
@@ -156,9 +298,9 @@ public class TokenDialogFragment extends DialogFragment implements OnFailureList
 
     public void EditLicense(){
         try {
-            String code = etCode.getText().toString();
+            String code = "";//etCode.getText().toString();
 
-            tempObj.setCODE(code);
+            tempObj.setCode(code);
             tempObj.setAutodelete(cbAutoDelete.isChecked());
 
             adminLicenseTokens.getFs().collection(Tablas.generalUsers).document(codeLicense).collection(Tablas.generalUsersToken)
@@ -180,12 +322,26 @@ public class TokenDialogFragment extends DialogFragment implements OnFailureList
 
 
     public void setUpToEditProductType(){
-        etCode.setText(tempObj.getCODE());
-        etCode.setEnabled(false);
+        //etCode.setText(tempObj.getCode());
+        //etCode.setEnabled(false);
         cbAutoDelete.setChecked(tempObj.isAutodelete());
+        for(int i=0; i<spnTokenType.getAdapter().getCount(); i++){
+            if(((KV)spnTokenType.getAdapter().getItem(i)).getKey().equals(tempObj.getType())){
+                spnTokenType.setSelection(i);
+                break;
+            }
+        }
 
     }
 
+
+    public void refreshDevicesList(){
+        userDevicesList.clear();
+        for(UsersDevices t: userDevices){
+            userDevicesList.add(new SimpleSeleccionRowModel(t.getCODE(), "Device: "+t.getCODEDEVICE()+"  - User: "+t.getCODEUSER(), false) );
+        }
+        adapter.notifyDataSetChanged();
+    }
 
 
     @Override
@@ -194,5 +350,8 @@ public class TokenDialogFragment extends DialogFragment implements OnFailureList
     }
 
 
+    @Override
+    public void onClick(Object obj) {
 
+    }
 }

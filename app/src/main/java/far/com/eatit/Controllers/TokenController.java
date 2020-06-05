@@ -42,18 +42,34 @@ public class TokenController {
 
     public void deleteFromFireBase(Token token){
         try {
-            getReferenceFireStore().document(token.getCODE()).delete();
+            getReferenceFireStore().document(token.getCode()).delete();
         }catch(Exception e){
             e.printStackTrace();
         }
     }
 
-    public void getQueryTokenByCode(String code, OnSuccessListener<QuerySnapshot> success, OnCompleteListener<QuerySnapshot> complete, OnFailureListener failute){
+    public void getTokenByCode(String code, OnSuccessListener<QuerySnapshot> success, OnFailureListener failute){
         getReferenceFireStore().
                 whereEqualTo(CODE, code).get().
                 addOnSuccessListener(success).
-                addOnCompleteListener(complete).
                 addOnFailureListener(failute);
 
     }
+
+    public void getTokenByCode(String licenseCode, String code, OnSuccessListener<QuerySnapshot> success, OnFailureListener failute){
+        db.collection(Tablas.generalUsers).document(licenseCode).collection(Tablas.generalUsersToken).
+                whereEqualTo(CODE, code).get().
+                addOnSuccessListener(success).
+                addOnFailureListener(failute);
+
+    }
+
+    public void deleteToken(String licenseCode, String codeToken){
+
+            db.collection(Tablas.generalUsers).document(licenseCode).collection(Tablas.generalUsersToken)
+                    .document(codeToken).delete();
+
+    }
+
+
 }
