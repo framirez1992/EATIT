@@ -28,7 +28,7 @@ public class MaintenanceFragment extends Fragment {
 
 
     ImageView btnFamily, btnGroup, btnMeasures, btnProducts,btnFamilyInv, btnGroupInv, btnMeasuresInv, btnProductsInv, btnUsers, btnUserRol, btnAreas, btnMesas,btnControls, btnTableCode,
-            btnTableFilter, btnActualizationCenter, btnUserTable, btnUsersControl, btnRolesControl, btnOrderSplit, btnOrderSplitDestiny, btnOrderMove;
+            btnTableFilter/*, btnActualizationCenter*/, btnUserTable, btnUsersControl, btnRolesControl, btnOrderSplit, btnOrderSplitDestiny, btnOrderMove;
     LinearLayout llMainScreen,llMaintenanceControls, llMaintenanceAreas, llMaintenanceUsers, llMaintenanceProducts,llMaintenanceInventory;
     public MaintenanceFragment() {
         // Required empty public constructor
@@ -68,7 +68,7 @@ public class MaintenanceFragment extends Fragment {
         btnControls = view.findViewById(R.id.btnControls);
         btnTableCode = view.findViewById(R.id.btnTableCode);
         btnTableFilter = view.findViewById(R.id.btnTableFilter);
-        btnActualizationCenter = view.findViewById(R.id.btnActualizationCenter);
+        //btnActualizationCenter = view.findViewById(R.id.btnActualizationCenter);
         btnUserTable = view.findViewById(R.id.btnUserTable);
         btnUsersControl = view.findViewById(R.id.btnUsersControl);
         btnRolesControl = view.findViewById(R.id.btnRolesControl);
@@ -103,7 +103,7 @@ public class MaintenanceFragment extends Fragment {
         btnOrderMove.setOnClickListener(imageClick);
 
 
-        btnActualizationCenter.setOnClickListener(imageClick);
+       //btnActualizationCenter.setOnClickListener(imageClick);
 
 
 
@@ -158,9 +158,9 @@ public class MaintenanceFragment extends Fragment {
                 case R.id.btnTableFilter:
                     i = new Intent(getActivity(), MaintenanceTableFilter.class);
                     break;
-                case R.id.btnActualizationCenter:
+               /* case R.id.btnActualizationCenter:
                     i = new Intent(getActivity(), MainActualizationCenter.class);
-                    break;
+                    break;*/
                 case R.id.btnControls:
                     i = new Intent(getActivity(), MaintenanceUsersControl.class);
                     break;

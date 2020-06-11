@@ -547,7 +547,7 @@ public class CloudFireStoreDB {
             for (DocumentSnapshot doc : querySnapshot) {
                 userTypesController.insert(doc.toObject(UserTypes.class));
             }
-            Funciones.savePreferences(context, CODES.PREFERENCE_LICENSE_CODE, license.getCODE());
+
             okListener.sendMessage("FINALIZADO CORRECTAMENTE ");
             okListener.OnFireBaseEndContact(1);
 

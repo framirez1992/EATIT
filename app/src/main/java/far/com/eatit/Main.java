@@ -1,7 +1,9 @@
 package far.com.eatit;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentTransaction;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -11,12 +13,15 @@ import android.support.v7.widget.CardView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 //import com.example.bluetoothlibrary.BluetoothScan;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
@@ -29,6 +34,7 @@ import javax.annotation.Nullable;
 
 import far.com.eatit.CloudFireStoreObjects.Devices;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
+import far.com.eatit.CloudFireStoreObjects.Token;
 import far.com.eatit.CloudFireStoreObjects.UserControl;
 import far.com.eatit.CloudFireStoreObjects.UserInbox;
 import far.com.eatit.CloudFireStoreObjects.Users;
@@ -36,6 +42,7 @@ import far.com.eatit.CloudFireStoreObjects.UsersDevices;
 import far.com.eatit.Controllers.DevicesController;
 import far.com.eatit.Controllers.LicenseController;
 import far.com.eatit.Controllers.ProductsControlController;
+import far.com.eatit.Controllers.TokenController;
 import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Controllers.UserInboxController;
 import far.com.eatit.Controllers.UsersController;
@@ -63,6 +70,8 @@ public class Main extends AppCompatActivity
     DrawerLayout drawer;
     NavigationView nav;
     boolean exit;
+
+    Dialog actualizationDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -173,7 +182,9 @@ public class Main extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.goMenu) {
+        if(id == R.id.goActualization){
+            goActualization();
+        }else if (id == R.id.goMenu) {
             goToOrders();
         } else if (id == R.id.goPendingOrders) {
             goToOrdersBoard();
@@ -317,6 +328,57 @@ public class Main extends AppCompatActivity
         }
 
         return true;
+    }
+
+    public void goActualization(){
+        actualizationDialog = new Dialog(Main.this);
+        actualizationDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        actualizationDialog.setContentView(R.layout.dialog_loading_1btn);
+        actualizationDialog.findViewById(R.id.llProgress).setVisibility(View.VISIBLE);
+        CardView btnOK = actualizationDialog.findViewById(R.id.btnOK);
+        btnOK.setVisibility(View.INVISIBLE);
+        btnOK.setEnabled(false);
+        btnOK.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                actualizationDialog.dismiss();
+                actualizationDialog = null;
+            }
+        });
+        TokenController.getInstance(Main.this).getTokenByCode(Funciones.getCodeUserDevice(Main.this), new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot querySnapshot) {
+                actualizationDialog.findViewById(R.id.llProgress).setVisibility(View.INVISIBLE);
+
+                if(querySnapshot!= null && querySnapshot.size()>0){
+                    Token t = querySnapshot.getDocuments().get(0).toObject(Token.class);
+                    Intent i = new Intent(Main.this, MainActualizationCenter.class);
+                    i.putExtra(CODES.EXTRA_TOKEN, t);
+                    startActivity(i);
+                    actualizationDialog.dismiss();
+                    actualizationDialog=null;
+                }else{
+                    ((TextView)actualizationDialog.findViewById(R.id.tvMessage)).setText("Solicite un token de actualizacion");
+                    actualizationDialog.findViewById(R.id.btnOK).setVisibility(View.VISIBLE);
+                    actualizationDialog.findViewById(R.id.btnOK).setEnabled(true);
+                }
+
+
+            }
+        }, new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                actualizationDialog.findViewById(R.id.llProgress).setVisibility(View.INVISIBLE);
+                ((TextView)actualizationDialog.findViewById(R.id.tvMessage)).setText(e.getMessage());
+                actualizationDialog.findViewById(R.id.btnOK).setVisibility(View.VISIBLE);
+                actualizationDialog.findViewById(R.id.btnOK).setEnabled(true);
+            }
+        });
+        actualizationDialog.setCancelable(false);
+        actualizationDialog.show();
+        Window window = actualizationDialog.getWindow();
+        window.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        window.setBackgroundDrawableResource(android.R.color.transparent);
     }
 
     public void goToOrders() {

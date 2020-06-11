@@ -6,11 +6,13 @@ import android.database.Cursor;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -238,6 +240,41 @@ public class MeasureUnitsController {
         }
 
         return result;
+
+    }
+
+
+
+    public void searchChanges(boolean all, OnSuccessListener<QuerySnapshot> success,  OnFailureListener failure){
+
+        Date mdate = all?null: DB.getLastMDateSaved(context, TABLE_NAME);
+        if(mdate != null){
+            getReferenceFireStore().
+                    whereGreaterThan(MDATE, mdate).//mayor que, ya que las fechas (la que buscamos de la DB) tienen hora, minuto y segundos.
+                    get().
+                    addOnSuccessListener(success).
+                    addOnFailureListener(failure);
+        }else{//TODOS
+            getReferenceFireStore().
+                    get().
+                    addOnSuccessListener(success).
+                    addOnFailureListener(failure);
+        }
+
+    }
+
+    public void consumeQuerySnapshot(boolean clear, QuerySnapshot querySnapshot){
+        if(clear){
+            delete(null, null);
+        }
+        if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
+            for(DocumentSnapshot doc: querySnapshot){
+                MeasureUnits obj = doc.toObject(MeasureUnits.class);
+                if(update(obj, CODE+"=?", new String[]{obj.getCODE()}) <=0){
+                    insert(obj);
+                }
+            }
+        }
 
     }
 }

@@ -62,6 +62,7 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
     Licenses license = null;
     Devices device = null;
     Users users = null;
+    UsersDevices usersDevices=null;
 
     Dialog cargaInicialDialog;
     LinearLayout llProgressBar;
@@ -133,6 +134,68 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
         }
         return false;
     }
+
+
+    @Override
+    public void OnFireBaseEndContact(int code) {
+        if(code == 1){
+            Funciones.savePreferences(Login.this, CODES.PREFERENCE_LICENSE_CODE, license.getCODE());
+            Funciones.savePreferences(Login.this, CODES.PREFERENCE_USERDEVICE_CODE, usersDevices.getCODE());
+
+            if(tokenCargaInicial.isAutodelete()){
+                TokenController.getInstance(Login.this).deleteToken(license.getCODE(), tokenCargaInicial.getCode());
+            }
+            Toast.makeText(Login.this, "Finalizado", Toast.LENGTH_LONG).show();
+            endLoading();
+            tvMessageDialog.setText("Finalizado");
+            cargaInicialDialog.dismiss();
+            recreate();
+
+        }
+        tokenCargaInicial = null;
+        license = null;
+        users = null;
+        device = null;
+        usersDevices = null;
+
+    }
+
+
+    @Override
+    public void sendMessage(String message) {
+        tvMessageDialog.setText(message);
+    }
+
+    @Override
+    public void onFailure(@NonNull Exception e) {
+        endLoading();
+        setMessageCargaInicial(e.getMessage(),R.color.red_700);
+    }
+
+    @Override
+    public void setMessage(String fechaActual) {
+
+
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        boolean granted = true;
+        if(requestCode == 123){
+            for(int result: grantResults){
+                if(result == PackageManager.PERMISSION_DENIED){
+                    granted = false;
+                    break;
+                }
+            }
+            if(granted){
+                recreate();
+            }else{
+                finish();
+            }
+        }
+    }
+
 
     public void init() {
         try {
@@ -263,37 +326,9 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
     }
 
 
-    @Override
-    public void OnFireBaseEndContact(int code) {
-        if(code == 1){
-            if(tokenCargaInicial.isAutodelete()){
-                TokenController.getInstance(Login.this).deleteToken(license.getCODE(), tokenCargaInicial.getCode());
-            }
-            Toast.makeText(Login.this, "Finalizado", Toast.LENGTH_LONG).show();
-            endLoading();
-            tvMessageDialog.setText("Finalizado");
-            cargaInicialDialog.dismiss();
-            recreate();
-
-        }
-        license = null;
-        users = null;
-        device = null;
-        tokenCargaInicial = null;
-    }
 
 
 
-    @Override
-    public void sendMessage(String message) {
-        tvMessageDialog.setText(message);
-    }
-
-    @Override
-    public void onFailure(@NonNull Exception e) {
-        endLoading();
-        setMessageCargaInicial(e.getMessage(),R.color.red_700);
-    }
 
     OnSuccessListener<QuerySnapshot> onSuccessListenerLogin = new OnSuccessListener<QuerySnapshot>() {
 
@@ -391,11 +426,6 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
 
 
 
-    @Override
-    public void setMessage(String fechaActual) {
-
-
-    }
     public void showPhoneID(){
         tvPhoneID.setText("Device: "+Funciones.getPhoneID(Login.this));
     }
@@ -407,24 +437,7 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
         return check;
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        boolean granted = true;
-        if(requestCode == 123){
-            for(int result: grantResults){
-                if(result == PackageManager.PERMISSION_DENIED){
-                    granted = false;
-                    break;
-                }
-            }
-            if(granted){
-                recreate();
-            }else{
-                finish();
-            }
-        }
-    }
+
 
 
     public void initDialog(){
@@ -478,7 +491,7 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
             btnOKToken = tokenDialog.findViewById(R.id.btnOK);
             llProgressBarToken = tokenDialog.findViewById(R.id.llProgress);
             etToken.setHint("Token");
-            etToken.setText("");
+            etToken.setText(Funciones.getCodeUserDevice(Login.this));
             String intentos = getTokenAttemps();
             if (Integer.parseInt(intentos) >= 3) {
                 btnOKToken.setEnabled(false);
@@ -501,7 +514,7 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
                         return;
                     }
                     startLoadingToken();
-                    TokenController.getInstance(Login.this).getTokenByCode(token, onSuccessTokenDesbloqueo, onFailureToken);
+                    TokenController.getInstance(Login.this).getTokenByCode(Funciones.getCodeUserDevice(Login.this), onSuccessTokenDesbloqueo, onFailureToken);
                 }
             });
 
@@ -621,12 +634,14 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
                     });*/
 
                     String lastLicenseCodeSaved = Funciones.getCodeLicense(Login.this);
+                    String lastUserDeviceSaved = Funciones.getCodeUserDevice(Login.this);
                     String lastSavedMacAddress = Funciones.getMacAddress(Login.this);
                     if(lastLicenseCodeSaved.isEmpty()){
                         Snackbar.make(findViewById(R.id.root), "Realize una carga inicial. No se encontro licencia", Snackbar.LENGTH_LONG).show();
                     }else{
                         Funciones.clearPreference(Login.this);
                         Funciones.savePreferences(Login.this, CODES.PREFERENCE_LICENSE_CODE, lastLicenseCodeSaved);
+                        Funciones.savePreferences(Login.this, CODES.PREFERENCE_USERDEVICE_CODE, lastUserDeviceSaved);
                         Funciones.savePreferences(Login.this, CODES.PREFERENCE_USERSKEY_CODE, lastUser.getCODE());
                         Funciones.savePreferences(Login.this, CODES.PREFERENCE_USERSKEY_USERTYPE, lastUser.getROLE());
                         Funciones.savePreferences(Login.this, CODES.PREFERENCE_BLUETOOTH_MAC_ADDRESS, lastSavedMacAddress);
@@ -663,6 +678,7 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
         @Override
         public void onSuccess(QuerySnapshot querySnapshot) {
 
+            usersDevices = null;
             if(querySnapshot == null || (querySnapshot != null && querySnapshot.isEmpty()) ){
                endLoading();
                setMessageCargaInicial("No se encontraron coincidencias");
@@ -672,8 +688,8 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
             for (DocumentSnapshot document : querySnapshot.getDocuments()) {
 
                 if(document != null){
-                    UsersDevices ud = document.toObject(UsersDevices.class);
-                    TokenController.getInstance(Login.this).getTokenByCode(etKeyDialog.getText().toString(), ud.getCODE(), onSuccessTokenCargaInicial, Login.this);
+                    usersDevices = document.toObject(UsersDevices.class);
+                    TokenController.getInstance(Login.this).getTokenByCode(etKeyDialog.getText().toString(), usersDevices.getCODE(), onSuccessTokenCargaInicial, Login.this);
                 }else{
                     endLoading();
                     setMessageCargaInicial("No se encontraron coincidencias");
@@ -733,6 +749,7 @@ public class Login extends AppCompatActivity implements OnFailureListener, FireB
     public OnSuccessListener<QuerySnapshot> onSuccessTokenCargaInicial = new OnSuccessListener<QuerySnapshot>() {
         @Override
         public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+            tokenCargaInicial = null;
             if(queryDocumentSnapshots != null && queryDocumentSnapshots.size() >0 ){
 
                 DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);

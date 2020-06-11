@@ -280,8 +280,18 @@
             </LinearLayout>
 
 
+            </TableRow>
 
-<!--
+
+
+
+            <TableRow android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="20dp">
+
+
+
                 <LinearLayout android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
@@ -308,12 +318,12 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Controles"
+                        android:text="Controls"
                         android:gravity="center"
                         android:textStyle="bold"/>
 
                 </LinearLayout>
--->
+
 
             </TableRow>
 

@@ -5,12 +5,14 @@ import android.content.Context;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -340,5 +342,40 @@ public class ProductsController {
 
         return tables;
         //priceList,productsControl, productsMeasure,combos
+    }
+
+
+
+    public void searchChanges(boolean all, OnSuccessListener<QuerySnapshot> success,  OnFailureListener failure){
+
+        Date mdate = all?null: DB.getLastMDateSaved(context, TABLE_NAME);
+        if(mdate != null){
+            getReferenceFireStore().
+                    whereGreaterThan(MDATE, mdate).//mayor que, ya que las fechas (la que buscamos de la DB) tienen hora, minuto y segundos.
+                    get().
+                    addOnSuccessListener(success).
+                    addOnFailureListener(failure);
+        }else{//TODOS
+            getReferenceFireStore().
+                    get().
+                    addOnSuccessListener(success).
+                    addOnFailureListener(failure);
+        }
+
+    }
+
+    public void consumeQuerySnapshot(boolean clear, QuerySnapshot querySnapshot){
+        if(clear){
+            delete(null, null);
+        }
+        if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
+            for(DocumentSnapshot doc: querySnapshot){
+                Products obj = doc.toObject(Products.class);
+                if(update(obj, CODE+"=?", new String[]{obj.getCODE()}) <=0){
+                    insert(obj);
+                }
+            }
+        }
+
     }
 }

@@ -7,6 +7,16 @@
         android:title="Pantalla principal"
         android:icon="@drawable/ic_users"/>
 
+    <item android:title="Actualizacion">
+        <menu>
+            <item
+                android:id="@+id/goActualization"
+                android:icon="@drawable/download"
+                android:title="Actualizar" />
+        </menu>
+    </item>
+
+
     <item android:title="Mantenimientos">
         <menu>
 

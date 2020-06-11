@@ -6,11 +6,14 @@ import android.database.Cursor;
 import android.support.annotation.NonNull;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.WriteBatch;
@@ -144,6 +147,12 @@ public class SalesController {
     }
 
     public long update(Sales s){
+        long result = update(s, null, null);
+        return result;
+    }
+
+
+    public long update(Sales s, String where, String[]params){
         ContentValues cv = new ContentValues();
         cv.put(CODE,s.getCODE());
         cv.put(STATUS, s.getSTATUS());
@@ -161,9 +170,8 @@ public class SalesController {
         cv.put(CODESALESORIGEN, s.getCODEPRODUCTSUBTYPE());
         cv.put(CODERECEIPT, s.getCODERECEIPT());
 
-        String where = CODE+" = ? ";
         String table = TABLE_NAME;
-        long result = DB.getInstance(context).getWritableDatabase().update(table,cv,where, new String[]{s.getCODE()} );
+        long result = DB.getInstance(context).getWritableDatabase().update(table,cv,where, params );
         return result;
     }
 
@@ -210,6 +218,13 @@ public class SalesController {
     }
 
     public long update_Detail(SalesDetails sd){
+        long result = update_Detail(sd,null,null);
+        return result;
+    }
+
+
+
+    public long update_Detail(SalesDetails sd, String where, String[]params){
         ContentValues cv = new ContentValues();
         cv.put(DETAIL_CODE,sd.getCODE());
         cv.put(DETAIL_CODESALES, sd.getCODESALES());
@@ -222,7 +237,7 @@ public class SalesController {
         cv.put(DETAIL_CODEUND, sd.getCODEUND());
         cv.put(DETAIL_MDATE, Funciones.getFormatedDate(sd.getMDATE()));
 
-        String where = DETAIL_CODE+"= ?  AND "+DETAIL_CODEPRODUCT+"= ? AND "+DETAIL_CODEUND+" = ?";
+        //where=DETAIL_CODE+"= ?  AND "+DETAIL_CODEPRODUCT+"= ? AND "+DETAIL_CODEUND+" = ?":null;
 
         long result = DB.getInstance(context).getWritableDatabase().update(TABLE_NAME_DETAIL,cv,where, new String[] {sd.getCODE(), sd.getCODEPRODUCT(), sd.getCODEUND()});
         return result;
@@ -828,5 +843,73 @@ public class SalesController {
         }c.close();
 
         return result;
+    }
+
+
+    public void searchChanges(boolean all, OnSuccessListener<QuerySnapshot> success, OnFailureListener failure){
+
+        Date mdate = all?null: DB.getLastMDateSaved(context, TABLE_NAME);
+        if(mdate != null){
+            getReferenceFireStore().
+                    whereGreaterThan(MDATE, mdate).//mayor que, ya que las fechas (la que buscamos de la DB) tienen hora, minuto y segundos.
+                    get().
+                    addOnSuccessListener(success).
+                    addOnFailureListener(failure);
+        }else{//TODOS
+            getReferenceFireStore().
+                    get().
+                    addOnSuccessListener(success).
+                    addOnFailureListener(failure);
+        }
+
+    }
+
+
+    public void searchDetailChanges(boolean all, OnSuccessListener<QuerySnapshot> success,  OnFailureListener failure){
+
+        Date mdate = all?null: DB.getLastMDateSaved(context, TABLE_NAME_DETAIL);
+        if(mdate != null){
+            getReferenceDetailFireStore().
+                    whereGreaterThan(MDATE, mdate).//mayor que, ya que las fechas (la que buscamos de la DB) tienen hora, minuto y segundos.
+                    get().
+                    addOnSuccessListener(success).
+                    addOnFailureListener(failure);
+        }else{//TODOS
+            getReferenceDetailFireStore().
+                    get().
+                    addOnSuccessListener(success).
+                    addOnFailureListener(failure);
+        }
+
+    }
+
+    public void consumeQuerySnapshot(boolean clear, QuerySnapshot querySnapshot){
+        if(clear){
+            delete(null, null);
+        }
+        if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
+            for(DocumentSnapshot doc: querySnapshot){
+                Sales obj = doc.toObject(Sales.class);
+                if(update(obj, CODE+"=?", new String[]{obj.getCODE()}) <=0){
+                    insert(obj);
+                }
+            }
+        }
+
+    }
+
+    public void consumeDetailQuerySnapshot(boolean clear, QuerySnapshot querySnapshot){
+        if(clear){
+            delete(null, null);
+        }
+        if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
+            for(DocumentSnapshot doc: querySnapshot){
+                SalesDetails obj = doc.toObject(SalesDetails.class);
+                if(update_Detail(obj, CODE+"=?", new String[]{obj.getCODE()}) <=0){
+                    insert_Detail(obj);
+                }
+            }
+        }
+
     }
 }

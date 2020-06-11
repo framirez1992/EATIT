@@ -1,9 +1,10 @@
 package far.com.eatit.CloudFireStoreObjects;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Token {
+public class Token implements Serializable {
     private String code;
     private String type;
     private String extradata;

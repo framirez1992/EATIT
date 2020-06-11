@@ -167,7 +167,10 @@ public class Funciones {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         return preferences.getString(CODES.PREFERENCE_LICENSE_CODE, "");
     }
-
+    public static String getCodeUserDevice(Context context){
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return preferences.getString(CODES.PREFERENCE_USERDEVICE_CODE, "");
+    }
 
     public static String getMacAddress(Context context){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
