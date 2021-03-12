@@ -2,6 +2,7 @@ package far.com.eatit;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,6 +15,8 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -26,6 +29,7 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
 
@@ -47,7 +51,9 @@ import far.com.eatit.Utils.Funciones;
 
 public class AdminLicenseControls extends AppCompatActivity implements ListableActivity {
 
-    LinearLayout llMain, llControls, llBack;
+    LinearLayout llMain,llBack, llSave;
+    RelativeLayout llControls;
+    ProgressBar pb;
     Spinner spnType;
     RecyclerView rvList, rvControls;
     ArrayList<SimpleRowModel> objects;
@@ -76,13 +82,27 @@ public class AdminLicenseControls extends AppCompatActivity implements ListableA
         license = (Licenses) getIntent().getSerializableExtra(CODES.EXTRA_ADMIN_LICENSE);
 
         llMain = findViewById(R.id.llMain);
+        llSave = findViewById(R.id.llSave);
         llControls = findViewById(R.id.llControls);
         llBack = findViewById(R.id.llBack);
+        pb = findViewById(R.id.pb);
+
+        llSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                v.setEnabled(false);
+                pb.setVisibility(View.VISIBLE);
+                saveUsersControl();
+            }
+        });
         llBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 llControls.setVisibility(View.GONE);
                 llMain.setVisibility(View.VISIBLE);
+
+                pb.setVisibility(View.GONE);
+                rvControls.setAdapter(null);
             }
         });
 
@@ -119,13 +139,6 @@ public class AdminLicenseControls extends AppCompatActivity implements ListableA
     protected void onStart() {
         super.onStart();
         setUpListeners();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-
-            getMenuInflater().inflate(R.menu.menu_admin_license_controls, menu);
-        return (super.onCreateOptionsMenu(menu));
     }
 
 
@@ -225,6 +238,7 @@ public class AdminLicenseControls extends AppCompatActivity implements ListableA
     public void refreshControlsList(){
         llMain.setVisibility(View.GONE);
         llControls.setVisibility(View.VISIBLE);
+        pb.setVisibility(View.VISIBLE);
 
         userControls = new ArrayList<>();
         selectedUserControls = new ArrayList<>();
@@ -253,13 +267,16 @@ public class AdminLicenseControls extends AppCompatActivity implements ListableA
                             for(SimpleSeleccionRowModel o: userControls){
                                 if(uc.getCONTROL().equals(o.getName())){
                                     o.setCode(uc.getCODE());
-                                    o.setChecked(true);
-                                    selectedUserControls.add(o);
+                                    if(uc.getACTIVE()){
+                                        o.setChecked(uc.getACTIVE());
+                                        selectedUserControls.add(o);
+                                    }
                                     break;
                                 }
                             }
                         }
                     }
+                    pb.setVisibility(View.GONE);
 
                     LinearLayoutManager manager = new LinearLayoutManager(AdminLicenseControls.this);
                     rvControls.setLayoutManager(manager);
@@ -296,10 +313,47 @@ public class AdminLicenseControls extends AppCompatActivity implements ListableA
 
     public void fillSpinner(){
         ArrayList<KV> data = new ArrayList<>();
-        data.add(new KV(CODES.USERSCONTROL_TARGET_USER, "User"));
+        //data.add(new KV(CODES.USERSCONTROL_TARGET_USER, "User"));
         data.add(new KV(CODES.USERSCONTROL_TARGET_USER_ROL, "Rol"));
-        data.add(new KV(CODES.USERSCONTROL_TARGET_COMPANY, "Company"));
+        //data.add(new KV(CODES.USERSCONTROL_TARGET_COMPANY, "Company"));
         spnType.setAdapter(new ArrayAdapter<KV>(AdminLicenseControls.this,android.R.layout.simple_list_item_1, data));
 
     }
+
+    public void saveUsersControl(){
+
+        WriteBatch lote = fs.batch();
+        String target = ((KV)spnType.getSelectedItem()).getKey();
+        String targetCode = selectedObject.getId();
+            for (SimpleSeleccionRowModel ssr : userControls) {
+                // String code, String target, String targetCode, String control, String value, boolean active
+                UserControl uc = new UserControl(ssr.getCode(), target, targetCode, ssr.getName(), "", ssr.isChecked());
+                lote.set(fs.collection(Tablas.generalUsers).document(license.getCODE())
+                        .collection(Tablas.generalUsersUserControl).document(uc.getCODE()), uc.toMap());
+            }
+
+            lote.commit().addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    pb.setVisibility(View.GONE);
+                    llSave.setEnabled(true);
+                    llBack.performClick();
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    pb.setVisibility(View.GONE);
+                   llSave.setEnabled(true);
+                    Snackbar.make(llControls,e.getMessage(),Snackbar.LENGTH_LONG).show();
+                }
+            });
+
+
+
+
+    }
+
+
+
+
 }

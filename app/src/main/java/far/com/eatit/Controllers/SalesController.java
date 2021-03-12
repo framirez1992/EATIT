@@ -846,7 +846,9 @@ public class SalesController {
     }
 
 
-    public void searchChanges(boolean all, OnSuccessListener<QuerySnapshot> success, OnFailureListener failure){
+
+
+    public void searchChanges(boolean all,OnSuccessListener<QuerySnapshot> success, OnFailureListener failure){
 
         Date mdate = all?null: DB.getLastMDateSaved(context, TABLE_NAME);
         if(mdate != null){
@@ -863,6 +865,33 @@ public class SalesController {
         }
 
     }
+
+     /* public void searchChanges(boolean all,String codeUser, OnSuccessListener<QuerySnapshot> success, OnFailureListener failure){
+
+        Query query =null;
+        Date mdate = all?null: DB.getLastMDateSaved(context, TABLE_NAME);
+        if(mdate != null){
+            query = getReferenceFireStore().
+                    whereGreaterThan(MDATE, mdate);//mayor que, ya que las fechas (la que buscamos de la DB) tienen hora, minuto y segundos
+        }
+        if(codeUser!= null){
+            if(query == null){
+                query=getReferenceFireStore().whereEqualTo(CODEUSER, codeUser);
+            }else{
+                query.whereEqualTo(CODEUSER, codeUser);
+            }
+        }
+
+        if(query == null){
+           getReferenceDetailFireStore().get().addOnSuccessListener(success).
+                    addOnFailureListener(failure);
+        }else{
+            query.get().addOnSuccessListener(success).
+                    addOnFailureListener(failure);
+        }
+
+
+    }*/
 
 
     public void searchDetailChanges(boolean all, OnSuccessListener<QuerySnapshot> success,  OnFailureListener failure){

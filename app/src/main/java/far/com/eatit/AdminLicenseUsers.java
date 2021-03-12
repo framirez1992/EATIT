@@ -36,6 +36,7 @@ import far.com.eatit.Adapters.AdminUserRowAdapter;
 import far.com.eatit.Adapters.Models.UserRowModel;
 import far.com.eatit.CloudFireStoreObjects.Company;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
+import far.com.eatit.CloudFireStoreObjects.UserTypes;
 import far.com.eatit.CloudFireStoreObjects.Users;
 import far.com.eatit.Controllers.UsersDevicesController;
 import far.com.eatit.Dialogs.AdminUserDialogFragment;
@@ -55,6 +56,7 @@ public class AdminLicenseUsers extends AppCompatActivity implements ListableActi
     FirebaseFirestore fs;
     ArrayList<Users> users;
     ArrayList<Company> companies;
+    ArrayList<UserTypes>userTypes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +76,7 @@ public class AdminLicenseUsers extends AppCompatActivity implements ListableActi
         objects = new ArrayList<>();
         users = new ArrayList<>();
         companies = new ArrayList<>();
+        userTypes = new ArrayList<>();
 
         LinearLayoutManager manager = new LinearLayoutManager(AdminLicenseUsers.this);
         rvList.setLayoutManager(manager);
@@ -168,6 +171,17 @@ public class AdminLicenseUsers extends AppCompatActivity implements ListableActi
                 }
             }
         });
+
+        fs.collection(Tablas.generalUsers).document(license.getCODE()).collection(Tablas.generalUsersUserTypes).addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@javax.annotation.Nullable QuerySnapshot querySnapshot, @javax.annotation.Nullable FirebaseFirestoreException e) {
+                userTypes = new ArrayList<>();
+                for (DocumentSnapshot ds : querySnapshot) {
+                    UserTypes c = ds.toObject(UserTypes.class);
+                    userTypes.add(c);
+                }
+            }
+        });
     }
     public void callAddDialog(boolean isNew){
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
@@ -178,9 +192,9 @@ public class AdminLicenseUsers extends AppCompatActivity implements ListableActi
         ft.addToBackStack(null);
         DialogFragment newFragment = null;
         if(isNew){
-            newFragment = AdminUserDialogFragment.newInstance(this,null,companies, license.getCODE());
+            newFragment = AdminUserDialogFragment.newInstance(this,null,companies,userTypes, license.getCODE());
         }else {
-            newFragment = AdminUserDialogFragment.newInstance(this,user,companies, license.getCODE());
+            newFragment = AdminUserDialogFragment.newInstance(this,user,companies,userTypes, license.getCODE());
         }
 
         // Create and show the dialog.

@@ -236,28 +236,14 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
                 salesController.delete(null, null);
             for(DocumentSnapshot dc: querySnapshot){
                     Sales s = dc.toObject(Sales.class);
-                    salesController.insert(s);
+                    if(s.getCODEUSER().equals(Funciones.getCodeuserLogged(MainOrders.this))){
+                        salesController.insert(s);
+                    }
+
                 }
 
                 refreshInterface();
 
-            }
-        });
-
-        salesDetails.addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                if(querySnapshot == null ){
-                    return;
-                }
-
-                salesController.delete_Detail(null, null);
-                for(DocumentSnapshot dc: querySnapshot){
-                    SalesDetails sd = dc.toObject(SalesDetails.class);
-                    salesController.insert_Detail(sd);
-                }
-
-                refreshInterface();
             }
         });
 
@@ -278,22 +264,6 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
 
                 userInboxController.deleteOldReadedMessages();
                 refreshInterface();
-            }
-        });
-
-        productsMeasure.addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
-                if(querySnapshot == null ){
-                    return;
-                }
-                productsMeasureController.delete(null, null);
-                for(DocumentSnapshot dc: querySnapshot){
-                    ProductsMeasure pm = dc.toObject(ProductsMeasure.class);
-                    productsMeasureController.insert(pm);
-                }
-
-                updateTempSalesDetail();
             }
         });
     }

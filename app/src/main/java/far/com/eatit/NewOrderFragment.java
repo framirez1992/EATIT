@@ -95,7 +95,6 @@ public class NewOrderFragment extends Fragment {
 
 
         ProductsTypesController.getInstance(parentActivity).fillSpinner(spnFamilia, false);
-        //ProductsSubTypesController.getInstance(parentActivity).fillSpinner(spnGrupo, false);
     }
 
     AdapterView.OnItemSelectedListener spnFamiliaListener = new AdapterView.OnItemSelectedListener() {

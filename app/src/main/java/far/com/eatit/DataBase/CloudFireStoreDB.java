@@ -209,6 +209,10 @@ public class CloudFireStoreDB {
     }
     public void CargaInicial(Licenses lic/*, boolean registerDevice*/){
 
+        /////////////////////////////////////////////////////////////
+        ///////// LIMPIANDO TODAS LAS TABLAS      ///////////////////
+        clearDataBase();
+
         this.license = lic;
         //////       BEGIN TRANSACTION      ////////
         // sqlWritable.beginTransaction();
@@ -276,8 +280,8 @@ public class CloudFireStoreDB {
                 for (DocumentSnapshot doc : querySnapshot) {
                     usersController.insert(doc.toObject(Users.class));
                 }
-                okListener.sendMessage("CARGANDO DEVICE ");
-                combosController.getDataFromFireBase(license.getCODE(), onSuccessListenerDevice, failureListener);
+            okListener.sendMessage("CARGANDO ROLES ");
+            measureUnitsController.getDataFromFireBase(license.getCODE(), onSuccessListenerRoles, failureListener);
         }
     };
    /* public OnSuccessListener<QuerySnapshot> onSuccessListenerCombos = new OnSuccessListener<QuerySnapshot>() {
@@ -304,7 +308,7 @@ public class CloudFireStoreDB {
         }
     };*/
 
-    public OnSuccessListener<QuerySnapshot> onSuccessListenerDevice = new OnSuccessListener<QuerySnapshot>() {
+    /*public OnSuccessListener<QuerySnapshot> onSuccessListenerDevice = new OnSuccessListener<QuerySnapshot>() {
         @Override
         public void onSuccess(QuerySnapshot querySnapshot) {
             devicesController.delete("", null);
@@ -314,7 +318,7 @@ public class CloudFireStoreDB {
             okListener.sendMessage("CARGANDO ROLES ");
             measureUnitsController.getDataFromFireBase(license.getCODE(), onSuccessListenerRoles, failureListener);
         }
-    };
+    };*/
 
   /*  public OnSuccessListener<QuerySnapshot> onSuccessListenerMeasureUnits = new OnSuccessListener<QuerySnapshot>() {
         @Override
@@ -427,15 +431,17 @@ public class CloudFireStoreDB {
     };*/
 
 
-    public OnSuccessListener<QuerySnapshot> onSuccessListenerRoles = new OnSuccessListener<QuerySnapshot>() {
+   public OnSuccessListener<QuerySnapshot> onSuccessListenerRoles = new OnSuccessListener<QuerySnapshot>() {
         @Override
         public void onSuccess(QuerySnapshot querySnapshot) {
             rolesController.delete("", null);
             for (DocumentSnapshot doc : querySnapshot) {
                 rolesController.insert(doc.toObject(Roles.class));
             }
-            okListener.sendMessage("CARGANDO USERS TYPES ");
-            productsSubTypesController.getDataFromFireBase(license.getCODE(), onSuccessListenerUserTypes, failureListener);
+            okListener.sendMessage("FINALIZADO CORRECTAMENTE ");
+            okListener.OnFireBaseEndContact(1);
+            //okListener.sendMessage("CARGANDO USERS TYPES ");
+            //productsSubTypesController.getDataFromFireBase(license.getCODE(), onSuccessListenerUserTypes, failureListener);
         }
     };
 
@@ -548,8 +554,8 @@ public class CloudFireStoreDB {
                 userTypesController.insert(doc.toObject(UserTypes.class));
             }
 
-            okListener.sendMessage("FINALIZADO CORRECTAMENTE ");
-            okListener.OnFireBaseEndContact(1);
+            //okListener.sendMessage("FINALIZADO CORRECTAMENTE ");
+            //okListener.OnFireBaseEndContact(1);
 
            /* okListener.sendMessage("CARGANDO TABLE CODE ");
             tableCodeController.getDataFromFireBase(license.getCODE(), onSuccessListenerTableCode, failureListener);*/
@@ -648,5 +654,12 @@ public class CloudFireStoreDB {
         case UserTypesController.TABLE_NAME: break;
         }
         return null;
+    }
+
+    public void clearDataBase(){
+        for(String table : Tablas.tablesLocal){
+            sqlWritable.execSQL("DELETE FROM "+table);
+        }
+
     }
 }

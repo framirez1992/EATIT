@@ -146,11 +146,11 @@ public class MainActualizationCenter extends AppCompatActivity implements OnSucc
                     ProductsSubTypesController.getInstance(MainActualizationCenter.this).searchChanges(true,  this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProductsSubTypesInv)){
                     ProductsSubTypesInvController.getInstance(MainActualizationCenter.this).searchChanges(true, this, this);
-                }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersSales)){
+                }/*else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersSales)){
                     SalesController.getInstance(MainActualizationCenter.this).searchChanges(true, this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersSalesDetails)){
                     SalesController.getInstance(MainActualizationCenter.this).searchDetailChanges(true, this, this);
-                }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersTableCode)){
+                }*/else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersTableCode)){
                     TableCodeController.getInstance(MainActualizationCenter.this).searchChanges(true, this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersTableFilter)){
                     TableFilterController.getInstance(MainActualizationCenter.this).searchChanges(true, this, this);
@@ -158,9 +158,9 @@ public class MainActualizationCenter extends AppCompatActivity implements OnSucc
                     UserControlController.getInstance(MainActualizationCenter.this).searchChanges( true, this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersUserTypes)){
                     UserTypesController.getInstance(MainActualizationCenter.this).searchChanges(true, this, this);
-                }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersUserInbox)){
+                }/*else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersUserInbox)){
                     UserInboxController.getInstance(MainActualizationCenter.this).searchChanges(true, this, this);
-                }else{
+                }*/else{
                     tableList.remove(0);
                     loadData();
                 }

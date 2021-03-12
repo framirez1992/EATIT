@@ -121,7 +121,6 @@ public class Main extends AppCompatActivity
             }
         });
 
-        setUpForUserType();
         setInitialFragment();
 
 
@@ -140,6 +139,7 @@ public class Main extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+        setUpForUserType();
         //licenseController.setLastUpdateToFireBase();//Actualiza la licencia
     }
 

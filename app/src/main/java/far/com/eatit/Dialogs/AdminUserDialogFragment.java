@@ -21,6 +21,7 @@ import java.util.ArrayList;
 
 import far.com.eatit.AdminLicenseUsers;
 import far.com.eatit.CloudFireStoreObjects.Company;
+import far.com.eatit.CloudFireStoreObjects.UserTypes;
 import far.com.eatit.CloudFireStoreObjects.Users;
 import far.com.eatit.Controllers.RolesController;
 import far.com.eatit.Generic.Objects.KV;
@@ -33,11 +34,12 @@ public class AdminUserDialogFragment extends DialogFragment implements OnFailure
     AdminLicenseUsers adminLicenseUsers;
     public Users tempObj;
     ArrayList<Company> companies;
+    ArrayList<UserTypes> userTypes;
     public String codeLicense;
 
     LinearLayout llSave;
     TextInputEditText etName, etPassword, etCode;
-    Spinner spnLevel, spnCompany;
+    Spinner spnUserType, spnLevel, spnCompany;
     CheckBox cbEnabled;
 
 
@@ -45,13 +47,14 @@ public class AdminUserDialogFragment extends DialogFragment implements OnFailure
      * Create a new instance of MyDialogFragment, providing "num"
      * as an argument.
      */
-    public  static AdminUserDialogFragment newInstance(AdminLicenseUsers adminLicenseUsers, Users users,ArrayList<Company> companies, String codeLicense) {
+    public  static AdminUserDialogFragment newInstance(AdminLicenseUsers adminLicenseUsers, Users users,ArrayList<Company> companies,ArrayList<UserTypes> userTypes, String codeLicense) {
 
         AdminUserDialogFragment f = new AdminUserDialogFragment();
         f.adminLicenseUsers = adminLicenseUsers;
         f.tempObj = users;
         f.codeLicense = codeLicense;
         f.companies = companies;
+        f.userTypes = userTypes;
 
         // Supply num input as an argument.
         Bundle args = new Bundle();
@@ -109,10 +112,12 @@ public class AdminUserDialogFragment extends DialogFragment implements OnFailure
         etPassword = view.findViewById(R.id.etPassword);
         spnLevel = view.findViewById(R.id.spnLevel);
         spnCompany = view.findViewById(R.id.spnCompany);
+        spnUserType = view.findViewById(R.id.spnUserType);
         cbEnabled = view.findViewById(R.id.cbEnabled);
 
         RolesController.getInstance(getActivity()).fillGeneralRolesLocal(spnLevel);
         fillSpnCompany();
+        fillSpnUserTypes();
 
         llSave.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -127,7 +132,7 @@ public class AdminUserDialogFragment extends DialogFragment implements OnFailure
         });
 
         if(tempObj != null){//EDIT
-            setUpToEditProductType();
+            setUpToEditUser();
         }
     }
 
@@ -164,6 +169,7 @@ public class AdminUserDialogFragment extends DialogFragment implements OnFailure
 
     public void SaveUser(){
         try {
+            String userType = ((KV)spnUserType.getSelectedItem()).getKey();
             String code = etCode.getText().toString();
             String systemCode = ((KV)spnLevel.getSelectedItem()).getKey();
             String userName = etName.getText().toString();
@@ -171,7 +177,7 @@ public class AdminUserDialogFragment extends DialogFragment implements OnFailure
             String company = ((KV)spnCompany.getSelectedItem()).getKey();
             boolean enabled = cbEnabled.isChecked();
 
-            Users u = new Users(code,systemCode, password, userName,company, enabled);
+            Users u = new Users(code,systemCode, password, userName,userType,company, enabled);
 
 
             adminLicenseUsers.getFs().collection(Tablas.generalUsers).document(codeLicense).collection(Tablas.generalUsersUsers).document(u.getCODE()).set(u.toMap())
@@ -193,6 +199,7 @@ public class AdminUserDialogFragment extends DialogFragment implements OnFailure
     public void EditUser(){
         try {
             Users u = tempObj;
+            u.setROLE(((KV)spnUserType.getSelectedItem()).getKey());
             u.setUSERNAME(etName.getText().toString());
             u.setPASSWORD(etPassword.getText().toString().trim());
             u.setENABLED(cbEnabled.isChecked());
@@ -218,7 +225,7 @@ public class AdminUserDialogFragment extends DialogFragment implements OnFailure
 
 
 
-    public void setUpToEditProductType(){
+    public void setUpToEditUser(){
 
         Users u = ((Users)tempObj);
         etCode.setText(u.getCODE());
@@ -227,6 +234,7 @@ public class AdminUserDialogFragment extends DialogFragment implements OnFailure
         etPassword.setText(u.getPASSWORD());
         setLevelPosition(u.getSYSTEMCODE());
         setCompanyPosition(u.getCOMPANY());
+        setUserTypePosition(u.getROLE());
         cbEnabled.setChecked(u.isENABLED());
 
     }
@@ -237,6 +245,14 @@ public class AdminUserDialogFragment extends DialogFragment implements OnFailure
             spnList.add(new KV(ut.getCODE(), ut.getNAME()+" ["+ut.getRNC()+"]"));
         }
         spnCompany.setAdapter(new ArrayAdapter<KV>(getActivity(), android.R.layout.simple_list_item_1,spnList));
+    }
+
+    public void fillSpnUserTypes(){
+        ArrayList<KV> spnList = new ArrayList<>();
+        for(UserTypes ut : userTypes){
+            spnList.add(new KV(ut.getCODE(), ut.getDESCRIPTION()));
+        }
+        spnUserType.setAdapter(new ArrayAdapter<KV>(getActivity(), android.R.layout.simple_list_item_1,spnList));
     }
 
 
@@ -253,6 +269,15 @@ public class AdminUserDialogFragment extends DialogFragment implements OnFailure
         for(int i = 0; i< spnCompany.getAdapter().getCount(); i++){
             if(((KV)spnCompany.getAdapter().getItem(i)).getKey().equals(key)){
                 spnCompany.setSelection(i);
+                break;
+            }
+        }
+    }
+
+    public void setUserTypePosition(String key){
+        for(int i = 0; i< spnUserType.getAdapter().getCount(); i++){
+            if(((KV)spnUserType.getAdapter().getItem(i)).getKey().equals(key)){
+                spnUserType.setSelection(i);
                 break;
             }
         }
