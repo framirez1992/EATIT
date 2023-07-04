@@ -17,18 +17,22 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
-import android.support.v4.widget.ImageViewCompat;
-import android.support.v7.widget.CardView;
 import android.telephony.SmsManager;
 import android.util.DisplayMetrics;
 import android.view.View;
+import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.MimeTypeMap;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
+import androidx.core.widget.ImageViewCompat;
+
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.jsoup.Jsoup;
@@ -44,6 +48,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Random;
 
+import far.com.eatit.API.models.LoginResponse;
 import far.com.eatit.DataBase.DB;
 import far.com.eatit.Generic.Objects.KV2;
 import far.com.eatit.Globales.CODES;
@@ -62,6 +67,17 @@ public class Funciones {
         ContentResolver cr = context.getContentResolver();
         MimeTypeMap mime = MimeTypeMap.getSingleton();
         return mime.getExtensionFromMimeType(cr.getType(uri));
+    }
+
+    public static String  getFormatedDateServer(Date date){
+        if(date == null){
+            return null;
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        return sdf.format(date);
+    }
+    public static String getMinServerDate(){
+        return "1753-1-1T00:00:00";
     }
 
     public static String getFormatedDate(){
@@ -107,6 +123,9 @@ public class Funciones {
         if(date == null){
             return null;
         }
+        if(date.contains("T")){
+            date = date.replace("T"," ");
+        }
         Date d = new Date();
         try {
             d = getSimpleDateFormat().parse(date);
@@ -117,6 +136,9 @@ public class Funciones {
     }
 
     public static String formatPhone(String phone){
+        if(phone == null){
+          return "";
+        }
         String formatted =phone;
         if(phone.length() == 10){
             formatted = phone.substring(0, 3)+"-"+phone.substring(3, 6)+"-"+phone.substring(6);
@@ -428,6 +450,17 @@ public class Funciones {
         return preferences.getInt(key, -1);
     }
 
+    public static LoginResponse getLoginResponseData(Context context){
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String data = preferences.getString(CODES.PREFERENCE_LOGIN_DATA, "");
+        if(data.isEmpty()){
+            return null;
+        }else{
+            Gson g = new Gson();
+            LoginResponse lr = g.fromJson(data, LoginResponse.class);
+            return lr;
+        }
+    }
     public static void clearPreference(Context context){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor edit = preferences.edit();
@@ -595,6 +628,86 @@ public class Funciones {
     public static String toJson(ArrayList data){
         JSONArray array = new JSONArray(data);
         return array.toString();
+    }
+
+    public static String parseToJson(Object o){
+        Gson g = new Gson();
+        String data = g.toJson(o);
+        return data;
+    }
+
+    public static Dialog getWaitDialog(Context context){
+        Dialog d = new Dialog(context,android.R.style.Theme_Material_Light_NoActionBar_Fullscreen);
+        d.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        d.setContentView(R.layout.dialog_wait);
+        d.setCancelable(false);
+        d.getWindow().setBackgroundDrawableResource(R.color.blackTransparent);
+
+        return d;
+    }
+
+    public static Dialog getErrorDialog(Context context,int colorResourceId,String status, String message, View.OnClickListener buttonListener){
+        Dialog d = new Dialog(context,android.R.style.Theme_Material_Light_NoActionBar_Fullscreen);
+        d.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        d.setContentView(R.layout.dialog_error);
+        d.setCancelable(false);
+        d.getWindow().setBackgroundDrawableResource(R.color.blackTransparent);
+        ImageView imgLogo = d.findViewById(R.id.imgLogo);
+        TextView tvStatus = d.findViewById(R.id.tvStatus);
+        TextView tvDescription = d.findViewById(R.id.tvDescription);
+
+
+        tvStatus.setText(status);
+        tvDescription.setText(message);
+        imgLogo.setColorFilter(ContextCompat.getColor(context, colorResourceId), android.graphics.PorterDuff.Mode.SRC_IN);
+        tvStatus.setTextColor(ContextCompat.getColor(context, colorResourceId));
+
+        d.findViewById(R.id.btnClose).setOnClickListener(buttonListener);
+
+        return d;
+    }
+
+    public static Dialog getErrorDialogNoButtons(Context context,int colorResourceId, String status,String message){
+        if(message == null)
+            message = "";
+
+        Dialog d = new Dialog(context,android.R.style.Theme_Material_Light_NoActionBar_Fullscreen);
+        d.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        d.setContentView(R.layout.dialog_error_no_btn);
+        d.setCancelable(false);
+        d.getWindow().setBackgroundDrawableResource(R.color.blackTransparent);
+        ImageView imgLogo = d.findViewById(R.id.imgLogo);
+        TextView tvStatus = d.findViewById(R.id.tvStatus);
+        TextView tvDescription = d.findViewById(R.id.tvDescription);
+
+        tvStatus.setText(status);
+        tvDescription.setText(message);
+        imgLogo.setColorFilter(ContextCompat.getColor(context, colorResourceId), android.graphics.PorterDuff.Mode.SRC_IN);
+        tvStatus.setTextColor(ContextCompat.getColor(context, colorResourceId));
+
+        return d;
+    }
+
+    public static Dialog getSucessActionDialog(Context context, String message){
+
+        Dialog d = new Dialog(context,android.R.style.Theme_Material_Light_NoActionBar_Fullscreen);
+        d.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        d.setContentView(R.layout.dialog_success);
+        d.setCancelable(false);
+        d.getWindow().setBackgroundDrawableResource(R.color.blackTransparent);
+
+        TextView tvStatusTitle = d.findViewById(R.id.tvStatusTitle);
+        TextView tvStatus = d.findViewById(R.id.tvStatus);
+        tvStatus.setText("SUCCESSFUL");
+
+        TextView tvAuthNumberTitle = d.findViewById(R.id.tvAuthNumberTitle);
+        TextView tvAuthNumber = d.findViewById(R.id.tvAuthNumber);
+        tvAuthNumberTitle.setText("Message");
+        tvAuthNumber.setText(message);
+
+
+
+        return d;
     }
 
 }

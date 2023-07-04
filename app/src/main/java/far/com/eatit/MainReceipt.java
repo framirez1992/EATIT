@@ -1,13 +1,10 @@
 package far.com.eatit;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.View;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -26,15 +23,14 @@ import far.com.eatit.Controllers.ReceiptController;
 import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Dialogs.PaymentDialog;
 import far.com.eatit.Dialogs.WorkedOrdersDialog;
-import far.com.eatit.Globales.CODES;
 import far.com.eatit.Interfases.ListableActivity;
 import far.com.eatit.Interfases.ReceiptableActivity;
 
 public class MainReceipt extends AppCompatActivity implements ListableActivity, ReceiptableActivity {
 
     SalesController salesController;
-    CollectionReference sales;
-    CollectionReference salesDetails;
+    //CollectionReference sales;
+    //CollectionReference salesDetails;
 
     ReceipFragment receipFragment;
     ReceiptResumeFragment receiptResumeFragment;
@@ -48,8 +44,8 @@ public class MainReceipt extends AppCompatActivity implements ListableActivity, 
         //setContentView(R.layout.activity_main_receipt);
         setContentView(R.layout.content_main);
         salesController = SalesController.getInstance(MainReceipt.this);
-        sales = salesController.getReferenceFireStore();
-        salesDetails = salesController.getReferenceDetailFireStore();
+        //sales = salesController.getReferenceFireStore();
+        //salesDetails = salesController.getReferenceDetailFireStore();
 
         receipFragment = new ReceipFragment();
         receiptResumeFragment = new ReceiptResumeFragment();
@@ -64,39 +60,6 @@ public class MainReceipt extends AppCompatActivity implements ListableActivity, 
     @Override
     protected void onStart() {
         super.onStart();
-        sales.addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                if(querySnapshot == null){
-                    return;
-                }
-                salesController.delete(null, null);
-                for(DocumentSnapshot dc: querySnapshot){
-                    Sales s = dc.toObject(Sales.class);
-                    salesController.insert(s);
-                }
-
-                refresh();
-
-            }
-        });
-
-        salesDetails.addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                if(querySnapshot == null){
-                    return;
-                }
-
-                salesController.delete_Detail(null, null);
-                for(DocumentSnapshot dc: querySnapshot){
-                    SalesDetails sd = dc.toObject(SalesDetails.class);
-                    salesController.insert_Detail(sd);
-                }
-
-                refresh();
-            }
-        });
     }
 
     @Override
@@ -137,7 +100,7 @@ public class MainReceipt extends AppCompatActivity implements ListableActivity, 
             SalesController.getInstance(MainReceipt.this).closeOrders(receipt,deliveredSales);
             //////////////////////////////////////////////////////////////////
             //////////  GUARDANDO RECIBO          ////////////////////////////
-            ReceiptController.getInstance(MainReceipt.this).sendToFireBase(receipt);
+            //ReceiptController.getInstance(MainReceipt.this).sendToFireBase(receipt);
             /////////////////////////////////////////////////////////////////
         }
     }

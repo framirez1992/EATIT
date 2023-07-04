@@ -1,12 +1,12 @@
 package far.com.eatit.Adapters.Models;
 
 public class OptionModel {
-    int id;
+    Object object;
     String text;
     int imgResource;
 
-    public OptionModel(int id, String text, int resource){
-        this.id = id;
+    public OptionModel(Object o, String text, int resource){
+        this.object = o;
         this.text = text;
         this.imgResource = resource;
     }
@@ -18,7 +18,8 @@ public class OptionModel {
     public int getImgResource() {
         return imgResource;
     }
-    public int getId(){
-        return id;
+
+    public Object getObject() {
+        return object;
     }
 }

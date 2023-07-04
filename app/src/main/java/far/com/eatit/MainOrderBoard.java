@@ -1,14 +1,6 @@
 package far.com.eatit;
 
 import android.app.Dialog;
-import android.support.annotation.NonNull;
-import android.support.design.widget.NavigationView;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.MenuInflater;
@@ -17,6 +9,15 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 
 import javax.annotation.Nullable;
 
+import far.com.eatit.API.models.Sale;
 import far.com.eatit.Adapters.Models.OrderModel;
 import far.com.eatit.CloudFireStoreObjects.ProductsControl;
 import far.com.eatit.CloudFireStoreObjects.Sales;
@@ -48,8 +50,8 @@ public class MainOrderBoard extends AppCompatActivity implements ListableActivit
     OrdersBoardFragment ordersBoardFragment;
     SalesController salesController;
     ProductsControlController productsControlController;
-    CollectionReference salesReference;
-    CollectionReference salesDetailReference;
+    //CollectionReference salesReference;
+    //CollectionReference salesDetailReference;
     CollectionReference productsControlReference;
     OrderModel currentOrder = null;
     ContextMenu contextMenu;
@@ -79,8 +81,8 @@ public class MainOrderBoard extends AppCompatActivity implements ListableActivit
             salesController = SalesController.getInstance(MainOrderBoard.this);
             productsControlController = ProductsControlController.getInstance(MainOrderBoard.this);
 
-            salesReference = salesController.getReferenceFireStore();
-            salesDetailReference = salesController.getReferenceDetailFireStore();
+            //salesReference = salesController.getReferenceFireStore();
+            //salesDetailReference = salesController.getReferenceDetailFireStore();
             productsControlReference = productsControlController.getReferenceFireStore();
 
             ordersBoardFragment = new OrdersBoardFragment();
@@ -169,30 +171,6 @@ public class MainOrderBoard extends AppCompatActivity implements ListableActivit
     @Override
     protected void onStart() {
         super.onStart();
-        salesReference.addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                salesController.delete(null, null);
-                for(DocumentSnapshot ds : querySnapshot){
-                    Sales s = ds.toObject(Sales.class);
-                    salesController.insert(s);
-                }
-                reloadOrdersList();
-            }
-        });
-
-        salesDetailReference.addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                salesController.delete_Detail(null, null);
-                for(DocumentSnapshot ds : querySnapshot){
-                    SalesDetails sd = ds.toObject(SalesDetails.class);
-                    salesController.insert_Detail(sd);
-                }
-
-                reloadOrdersList();
-            }
-        });
 
         productsControlReference.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -233,7 +211,7 @@ public class MainOrderBoard extends AppCompatActivity implements ListableActivit
 
     public void setOrderReady(){
         if(currentOrder != null){
-            Sales s = salesController.getSaleByCode(currentOrder.getOrderNum());
+            Sale s = salesController.getSaleById(/*currentOrder.getOrderNum()*/0);
             if(s == null){
                 showErrorDialog("Error", "La orden ya no existe");
                 return;
@@ -243,12 +221,12 @@ public class MainOrderBoard extends AppCompatActivity implements ListableActivit
                 return;
             }
 
-            s.setSTATUS(CODES.CODE_ORDER_STATUS_READY);
-            salesController.sendToFireBase(s, new ArrayList<SalesDetails>());//AQUI DEBEN ACTUALIZARSE A "LISTO" EL DETALLE DE LAS ORDENES
+            s.setStatus(CODES.CODE_ORDER_STATUS_READY);
+            //salesController.sendToFireBase(s, new ArrayList<SalesDetails>());//AQUI DEBEN ACTUALIZARSE A "LISTO" EL DETALLE DE LAS ORDENES
             //Se le coloca el codigo de la orden en caso de que la orden pase a "LISTA" varias veces sobreescriba el mensaje en el server con Status "NO LEIDO"
-            String subject =  "Orden Lista: "+AreasDetailController.getInstance(MainOrderBoard.this).getAreasDetailByCode(s.getCODEAREADETAIL()).getDESCRIPTION();
+            String subject =  "Orden Lista: "+AreasDetailController.getInstance(MainOrderBoard.this).getAreasDetail(s.getIdTable()).getDescription();
             String message = "La orden esta lista. Pase a recogerla";
-            UserInbox ui = new UserInbox(s.getCODE(), Funciones.getCodeuserLogged(MainOrderBoard.this), s.getCODEUSER(),s.getCODE(), subject,message,CODES.CODE_TYPE_OPERATION_SALES+"",CODES.CODE_ICON_MESSAGE_CHECK, CODES.CODE_USERINBOX_STATUS_NO_READ );
+            UserInbox ui = new UserInbox(s.getId()+"", Funciones.getCodeuserLogged(MainOrderBoard.this), s.getIduser()+"",s.getId()+"", subject,message,CODES.CODE_TYPE_OPERATION_SALES+"",CODES.CODE_ICON_MESSAGE_CHECK, CODES.CODE_USERINBOX_STATUS_NO_READ );
             ArrayList<UserInbox> uis = new ArrayList<>(); uis.add(ui);
             UserInboxController.getInstance(MainOrderBoard.this).sendToFireBase(uis);
         }
@@ -256,21 +234,20 @@ public class MainOrderBoard extends AppCompatActivity implements ListableActivit
 
 
     public void deleteCanceledOrders(){
-
-            String where = SalesController.STATUS+" = ?";
+           /* String where = SalesController.STATUS+" = ?";
             String[]args = new String[]{+CODES.CODE_ORDER_STATUS_CANCELED+""};
             ArrayList<Sales> sales = salesController.getSales(where, args);
             SalesController.getInstance(MainOrderBoard.this).massiveDelete(sales);
-            ordersBoardFragment.reloadList();
+            ordersBoardFragment.reloadList();*/
     }
 
     public void deleteCurrentOrder(){
-
+/*
         String where = SalesController.STATUS+" = ? AND "+SalesController.CODE+" = ?";
         String[]args = new String[]{+CODES.CODE_ORDER_STATUS_CANCELED+"", currentOrder.getOrderNum()};
         ArrayList<Sales> sales = salesController.getSales(where, args);
         SalesController.getInstance(MainOrderBoard.this).massiveDelete(sales);
-        ordersBoardFragment.reloadList();
+        ordersBoardFragment.reloadList();*/
     }
 
     public void callMsgDialog(){
@@ -280,7 +257,7 @@ public class MainOrderBoard extends AppCompatActivity implements ListableActivit
             ft.remove(prev);
         }
         //ft.addToBackStack(null);
-        DialogFragment newFragment =  MessageSendDialog.newInstance(MainOrderBoard.this, salesController.getSaleByCode(currentOrder.getOrderNum()));
+        DialogFragment newFragment =  MessageSendDialog.newInstance(MainOrderBoard.this, salesController.getSaleById(/*currentOrder.getOrderNum()*/0));
 
         // Create and show the dialog.
         newFragment.show(ft, "dialog");
@@ -315,7 +292,7 @@ public class MainOrderBoard extends AppCompatActivity implements ListableActivit
     }
 
 
-    private String getBloquedProductsMessage(Sales s){
+    private String getBloquedProductsMessage(Sale s){
         String msg ="";
         for(KV p : SalesController.getInstance(MainOrderBoard.this).getBloquedProductsInOrder(s)){
             msg+=p.getValue()+"\n";

@@ -251,7 +251,7 @@ public class ProductsSubTypesInvController {
         fillSpinner(spn,addTodos, null);
     }
     public void fillSpinner(Spinner spn, boolean addTodos, String type){
-        String orderBy = ProductsSubTypesController.ORDER+" ASC, "+ProductsSubTypesController.DESCRIPTION;
+        String orderBy = ProductsSubTypesController.POSITION+" ASC, "+ProductsSubTypesController.DESCRIPTION;
         String[] camposFiltros = null;
         String[]args = null;
         if(type != null){

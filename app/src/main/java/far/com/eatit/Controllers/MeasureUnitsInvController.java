@@ -124,7 +124,7 @@ public class MeasureUnitsInvController {
     public void sendToFireBase(MeasureUnits mu){
         try {
             WriteBatch lote = db.batch();
-            lote.set(getReferenceFireStore().document(mu.getCODE()), mu.toMap());
+            //lote.set(getReferenceFireStore().document(mu.getCODE()), mu.toMap());
             lote.commit();
 
         }catch(Exception e){

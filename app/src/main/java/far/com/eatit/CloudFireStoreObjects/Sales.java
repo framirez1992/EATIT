@@ -36,7 +36,7 @@ public class Sales {
         this.CODESALESORIGEN = codeSalesOrigen;this.CODERECEIPT = codeReceipt;
     }
     public Sales(Cursor c){
-        this.CODE = c.getString(c.getColumnIndex(SalesController.CODE));
+        /*this.CODE = c.getString(c.getColumnIndex(SalesController.CODE));
         this.TOTALDISCOUNT = c.getDouble(c.getColumnIndex(SalesController.TOTALDISCOUNT));
         this.TOTAL = c.getDouble(c.getColumnIndex(SalesController.TOTAL));
         this.DATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(SalesController.DATE)));
@@ -50,14 +50,14 @@ public class Sales {
         this.CODEPRODUCTTYPE = c.getString(c.getColumnIndex(SalesController.CODEPRODUCTTYPE));
         this.CODEPRODUCTSUBTYPE = c.getString(c.getColumnIndex(SalesController.CODEPRODUCTSUBTYPE));
         this.CODESALESORIGEN = c.getString(c.getColumnIndex(SalesController.CODESALESORIGEN));
-        this.CODERECEIPT = c.getString(c.getColumnIndex(SalesController.CODERECEIPT));
+        this.CODERECEIPT = c.getString(c.getColumnIndex(SalesController.CODERECEIPT));*/
     }
 
 
     public HashMap<String, Object> toMap(){
 
         HashMap<String, Object> data = new HashMap<>();
-        data.put(SalesController.CODE,CODE);
+       /* data.put(SalesController.CODE,CODE);
         data.put(SalesController.TOTALDISCOUNT,TOTALDISCOUNT);
         data.put(SalesController.TOTAL, TOTAL);
         data.put(SalesController.DATE, (DATE == null)? FieldValue.serverTimestamp(): DATE);
@@ -74,7 +74,7 @@ public class Sales {
         data.put(SalesController.CODERECEIPT, CODERECEIPT);
         if(salesdetails != null){
         data.put("salesdetails", salesdetails);
-        }
+        }*/
 
         return  data;
 

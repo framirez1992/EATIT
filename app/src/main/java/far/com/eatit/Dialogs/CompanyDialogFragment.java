@@ -4,11 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputEditText;
-import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,15 +12,22 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
-import far.com.eatit.CloudFireStoreObjects.Company;
+import far.com.eatit.API.models.Company;
+import far.com.eatit.API.models.LoginResponse;
 import far.com.eatit.Controllers.CompanyController;
 import far.com.eatit.Interfases.DialogCaller;
 import far.com.eatit.R;
@@ -164,7 +166,7 @@ public class CompanyDialogFragment extends DialogFragment implements OnFailureLi
 
         if(validate()) {
             if(tempObj!= null && keeptLogo()){
-                EditCompany(tempObj.getLOGO());
+                EditCompany(tempObj.getLogo());
                 dismiss();
                 endLoading();
             }else{
@@ -177,6 +179,8 @@ public class CompanyDialogFragment extends DialogFragment implements OnFailureLi
 
     public void SaveCompany(String logo){
         try {
+            LoginResponse loginResponse = Funciones.getLoginResponseData(activity);
+
             String code = etCode.getText().toString();
             String name = etName.getText().toString();
             String rnc = etRnc.getText().toString();
@@ -184,9 +188,11 @@ public class CompanyDialogFragment extends DialogFragment implements OnFailureLi
             String address2 = etAddress2.getText().toString();
             String phone = etPhone.getText().toString();
             String phone2 = etPhone2.getText().toString();
-            Company company = new Company(code,name, rnc, address, address2, phone, phone2,logo,  null, null);
+
+            //int idLicense, String code, String rnc, String name, String phone, String phone2, String phone3, String address, String address2, String address3, String logo
+            Company company = new Company(loginResponse.getLicense().getId(),code,rnc,name,phone, phone2,"", address, address2,"",logo);
             companyController.insert(company);
-            companyController.sendToFireBase(company);
+            //companyController.sendToFireBase(company);
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -196,17 +202,16 @@ public class CompanyDialogFragment extends DialogFragment implements OnFailureLi
 
     public void EditCompany(String logo){
         try {
-            tempObj.setNAME(etName.getText().toString());
-            tempObj.setRNC(etRnc.getText().toString());
-            tempObj.setADDRESS(etAddress.getText().toString());
-            tempObj.setADDRESS2(etAddress2.getText().toString());
-            tempObj.setPHONE(etPhone.getText().toString());
-            tempObj.setPHONE2(etPhone2.getText().toString());
-            tempObj.setLOGO(logo);
-            tempObj.setMDATE(null);
+            tempObj.setName(etName.getText().toString());
+            tempObj.setRnc(etRnc.getText().toString());
+            tempObj.setAddress(etAddress.getText().toString());
+            tempObj.setAddress2(etAddress2.getText().toString());
+            tempObj.setPhone(etPhone.getText().toString());
+            tempObj.setPhone2(etPhone2.getText().toString());
+            tempObj.setLogo(logo);
 
-            companyController.update(tempObj, CompanyController.CODE+" = ?", new String[]{tempObj.getCODE()});
-            companyController.sendToFireBase(tempObj);
+            companyController.update(tempObj);
+            //companyController.sendToFireBase(tempObj);
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -217,15 +222,15 @@ public class CompanyDialogFragment extends DialogFragment implements OnFailureLi
 
     public void setUpToEditCompany(){
 
-        etCode.setText(tempObj.getCODE());
-        etName.setText(tempObj.getNAME());
-        etRnc.setText(tempObj.getRNC());
-        etPhone.setText(tempObj.getPHONE());
-        etPhone2.setText(tempObj.getPHONE2());
-        etAddress.setText(tempObj.getADDRESS());
-        etAddress2.setText(tempObj.getADDRESS2());
-        if(!tempObj.getLOGO().isEmpty()){
-            Picasso.with(activity).load(tempObj.getLOGO()).into(imgLogo);
+        etCode.setText(tempObj.getCode());
+        etName.setText(tempObj.getName());
+        etRnc.setText(tempObj.getRnc());
+        etPhone.setText(tempObj.getPhone());
+        etPhone2.setText(tempObj.getPhone2());
+        etAddress.setText(tempObj.getAddress());
+        etAddress2.setText(tempObj.getAddress2());
+        if(!tempObj.getLogo().isEmpty()){
+            Picasso.with(activity).load(tempObj.getLogo()).into(imgLogo);
         }
 
 
@@ -258,7 +263,7 @@ public class CompanyDialogFragment extends DialogFragment implements OnFailureLi
         startLoading();
         Uri file = filePath;
         if(file != null){
-            StorageReference riversRef = mStorageRef.child((tempObj!=null?tempObj.getCODE():etCode.getText().toString())+"/"+ "logo" +"."+Funciones.getFileExtension(activity, filePath));
+            StorageReference riversRef = mStorageRef.child((tempObj!=null?tempObj.getCode():etCode.getText().toString())+"/"+ "logo" +"."+Funciones.getFileExtension(activity, filePath));
             riversRef.putFile(file)
                     .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
@@ -336,6 +341,6 @@ public class CompanyDialogFragment extends DialogFragment implements OnFailureLi
     }
 
     public boolean keeptLogo(){
-        return filePath== null && tempObj!= null && !tempObj.getLOGO().isEmpty();
+        return filePath== null && tempObj!= null && !tempObj.getLogo().isEmpty();
     }
 }

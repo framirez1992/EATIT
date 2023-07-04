@@ -27,25 +27,27 @@ public class Products {
 
     public HashMap<String, Object> toMap(){
         HashMap<String, Object> map = new HashMap<>();
-        map.put(ProductsController.CODE,CODE);
+        /*map.put(ProductsController.CODE,CODE);
         map.put(ProductsController.DESCRIPTION,DESCRIPTION);
         map.put(ProductsController.TYPE,TYPE );
         map.put(ProductsController.SUBTYPE, SUBTYPE);
         map.put(ProductsController.COMBO,COMBO );
         map.put(ProductsController.DATE, (DATE == null)? FieldValue.serverTimestamp():DATE);
-        map.put(ProductsController.MDATE, (MDATE == null)? FieldValue.serverTimestamp():MDATE);
+        map.put(ProductsController.MDATE, (MDATE == null)? FieldValue.serverTimestamp():MDATE);*/
 
         return map;
     }
 
     public Products (Cursor c){
-        this.CODE = c.getString(c.getColumnIndex(ProductsController.CODE));
+        /*this.CODE = c.getString(c.getColumnIndex(ProductsController.CODE));
         this.DESCRIPTION = c.getString(c.getColumnIndex(ProductsController.DESCRIPTION));
         this.TYPE = c.getString(c.getColumnIndex(ProductsController.TYPE));
         this.SUBTYPE = c.getString(c.getColumnIndex(ProductsController.SUBTYPE));
         this.COMBO = c.getString(c.getColumnIndex(ProductsController.COMBO)).equals("1");
         this.MDATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(ProductsController.MDATE)));
         this.DATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(ProductsController.DATE)));
+        */
+
     }
 
     public String getCODE() {

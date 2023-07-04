@@ -1,12 +1,28 @@
 package far.com.eatit.Adapters.Models;
 
+import far.com.eatit.API.models.Company;
+
 public class CompanyRowModel {
     String code, name,rnc, address, address2, phone, phone2, logo;
     boolean isInserver;
+    Company company;
 
     public CompanyRowModel(String code, String name, String rnc, String address, String address2, String phone, String phone2, String logo, boolean isInserver){
         this.name = name; this.code = code; this.rnc = rnc; this.address = address; this.address2 = address2; this.phone = phone;
         this.phone2 = phone2; this.logo = logo; this.isInserver = isInserver;
+    }
+
+    public CompanyRowModel(String code, String name, String rnc, String address, String address2, String phone, String phone2, String logo, Company company) {
+        this.code = code;
+        this.name = name;
+        this.rnc = rnc;
+        this.address = address;
+        this.address2 = address2;
+        this.phone = phone;
+        this.phone2 = phone2;
+        this.logo = logo;
+        this.isInserver = true;
+        this.company = company;
     }
 
     public String getCode() {
@@ -79,5 +95,13 @@ public class CompanyRowModel {
 
     public void setInserver(boolean inserver) {
         isInserver = inserver;
+    }
+
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
     }
 }

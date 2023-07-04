@@ -41,7 +41,7 @@ public class NotificationsController {
             "INNER JOIN "+UsersController.TABLE_NAME+" u on u."+UsersController.CODE+" = "+UserInboxController.getCODESENDER()+" "+
             "WHERE "+where+" "+
             "GROUP BY CODEMESSAGE "+
-            "ORDER BY " + SalesController.MDATE + " DESC";
+            "ORDER BY " + SalesController.UPDATEDATE + " DESC";
 
     Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
     while (c.moveToNext()) {

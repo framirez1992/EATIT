@@ -1,29 +1,43 @@
 package far.com.eatit;
 
 import android.app.Dialog;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
 import android.view.ContextMenu;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.SearchView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import far.com.eatit.API.APIClient;
+import far.com.eatit.API.APIInterface;
+import far.com.eatit.API.models.LoginResponse;
+import far.com.eatit.API.models.MeasureUnit;
+import far.com.eatit.API.models.ProductSubType;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.Adapters.SimpleRowEditionAdapter;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
@@ -33,143 +47,84 @@ import far.com.eatit.Controllers.MeasureUnitsController;
 import far.com.eatit.Controllers.MeasureUnitsInvController;
 import far.com.eatit.Dialogs.MeasureUnitDialogFragment;
 import far.com.eatit.Globales.CODES;
+import far.com.eatit.Interfases.DialogCaller;
 import far.com.eatit.Interfases.ListableActivity;
+import far.com.eatit.Utils.Funciones;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-public class MaintenanceUnitMeasure extends AppCompatActivity implements ListableActivity {
+public class MaintenanceUnitMeasure extends Fragment implements ListableActivity, DialogCaller {
+
+    Main mainActivity;
+    String type;
+    APIInterface apiInterface;
+    LoginResponse loginResponse;
+
 
     RecyclerView rvList;
     ArrayList<SimpleRowModel> objects;
     SimpleRowEditionAdapter adapter;
-    MeasureUnitsController measureUnitsController;
-    MeasureUnitsInvController measureUnitsInvController;
-    MeasureUnits measureUnit;
-    Licenses licence;
+    //MeasureUnitsController measureUnitsController;
+    //MeasureUnitsInvController measureUnitsInvController;
+    MeasureUnit measureUnit;
+    //Licenses licence;
     String lastSearch = null;
-    String type;
+
+
+    public MaintenanceUnitMeasure(){
+
+    }
+
+    public static MaintenanceUnitMeasure newInstance(Main mainActivity, String type){
+        MaintenanceUnitMeasure fragment = new MaintenanceUnitMeasure();
+        fragment.mainActivity = mainActivity;
+        fragment.type = type;
+        return fragment;
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        loginResponse = Funciones.getLoginResponseData(mainActivity);
+        apiInterface = APIClient.getClient(mainActivity).create(APIInterface.class);
+        return inflater.inflate(R.layout.activity_maintenance_screen, container, false);
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maintenance_screen);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-        if(getIntent().getExtras()== null || !getIntent().getExtras().containsKey(CODES.EXTRA_TYPE_FAMILY) ){
-            finish();
-            return;
-        }
+        view.findViewById(R.id.llMenu).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showOptions(true);
+            }
+        });
 
-        type = getIntent().getStringExtra(CODES.EXTRA_TYPE_FAMILY);
-        measureUnitsController = MeasureUnitsController.getInstance(MaintenanceUnitMeasure.this);
-        measureUnitsInvController = MeasureUnitsInvController.getInstance(MaintenanceUnitMeasure.this);
-        licence = LicenseController.getInstance(MaintenanceUnitMeasure.this).getLicense();
-
-
-        rvList = findViewById(R.id.rvList);
+        rvList = view.findViewById(R.id.rvList);
         objects = new ArrayList<>();
 
-        LinearLayoutManager manager = new LinearLayoutManager(MaintenanceUnitMeasure.this);
+        LinearLayoutManager manager = new LinearLayoutManager(mainActivity);
         rvList.setLayoutManager(manager);
-        adapter = new SimpleRowEditionAdapter(this,this, objects);
+        adapter = new SimpleRowEditionAdapter(mainActivity,this, objects);
         rvList.setAdapter(adapter);
 
-        refreshList(lastSearch);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-      setUpListeners();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-
-        try{
-            getMenuInflater().inflate(R.menu.search_menu, menu);
-            MenuItem searchItem = menu.findItem(R.id.action_search);
-            SearchView search = (SearchView) searchItem.getActionView();
-
-            search.setOnQueryTextListener(searchListener);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        return (super.onCreateOptionsMenu(menu));
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
-            case R.id.action_new:
-                callAddDialog(true);
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
+       searchEntities();
     }
 
 
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_edit_delete, menu);
-        super.onCreateContextMenu(menu, v, menuInfo);
-    }
 
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
 
-        switch (item.getItemId()) {
-            case R.id.actionEdit:
-                callAddDialog(false);
-                return true;
-            case R.id.actionDelete:
-                callDeleteConfirmation();
-                return  true;
 
-            default:return super.onContextItemSelected(item);
-        }
-    }
-
-    public void setUpListeners(){
-        if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
-            measureUnitsController.getReferenceFireStore().addSnapshotListener(new EventListener<QuerySnapshot>() {
-                @Override
-                public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                    measureUnitsController.delete(null, null);//limpia la tabla
-
-                    for(DocumentSnapshot ds: querySnapshot){
-
-                        MeasureUnits mu = ds.toObject(MeasureUnits.class);
-                        measureUnitsController.insert(mu);
-                    }
-
-                    refreshList(lastSearch);
-                }
-            });
-        }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
-            measureUnitsInvController.getReferenceFireStore().addSnapshotListener(new EventListener<QuerySnapshot>() {
-                @Override
-                public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                    measureUnitsInvController.delete(null, null);//limpia la tabla
-
-                    for(DocumentSnapshot ds: querySnapshot){
-
-                        MeasureUnits mu = ds.toObject(MeasureUnits.class);
-                        measureUnitsInvController.insert(mu);
-                    }
-
-                    refreshList(lastSearch);
-                }
-            });
-        }
-
-    }
     public void callAddDialog(boolean isNew){
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        Fragment prev = getSupportFragmentManager().findFragmentByTag("dialog");
+        FragmentTransaction ft =  mainActivity.getSupportFragmentManager().beginTransaction();
+        Fragment prev = mainActivity.getSupportFragmentManager().findFragmentByTag("dialog");
         if (prev != null) {
             ft.remove(prev);
         }
         ft.addToBackStack(null);
-        DialogFragment newFragment =  MeasureUnitDialogFragment.newInstance(type, (isNew)?null:measureUnit);
+        DialogFragment newFragment =  MeasureUnitDialogFragment.newInstance(mainActivity,type, (isNew)?null:measureUnit,this::dialogClosed);
         // Create and show the dialog.
         newFragment.show(ft, "dialog");
     }
@@ -178,10 +133,10 @@ public class MaintenanceUnitMeasure extends AppCompatActivity implements Listabl
 
         String description = "";
         if(measureUnit != null){
-            description = measureUnit.getDESCRIPTION();
+            description = measureUnit.getDescription();
         }
 
-        final Dialog d = new Dialog(MaintenanceUnitMeasure.this);
+        final Dialog d = new Dialog(mainActivity);
         d.setTitle("Delete");
         d.setContentView(R.layout.msg_2_buttons);
         TextView tvMsg = d.findViewById(R.id.tvMsg);
@@ -193,11 +148,12 @@ public class MaintenanceUnitMeasure extends AppCompatActivity implements Listabl
             @Override
             public void onClick(View v) {
                 if(measureUnit != null){
+                    /*
                     if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
                         measureUnitsController.deleteFromFireBase(measureUnit);
                     }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
                         measureUnitsInvController.deleteFromFireBase(measureUnit);
-                    }
+                    }*/
 
                 }
                 d.dismiss();
@@ -215,6 +171,7 @@ public class MaintenanceUnitMeasure extends AppCompatActivity implements Listabl
 
     }
 
+    /*
     public void refreshList(String data){
         objects.clear();
         String where = (data!= null)?MeasureUnitsController.DESCRIPTION+" like  ? ":null;
@@ -225,28 +182,33 @@ public class MaintenanceUnitMeasure extends AppCompatActivity implements Listabl
         }
 
         adapter.notifyDataSetChanged();
-    }
+    }*/
 
 
     @Override
     public void onClick(Object obj) {
-        measureUnit = null;
         SimpleRowModel sr = (SimpleRowModel)obj;
+        measureUnit = (MeasureUnit)sr.getEntity();
+
+        /*
         if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
             measureUnit = measureUnitsController.getMeasureUnitByCode(sr.getId());
         }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
             measureUnit = measureUnitsInvController.getMeasureUnitByCode(sr.getId());
         }
 
+         */
+        showOptions(false);
 
     }
+
 
     public SearchView.OnQueryTextListener searchListener = new SearchView.OnQueryTextListener() {
         @Override
         public boolean onQueryTextSubmit(String query) {
             if(!query.equals("")) {
                 lastSearch = query;
-                refreshList(lastSearch);
+                //refreshList(lastSearch);
                 return true;
             }
             return false;
@@ -256,11 +218,92 @@ public class MaintenanceUnitMeasure extends AppCompatActivity implements Listabl
         public boolean onQueryTextChange(String newText) {
             if(newText.equals("")){
                 lastSearch = null;
-                refreshList(lastSearch);
+                //refreshList(lastSearch);
                 return true;
             }
             return false;
         }
     };
+
+    @Override
+    public void dialogClosed(Object o) {
+        searchEntities();
+    }
+
+    public void searchEntities(){
+        startLoading();
+        apiInterface.getMeasureUnits(loginResponse.getLicense().getId()).enqueue(new Callback<List<MeasureUnit>>() {
+            @Override
+            public void onResponse(Call<List<MeasureUnit>> call, Response<List<MeasureUnit>> response) {
+                ArrayList<SimpleRowModel> lrm = new ArrayList<>();
+                endLoading();
+
+                if(response.isSuccessful()){
+                    List<MeasureUnit> list = response.body();
+                    for(MeasureUnit obj : list){
+                        //String id, String text, Object entity
+                        lrm.add(new SimpleRowModel(String.valueOf(obj.getId()),obj.getDescription(),obj));
+                    }
+                }else{
+                    Snackbar.make(getView(),response.errorBody().byteStream().toString(), BaseTransientBottomBar.LENGTH_LONG).show();
+                }
+                refreshList(lrm);
+
+            }
+
+            @Override
+            public void onFailure(Call<List<MeasureUnit>> call, Throwable t) {
+                Snackbar.make(getView(),t.getMessage(), BaseTransientBottomBar.LENGTH_LONG).show();
+                endLoading();
+            }
+        });
+
+    }
+
+
+    public void refreshList(ArrayList<SimpleRowModel> list){
+        SimpleRowEditionAdapter la = new SimpleRowEditionAdapter(mainActivity, this,list);
+        rvList.setAdapter(la);
+        rvList.invalidate();
+    }
+
+    private void startLoading(){
+        mainActivity.showWaitingDialog();
+    }
+
+    private void endLoading(){
+        mainActivity.dismissWaitingDialog();
+    }
+
+    private void showOptions(boolean fromMenu) {
+
+        final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(mainActivity);
+        bottomSheetDialog.setContentView(R.layout.admin_licenses_menu);
+
+        View settings = bottomSheetDialog.findViewById(R.id.trSettings);
+        View edit = bottomSheetDialog.findViewById(R.id.trEdit);
+        View add = bottomSheetDialog.findViewById(R.id.trAdd);
+
+        settings.setVisibility(View.GONE);
+        edit.setVisibility(fromMenu?View.GONE:View.VISIBLE);
+        add.setVisibility(fromMenu?View.VISIBLE:View.GONE);
+
+        edit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bottomSheetDialog.dismiss();
+                callAddDialog(false);
+            }
+        });
+
+        add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bottomSheetDialog.dismiss();
+                callAddDialog(true);
+            }
+        });
+        bottomSheetDialog.show();
+    }
 
 }

@@ -4,14 +4,6 @@ package far.com.eatit;
 import android.app.Activity;
 import android.app.Dialog;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputEditText;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,8 +14,21 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputEditText;
+
 import java.util.ArrayList;
 
+import far.com.eatit.API.models.AreaDetail;
+import far.com.eatit.API.models.Sale;
 import far.com.eatit.Adapters.Models.OrderDetailModel;
 import far.com.eatit.Adapters.Models.OrderModel;
 import far.com.eatit.Adapters.OrderResumeAdapter;
@@ -184,14 +189,14 @@ public class ResumenOrderFragment extends Fragment {
         }
 
 
-        Sales s = salesController.getSaleByCode(tempOrdersController.getTempSale().getCODE());
+        Sale s = salesController.getSaleById(/*tempOrdersController.getTempSale().getCODE()*/0);
         //VALIDAR SI LA ORDEN EXISTE. SI ESXISTE SE VA A EDITAR, SI ES ASI DEBEMOS VALIDAR SI ESA ORDEN AUN PERTENECE AL USUARIO QUE LA VA A EDITAR
         //Y A LA MISMA MESA QUE TIENE ACTUALMENTE (ESTO ES POR SI EL USUARIO ESTA EN EL MODO EDICION y PIDE QUE CAMBIEN LA ORDEN DEL MESA O USUARIO)
-        if(s != null && !s.getCODEUSER().equals(Funciones.getCodeuserLogged(parentActivity))){
+        if(s != null && ! String.valueOf(s.getIduser()).equals(Funciones.getCodeuserLogged(parentActivity))){
             showErrorDialog("Error", "No es posible editar esta orden. Esta orden ya no pertenece a este usuario");
             llCancel.performClick();
             return false;
-        }else if(s!= null && !s.getCODEAREADETAIL().equals(((KV)spnMesas.getSelectedItem()).getKey())){
+        }else if(s!= null && !s.getIdTable().equals(((KV)spnMesas.getSelectedItem()).getKey())){
             showErrorDialog("Error", "Esta orden fue movida de mesa. Edite nuevamente");
             llCancel.performClick();
             return false;
@@ -211,7 +216,7 @@ public class ResumenOrderFragment extends Fragment {
 
     public void Save(){
         if(validate()){
-            if(salesController.getSaleByCode(tempOrdersController.getTempSale().getCODE()) != null){
+            if(salesController.getSaleById(/*tempOrdersController.getTempSale().getCODE()*/0) != null){
                 editOrder();
             }else {
                 saveOrder();
@@ -222,7 +227,7 @@ public class ResumenOrderFragment extends Fragment {
     }
 
     public void saveOrder(){
-        salesController.save(etNotas.getText().toString(), ((KV)spnMesas.getSelectedItem()).getKey());
+        //salesController.save(etNotas.getText().toString(), ((KV)spnMesas.getSelectedItem()).getKey());
         parentActivity.refresh();
 
     }
@@ -236,7 +241,7 @@ public class ResumenOrderFragment extends Fragment {
             s.setNOTES(etNotas.getText().toString());
             s.setCODEAREADETAIL(((KV)spnMesas.getSelectedItem()).getKey());
 
-            salesController.editDetailToFireBase(s, tempOrdersController.getTempSalesDetails(s));
+            //salesController.editDetailToFireBase(s, tempOrdersController.getTempSalesDetails(s));
             UserInboxController.getInstance(parentActivity).massiveDelete(UserInboxController.getInstance(parentActivity).getRelatedSalesMesage(s));
 
             parentActivity.refresh();
@@ -260,21 +265,21 @@ public class ResumenOrderFragment extends Fragment {
     public void prepareResumeForEdition(){
         llCancel.setVisibility(View.VISIBLE);
         Sales s = TempOrdersController.getInstance(parentActivity).getTempSale();
-        AreasDetail ad = AreasDetailController.getInstance(parentActivity).getAreasDetailByCode(s.getCODEAREADETAIL());
+        AreaDetail ad = AreasDetailController.getInstance(parentActivity).getAreasDetail(s.getCODEAREADETAIL());
 
         etNotas.setText(s.getNOTES());
         spnMesas.setOnItemSelectedListener(null);
         spnAreas.setOnItemSelectedListener(null);
         AreasController.getInstance(parentActivity).fillSpinner(spnAreas, false);
-        AreasDetailController.getInstance(parentActivity).fillSpinner(spnMesas,false,ad.getCODEAREA());
+        AreasDetailController.getInstance(parentActivity).fillSpinner(spnMesas,false,ad.getIdarea()+"");
         for(int i = 0; i<spnAreas.getAdapter().getCount(); i++){
-            if(((KV)spnAreas.getAdapter().getItem(i)).getKey().equals(ad.getCODEAREA())){
+            if(((KV)spnAreas.getAdapter().getItem(i)).getKey().equals(ad.getIdarea()+"")){
                 spnAreas.setSelection(i);
                 break;
             }
         }
         for(int i = 0; i<spnMesas.getAdapter().getCount(); i++){
-            if(((KV)spnMesas.getAdapter().getItem(i)).getKey().equals(ad.getCODE())){
+            if(((KV)spnMesas.getAdapter().getItem(i)).getKey().equals(ad.getIdarea()+"")){
                 spnMesas.setSelection(i);
                 break;
             }

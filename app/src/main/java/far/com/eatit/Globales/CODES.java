@@ -120,6 +120,11 @@ public class CODES {
 
     //////////////////////////////////
     ///  ACTIVITY EXTRAS KEYS     ////
+    //NEWS
+    public static final String PREFERENCE_LOGIN_DATA = "PREFERENCE_LOGIN_DATA";
+    //END NEWS
+
+
     public static final String MAIN_REPORTS_EXTRA_IDCALLER = "MAIN_REPORTS_CALLER";
     public static final String MAIN_REPORTS_TOTALORDERS = "MAIN_REPORTS_TOTALORDERS";
     public static final String MAIN_REPORTS_TOTALORDERSAMOUNT = "MAIN_REPORTS_TOTALORDERSAMOUNT";

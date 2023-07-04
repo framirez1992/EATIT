@@ -1,28 +1,35 @@
 package far.com.eatit;
 
 import android.app.Dialog;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.ContextMenu;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -30,21 +37,42 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import far.com.eatit.API.APIClient;
+import far.com.eatit.API.APIInterface;
+import far.com.eatit.API.models.Device;
+import far.com.eatit.API.models.License;
+import far.com.eatit.API.models.UserDevice;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.Adapters.SimpleRowEditionAdapter;
 import far.com.eatit.CloudFireStoreObjects.Devices;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.Users;
 import far.com.eatit.CloudFireStoreObjects.UsersDevices;
+import far.com.eatit.Dialogs.AdminCompanyDialogFragment;
 import far.com.eatit.Dialogs.UserDeviceDialogFragment;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Globales.Tablas;
+import far.com.eatit.Interfases.DialogCaller;
 import far.com.eatit.Interfases.ListableActivity;
 import far.com.eatit.Utils.Funciones;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-public class AdminLicenseUserDevice extends AppCompatActivity implements ListableActivity {
+public class AdminLicenseUserDevice extends Fragment implements ListableActivity, DialogCaller {
 
+
+    Main mainActivity;
+    APIInterface apiInterface;
+    ProgressBar pb;
+
+    RecyclerView rvList;
+    UserDevice userDevice = null;
+    License license;
+    String lastSearch = null;
+    /*
     RecyclerView rvList;
     ArrayList<SimpleRowModel> objects;
     SimpleRowEditionAdapter adapter;
@@ -56,141 +84,59 @@ public class AdminLicenseUserDevice extends AppCompatActivity implements Listabl
     ArrayList<UsersDevices> usersDevices;
     ArrayList<Users>users;
     ArrayList<Devices> devices;
+    */
+
+    public AdminLicenseUserDevice() {
+        // Required empty public constructor
+    }
+
+    // TODO: Rename and change types and number of parameters
+    public static AdminLicenseUserDevice newInstance(Main mainActivity, License license) {
+        AdminLicenseUserDevice fragment = new AdminLicenseUserDevice();
+        fragment.mainActivity = mainActivity;
+        fragment.license = license;
+        return fragment;
+    }
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.maintenance_w_spinner);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        apiInterface = APIClient.getClient(mainActivity).create(APIInterface.class);
+        return inflater.inflate(R.layout.maintenance_w_spinner, container, false);
+    }
 
-        if(getIntent().getExtras()== null || !getIntent().getExtras().containsKey(CODES.EXTRA_ADMIN_LICENSE) ){
-            finish();
-            return;
-        }
-        fs = FirebaseFirestore.getInstance();
-        licenses = (Licenses) getIntent().getSerializableExtra(CODES.EXTRA_ADMIN_LICENSE);
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-        findViewById(R.id.cvSpinner).setVisibility(View.GONE);
+        view.findViewById(R.id.llMenu).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showOptions(true);
+            }
+        });
 
-        rvList = findViewById(R.id.rvList);
-        objects = new ArrayList<>();
-        usersDevices = new ArrayList<>();
-        users = new ArrayList<>();
-        devices = new ArrayList<>();
+        view.findViewById(R.id.cvSpinner).setVisibility(View.GONE);
 
-        LinearLayoutManager manager = new LinearLayoutManager(AdminLicenseUserDevice.this);
+        rvList = view.findViewById(R.id.rvList);
+        pb = view.findViewById(R.id.pb);
+
+        LinearLayoutManager manager = new LinearLayoutManager(mainActivity);
         rvList.setLayoutManager(manager);
-        adapter = new SimpleRowEditionAdapter(this,this, objects);
-        rvList.setAdapter(adapter);
-
-        refreshList();
-
-
-
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        setUpListeners();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-
-        try{
-            getMenuInflater().inflate(R.menu.search_menu, menu);
-            MenuItem searchItem = menu.findItem(R.id.action_search);
-            SearchView search = (SearchView) searchItem.getActionView();
-
-            search.setOnQueryTextListener(searchListener);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        return (super.onCreateOptionsMenu(menu));
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
-            case R.id.action_new:
-                prepareForCallDialog();
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
+        searchUserDevices();
     }
 
 
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_edit_delete, menu);
-        menu.findItem(R.id.actionEdit).setVisible(false);
-        super.onCreateContextMenu(menu, v, menuInfo);
-    }
-
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-
-        switch (item.getItemId()) {
-            case R.id.actionDelete:
-                callDeleteConfirmation();
-                return  true;
-
-            default:return super.onContextItemSelected(item);
-        }
-    }
-
-    public void setUpListeners(){
-
-        fs.collection(Tablas.generalUsers).document(licenses.getCODE())
-                .collection(Tablas.generalUsersUsersDevices)
-                .addSnapshotListener(AdminLicenseUserDevice.this, new EventListener<QuerySnapshot>() {
-                    @Override
-                    public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
-                        usersDevices = new ArrayList<>();
-                        for (DocumentSnapshot ds : querySnapshot) {
-                            UsersDevices t = ds.toObject(UsersDevices.class);
-                            usersDevices.add(t);
-                        }
-                        refreshList();
-
-                    }
-                });
-
-        fs.collection(Tablas.generalLicencias).document(licenses.getCODE())
-                .collection(Tablas.generalLicenciasDevices)
-                .addSnapshotListener(AdminLicenseUserDevice.this, new EventListener<QuerySnapshot>() {
-                    @Override
-                    public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
-                        devices = new ArrayList<>();
-                        for (DocumentSnapshot ds : querySnapshot) {
-                            Devices t = ds.toObject(Devices.class);
-                            devices.add(t);
-                        }
-                    }
-                });
-
-        fs.collection(Tablas.generalUsers).document(licenses.getCODE())
-                .collection(Tablas.generalUsersUsers)
-                .addSnapshotListener(AdminLicenseUserDevice.this, new EventListener<QuerySnapshot>() {
-                    @Override
-                    public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
-                        users = new ArrayList<>();
-                        for (DocumentSnapshot ds : querySnapshot) {
-                            Users t = ds.toObject(Users.class);
-                            users.add(t);
-                        }
-                    }
-                });
-    }
-    public void callAddDialog(ArrayList<Users> nonAssignedUser, ArrayList<Devices>nonAssignedDevices){
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        Fragment prev = getSupportFragmentManager().findFragmentByTag("dialog");
+    public void callAddDialog(boolean isNew){
+        FragmentTransaction ft = mainActivity.getSupportFragmentManager().beginTransaction();
+        Fragment prev = mainActivity.getSupportFragmentManager().findFragmentByTag("dialog");
         if (prev != null) {
             ft.remove(prev);
         }
         ft.addToBackStack(null);
         DialogFragment newFragment = null;
-        newFragment = UserDeviceDialogFragment.newInstance(this,licenses.getCODE(),nonAssignedUser,nonAssignedDevices );
+        newFragment = UserDeviceDialogFragment.newInstance(mainActivity,license,this::dialogClosed,userDevice );
 
 
         // Create and show the dialog.
@@ -200,27 +146,15 @@ public class AdminLicenseUserDevice extends AppCompatActivity implements Listabl
 
     public void callDeleteConfirmation(){
 
-        String msg = "Esta seguro que desea eliminar la relacion \'Device:"+ud.getCODEDEVICE()+"- Codeuser:"+ud.getCODEUSER()+"\'  permanentemente?";
-        final Dialog d = Funciones.getCustomDialog2Btn(this,getResources().getColor(R.color.red_700),"Delete", msg,R.drawable.delete,null, null);
+        String msg = "Esta seguro que desea eliminar la relacion \'Device:"+userDevice.getDevice().getCode()+"- Codeuser:"+userDevice.getUser().getCode()+"\'  permanentemente?";
+        final Dialog d = Funciones.getCustomDialog2Btn(mainActivity,getResources().getColor(R.color.red_700),"Delete", msg,R.drawable.delete,null, null);
         CardView btnAceptar = d.findViewById(R.id.btnPositive);
         CardView btnCancelar = d.findViewById(R.id.btnNegative);
         btnAceptar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                fs.collection(Tablas.generalUsers).document(licenses.getCODE()).collection(Tablas.generalUsersUsersDevices).document(ud.getCODE()).delete()
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                ud = null;
-                                d.dismiss();
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(AdminLicenseUserDevice.this, e.getMessage(),Toast.LENGTH_LONG).show();
-                    }
-                });
-
+              userDevice = null;
+              d.dismiss();
             }
         });
 
@@ -238,114 +172,99 @@ public class AdminLicenseUserDevice extends AppCompatActivity implements Listabl
 
     }
 
-    public void refreshList(){
-        objects.clear();
-        for(UsersDevices t: usersDevices){
-            objects.add(new SimpleRowModel(t.getCODE(), "Device:"+t.getCODEDEVICE()+"  - CodeUser: "+t.getCODEUSER(), true));
-        }
-        adapter.notifyDataSetChanged();
+    public void startLoading(){
+        pb.setVisibility(View.VISIBLE);
+    }
+    public void endLoading(){
+        pb.setVisibility(View.GONE);
+    }
+
+    public void searchUserDevices(){
+        startLoading();
+        apiInterface.getUserDevices(license.getId()).enqueue(new Callback<List<UserDevice>>() {
+            @Override
+            public void onResponse(Call<List<UserDevice>> call, Response<List<UserDevice>> response) {
+                ArrayList<SimpleRowModel> lrm = new ArrayList<>();
+                endLoading();
+
+                if(response.isSuccessful()){
+                    List<UserDevice> list = response.body();
+                    for(UserDevice obj : list){
+                        lrm.add(new SimpleRowModel(String.valueOf(obj.getId()),"User:".concat( obj.getUser().getCode()).concat("\n Device:").concat(obj.getDevice().getCode()),obj));
+                    }
+                }
+                refreshList(lrm);
+
+            }
+
+            @Override
+            public void onFailure(Call<List<UserDevice>> call, Throwable t) {
+                Snackbar.make(getView(),t.getMessage(), BaseTransientBottomBar.LENGTH_LONG).show();
+                endLoading();
+            }
+        });
+
+    }
+
+    public void refreshList(ArrayList<SimpleRowModel> list){
+        SimpleRowEditionAdapter la = new SimpleRowEditionAdapter(mainActivity, this,list);
+        rvList.setAdapter(la);
+        rvList.invalidate();
+    }
+
+    private void showOptions(boolean fromMenu) {
+
+        final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(mainActivity);
+        bottomSheetDialog.setContentView(R.layout.admin_licenses_menu);
+
+        View settings = bottomSheetDialog.findViewById(R.id.trSettings);
+        View edit = bottomSheetDialog.findViewById(R.id.trEdit);
+        View add = bottomSheetDialog.findViewById(R.id.trAdd);
+
+        settings.setVisibility(View.GONE);
+        edit.setVisibility(fromMenu?View.GONE:View.VISIBLE);
+        add.setVisibility(fromMenu?View.VISIBLE:View.GONE);
+
+        settings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bottomSheetDialog.dismiss();
+                mainActivity.setAdminLicenseSetupFragment(license);
+            }
+        });
+
+        edit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bottomSheetDialog.dismiss();
+                callAddDialog(false);
+            }
+        });
+
+        add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bottomSheetDialog.dismiss();
+                callAddDialog(true);
+            }
+        });
+        bottomSheetDialog.show();
     }
 
 
     @Override
     public void onClick(Object obj) {
         SimpleRowModel item = (SimpleRowModel)obj;
-        for(UsersDevices t :usersDevices){
-            if(t.getCODE().equals(item.getId())){
-                ud = t;
-                break;
-            }
-        }
+        userDevice =  (UserDevice) item.getEntity();
+        showOptions(false);
 
     }
 
-
-
-    public SearchView.OnQueryTextListener searchListener = new SearchView.OnQueryTextListener() {
-        @Override
-        public boolean onQueryTextSubmit(String query) {
-            if(!query.equals("")) {
-                lastSearch = query;
-                refreshList();
-                return true;
-            }
-            return false;
+    @Override
+    public void dialogClosed(Object o) {
+        if(o instanceof UserDeviceDialogFragment.UserDeviceDialogFragmentResponse){
+            searchUserDevices();
         }
-
-        @Override
-        public boolean onQueryTextChange(String newText) {
-            if(newText.equals("")){
-                lastSearch = null;
-                refreshList();
-                return true;
-            }
-            return false;
-        }
-    };
-
-
-  /*  public String getMsgDependency(){
-        String msgDependency ="";
-        if(productsType != null){
-            if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
-                msgDependency = productsTypesController.hasDependencies(productsType.getCODE());
-            }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY) ){
-                msgDependency = productsTypesInvController.hasDependencies(productsType.getCODE());
-            }
-
-        }
-        return msgDependency;
-    }*/
-
-
-
-    public FirebaseFirestore getFs(){
-        return fs;
-    }
-
-    public void prepareForCallDialog(){
-        ArrayList<Users> nau = new ArrayList<>();
-        ArrayList<Devices> nad = new ArrayList<>();
-
-        for(Users u: users){
-            boolean finded = false;
-            for(UsersDevices ud : usersDevices){
-                if(u.getCODE().equals(ud.getCODEUSER())){
-                    finded = true;
-                    break;
-                }
-            }
-            if(!finded){
-                nau.add(u);
-            }
-
-        }
-
-        if(nau.size()<1){
-            Toast.makeText(AdminLicenseUserDevice.this, "Todos los usuarios estan asignados", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        for(Devices d: devices){
-            boolean finded = false;
-            for(UsersDevices ud : usersDevices){
-                if(d.getCODE().equals(ud.getCODEDEVICE())){
-                    finded = true;
-                    break;
-                }
-            }
-            if(!finded){
-                nad.add(d);
-            }
-
-        }
-
-        if(nad.size()<1){
-            Toast.makeText(AdminLicenseUserDevice.this, "Todos los dispositivos estan asignados", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        callAddDialog(nau, nad);
     }
 }
 

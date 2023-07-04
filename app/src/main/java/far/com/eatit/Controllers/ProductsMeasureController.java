@@ -3,7 +3,8 @@ package far.com.eatit.Controllers;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -20,6 +21,8 @@ import com.google.firebase.firestore.WriteBatch;
 import java.util.ArrayList;
 import java.util.Date;
 
+import far.com.eatit.API.models.Product;
+import far.com.eatit.API.models.ProductMeasure;
 import far.com.eatit.Adapters.Models.EditSelectionRowModel;
 import far.com.eatit.Adapters.Models.SimpleSeleccionRowModel;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
@@ -34,18 +37,33 @@ import far.com.eatit.Utils.Funciones;
 public class ProductsMeasureController {
 
     public static final String TABLE_NAME ="PRODUCTSMEASURE";
-    public static  String CODE = "code", CODEPRODUCT = "codeproduct", CODEMEASURE = "codemeasure" ,PRICE="price",
-            ENABLED = "enabled", DATE = "date", MDATE= "mdate";
-    private static String[] columns = new String[]{CODE, CODEPRODUCT, CODEMEASURE,PRICE,ENABLED, DATE, MDATE};
+    public static  String IDPRODUCTMEASURE="idProductMeasure",IDPRODUCT="idProduct",IDMEASUREUNIT="idMeasureUnit",
+            PRICE="price",MAXPRICE="maxPrice",MINPRICE="minPrice",ENABLED = "enabled", RANGE = "range" ,
+            CREATEDATE = "createDate", CREATEUSER = "createUser", UPDATEDATE="updateDate", UPDATEUSER="updateUser",DELETEDATE="deleteDate",DELETEUSER="deleteUser" ;
+    private static String[] columns = new String[]{IDPRODUCTMEASURE, IDPRODUCT, IDMEASUREUNIT,PRICE,MAXPRICE,MINPRICE,ENABLED,RANGE,CREATEDATE, CREATEUSER,UPDATEDATE, UPDATEUSER, DELETEDATE, DELETEUSER};
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+"("
-            +CODE+" TEXT, "+CODEPRODUCT+" TEXT, "+CODEMEASURE+" TEXT,"+PRICE+" DECIMAL,"+ENABLED+" TEXT, "+DATE+" TEXT," + MDATE+" TEXT)";
+            +IDPRODUCTMEASURE+" INTEGER, "
+            +IDPRODUCT+" INTEGER, "
+            +IDMEASUREUNIT+" INTEGER,"
+            +PRICE+" DECIMAL,"
+            +MAXPRICE+" DECIMAL,"
+            +MINPRICE+" DECIMAL,"
+            +ENABLED+" TEXT, "
+            +RANGE+" TEXT, "
+            +CREATEDATE+" TEXT, "
+            +CREATEUSER+" TEXT, "
+            +UPDATEDATE+" TEXT, "
+            +UPDATEUSER+" TEXT, "
+            +DELETEDATE+" TEXT, "
+            +DELETEUSER+" TEXT "
+            +")";
     Context context;
-    FirebaseFirestore db;
+    DB db;
     private static  ProductsMeasureController instance;
 
     private ProductsMeasureController(Context c){
         this.context = c;
-        db = FirebaseFirestore.getInstance();
+        this.db = DB.getInstance(c);
     }
 
     public static ProductsMeasureController getInstance(Context c){
@@ -55,32 +73,19 @@ public class ProductsMeasureController {
         return instance;
     }
 
-    public CollectionReference getReferenceFireStore(){
-        Licenses l = LicenseController.getInstance(context).getLicense();
-        if(l == null){
-            return null;
-        }
-       return db.collection(Tablas.generalUsers).document(l.getCODE()).collection(Tablas.generalUsersProductsMeasure);
+
+    public void insertOrUpdate(ProductMeasure obj){
+        String sql ="insert or replace into "+TABLE_NAME+" ("+IDPRODUCTMEASURE+", "+IDPRODUCT+", "+IDMEASUREUNIT+", "+PRICE+", "+MAXPRICE+", "+MINPRICE+", "+ENABLED+", "+RANGE +", "+CREATEDATE+", "+CREATEUSER+","+UPDATEDATE+", "+UPDATEUSER+", "+DELETEDATE+", "+DELETEUSER+") values " +
+                "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        db.getWritableDatabase().execSQL(sql,new String[]{obj.getId()+"", obj.getIdproduct()+"", obj.getIdmeasureUnit()+"",obj.getPrice()+"",obj.getMaxPrice()+"", obj.getMinPrice()+"",obj.isEnabled()?"1":"0",obj.isRange()?"1":"0" ,obj.getCreateDate(), obj.getCreateUser(),  obj.getUpdateDate(),obj.getUpdateUser(),  obj.getDeleteDate(), obj.getDeleteUser() });
     }
 
-    public ArrayList<ProductsMeasure>getProductsMeasureByCodeProduct(String codeProduct){
-        String where = CODEPRODUCT+" = ? AND "+ENABLED+" = ?";
-        String[] args = new String[]{codeProduct, "1"};
-        return  getProductsMeasure(where, args);
-    }
-    public ArrayList<ProductsMeasure>getProductsMeasure(String where, String[] args){
-       ArrayList<ProductsMeasure> result = new ArrayList<>();
+    public ArrayList<ProductMeasure>getProductsMeasure(String where, String[] args){
+       ArrayList<ProductMeasure> result = new ArrayList<>();
         try {
-            Cursor c = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME, columns, where, args, null, null, CODEMEASURE);
+            Cursor c = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME, columns, where, args, null, null, IDPRODUCTMEASURE);
             while(c.moveToNext()){
-               result.add(new ProductsMeasure(
-                       c.getString(c.getColumnIndex(CODE)),
-                       c.getString(c.getColumnIndex(CODEPRODUCT)),
-                       c.getString(c.getColumnIndex(CODEMEASURE)),
-                       c.getDouble(c.getColumnIndex(PRICE)),
-                       c.getString(c.getColumnIndex(ENABLED)).equals("1"),
-                       c.getString(c.getColumnIndex(DATE)),
-                       c.getString(c.getColumnIndex(MDATE))));
+               result.add(new ProductMeasure(c));
 
             }c.close();
         }catch (Exception e){
@@ -90,14 +95,14 @@ public class ProductsMeasureController {
         return result;
     }
 
-    public ArrayList<KV>getProductsMeasureKVByCodeProduct(String codeProduct){
+    public ArrayList<KV>getProductsMeasureKVByCodeProduct(int idProduct){
         ArrayList<KV> result = new ArrayList<>();
         try {
             String sql = "select um."+MeasureUnitsController.CODE+" as CODE, um."+MeasureUnitsController.DESCRIPTION+" as DESCRIPTION " +
                     "FROM "+MeasureUnitsController.TABLE_NAME+" um " +
-                    "INNER JOIN "+TABLE_NAME+" pm on pm."+CODEMEASURE+" = um."+MeasureUnitsController.CODE+" "+
-                    "WHERE "+CODEPRODUCT+" = ? AND "+ENABLED+" = ?";
-            String[] args = new String[]{codeProduct, "1"};
+                    "INNER JOIN "+TABLE_NAME+" pm on pm."+IDMEASUREUNIT+" = um."+MeasureUnitsController.IDMEASUREUNIT +" "+
+                    "WHERE "+IDPRODUCT +" = ? AND "+ENABLED+" = ?";
+            String[] args = new String[]{idProduct+"", "1"};
 
             Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql,args );
             while(c.moveToNext()){
@@ -111,39 +116,55 @@ public class ProductsMeasureController {
 
         return result;
     }
-    public long insert(ProductsMeasure p){
+    public long insert(ProductMeasure obj){
+
         ContentValues cv = new ContentValues();
-        cv.put(CODE, p.getCODE());
-        cv.put(CODEPRODUCT,p.getCODEPRODUCT() );
-        cv.put(CODEMEASURE,p.getCODEMEASURE());
-        cv.put(PRICE,p.getPRICE());
-        cv.put(ENABLED, p.getENABLED());
-        cv.put(DATE, Funciones.getFormatedDate(p.getDATE()));
-        cv.put(MDATE, Funciones.getFormatedDate(p.getMDATE()));
+        cv.put(IDPRODUCTMEASURE, obj.getId());
+        cv.put(IDPRODUCT,obj.getIdproduct() );
+        cv.put(IDMEASUREUNIT,obj.getIdmeasureUnit());
+        cv.put(PRICE,obj.getPrice());
+        cv.put(MINPRICE,obj.getMinPrice());
+        cv.put(MAXPRICE,obj.getMaxPrice());
+        cv.put(ENABLED, obj.isEnabled());
+        cv.put(RANGE, obj.isRange());
+        cv.put(CREATEDATE, obj.getCreateDate());
+        cv.put(CREATEUSER, obj.getCreateUser());
+        cv.put(UPDATEDATE, obj.getCreateDate());
+        cv.put(UPDATEUSER, obj.getUpdateUser());
+        cv.put(DELETEDATE, obj.getCreateDate());
+        cv.put(DELETEUSER, obj.getDeleteUser());
 
         long result = DB.getInstance(context).getWritableDatabase().insert(TABLE_NAME,null,cv);
         return result;
     }
 
-    public long update(ProductsMeasure p, String where, String[] args){
+    public long update(ProductMeasure obj){
         ContentValues cv = new ContentValues();
-        cv.put(CODE, p.getCODE());
-        cv.put(CODEPRODUCT,p.getCODEPRODUCT() );
-        cv.put(CODEMEASURE,p.getCODEMEASURE());
-        cv.put(PRICE,p.getPRICE());
-        cv.put(ENABLED, p.getENABLED());
-        cv.put(DATE, Funciones.getFormatedDate(p.getDATE()));
-        cv.put(MDATE, Funciones.getFormatedDate(p.getMDATE()));
+        cv.put(IDPRODUCTMEASURE, obj.getId());
+        cv.put(IDPRODUCT,obj.getIdproduct() );
+        cv.put(IDMEASUREUNIT,obj.getIdmeasureUnit());
+        cv.put(PRICE,obj.getPrice());
+        cv.put(MINPRICE,obj.getMinPrice());
+        cv.put(MAXPRICE,obj.getMaxPrice());
+        cv.put(ENABLED, obj.isEnabled());
+        cv.put(RANGE, obj.isRange());
+        cv.put(CREATEDATE, obj.getCreateDate());
+        cv.put(CREATEUSER, obj.getCreateUser());
+        cv.put(UPDATEDATE, obj.getCreateDate());
+        cv.put(UPDATEUSER, obj.getUpdateUser());
+        cv.put(DELETEDATE, obj.getCreateDate());
+        cv.put(DELETEUSER, obj.getDeleteUser());
 
-        long result = DB.getInstance(context).getWritableDatabase().update(TABLE_NAME,cv,where, args);
+        long result = DB.getInstance(context).getWritableDatabase().update(TABLE_NAME,cv,IDPRODUCTMEASURE.concat("= ?"), new String[]{obj.getId()+""});
         return result;
     }
 
-    public long delete(String where, String[] args){
-        long result = DB.getInstance(context).getWritableDatabase().delete(TABLE_NAME,where, args);
+    public long delete(ProductMeasure obj){
+        long result = DB.getInstance(context).getWritableDatabase().delete(TABLE_NAME,IDPRODUCTMEASURE.concat("= ?"), new String[]{obj.getId()+""});
         return result;
     }
 
+    /*
     public ArrayList<EditSelectionRowModel> getSSRMByCodeProduct(String codeProduct){
         ArrayList<EditSelectionRowModel> result = new ArrayList<>();
         try {
@@ -164,135 +185,8 @@ public class ProductsMeasureController {
 
         return result;
 
-    }
-    public void getDataFromFireBase(String key, OnSuccessListener<QuerySnapshot> onSuccessListener,
-                                    OnFailureListener onFailureListener){
-        try {
-            Task<QuerySnapshot> combos = db.collection(Tablas.generalUsers).document(key).collection(Tablas.generalUsersProductsMeasure).get();
-            combos.addOnSuccessListener(onSuccessListener);
-            combos.addOnFailureListener(onFailureListener);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-
-
-    public void getAllDataFromFireBase(String key, OnFailureListener onFailureListener){
-        try {
-            Task<QuerySnapshot> reference = getReferenceFireStore().get();
-            reference.addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot querySnapshot) {
-                    if(querySnapshot != null && querySnapshot.getDocumentChanges()!= null && !querySnapshot.getDocumentChanges().isEmpty()){
-                        for(DocumentChange dc : querySnapshot.getDocumentChanges()) {
-                            ProductsMeasure object = dc.getDocument().toObject(ProductsMeasure.class);
-                            String where = CODE+" = ?";
-                            String[]args = new String[]{object.getCODE()};
-                            delete(where, args);
-                            insert(object);
-                        }
-                    }
-                }
-            }).addOnFailureListener(onFailureListener);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    public void sendToFireBase(ArrayList<ProductsMeasure> pm){
-        try {
-            WriteBatch lote = db.batch();
-
-            if (pm != null){
-                for (ProductsMeasure obj : pm) {//Insertando o actualizando el nuevo detalle
-                    if (obj.getMDATE() == null) {
-                        lote.set(getReferenceFireStore().document(obj.getCODE()), obj.toMap());
-                    } else {
-                        lote.update(getReferenceFireStore().document(obj.getCODE()), obj.toMap());
-                    }
-
-                }
-            }
-
-            lote.commit().addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    e.printStackTrace();
-                }
-            });
-
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-
-    }
-
-
-    public ArrayList<ProductsMeasure> getdifference(ArrayList<ProductsMeasure> sdOriginal, ArrayList<ProductsMeasure> newsalesDetails){
-        ArrayList<ProductsMeasure>toDelete = new ArrayList<>();
-        for(ProductsMeasure del: sdOriginal){
-            boolean delete = true;
-            for(ProductsMeasure update: newsalesDetails){
-                if(del.getCODE().equals(update.getCODE()) && del.getPRICE() == update.getPRICE()){
-                    delete = false;
-                    break;
-                }
-            }
-
-            if(delete)
-                toDelete.add(del);
-
-
-        }
-
-        return toDelete;
-    }
+    }*/
 
 
 
-    public ArrayList<DocumentReference> getReferences(String field, String value){
-        ArrayList<DocumentReference> references = new ArrayList<>();
-        ArrayList<ProductsMeasure> objs = getProductsMeasure(field+" = ? ", new String[]{value});
-        if(objs != null){
-            for(ProductsMeasure c: objs){
-                references.add(getReferenceFireStore().document(c.getCODE()));
-            }
-        }
-        return references;
-    }
-
-
-
-    public void searchChanges(boolean all, OnSuccessListener<QuerySnapshot> success,  OnFailureListener failure){
-
-        Date mdate = all?null: DB.getLastMDateSaved(context, TABLE_NAME);
-        if(mdate != null){
-            getReferenceFireStore().
-                    whereGreaterThan(MDATE, mdate).//mayor que, ya que las fechas (la que buscamos de la DB) tienen hora, minuto y segundos.
-                    get().
-                    addOnSuccessListener(success).
-                    addOnFailureListener(failure);
-        }else{//TODOS
-            getReferenceFireStore().
-                    get().
-                    addOnSuccessListener(success).
-                    addOnFailureListener(failure);
-        }
-
-    }
-
-    public void consumeQuerySnapshot(boolean clear, QuerySnapshot querySnapshot){
-        if(clear){
-            delete(null, null);
-        }
-        if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
-            for(DocumentSnapshot doc: querySnapshot){
-                ProductsMeasure obj = doc.toObject(ProductsMeasure.class);
-                if(update(obj, CODE+"=?", new String[]{obj.getCODE()}) <=0){
-                    insert(obj);
-                }
-            }
-        }
-
-    }
 }

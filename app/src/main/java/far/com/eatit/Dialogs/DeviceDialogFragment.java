@@ -1,11 +1,6 @@
 package far.com.eatit.Dialogs;
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputEditText;
-import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,42 +8,72 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputEditText;
 
+import far.com.eatit.API.APIClient;
+import far.com.eatit.API.APIInterface;
+import far.com.eatit.API.models.Device;
+import far.com.eatit.API.models.License;
+import far.com.eatit.API.models.ResponseBase;
 import far.com.eatit.AdminLicenseDevices;
 import far.com.eatit.CloudFireStoreObjects.Devices;
 import far.com.eatit.Globales.Tablas;
+import far.com.eatit.Interfases.DialogCaller;
+import far.com.eatit.Main;
 import far.com.eatit.R;
 import far.com.eatit.Utils.Funciones;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-public class DeviceDialogFragment extends DialogFragment implements OnFailureListener {
+public class DeviceDialogFragment extends DialogFragment {
 
-    AdminLicenseDevices adminLicenseDevices;
-    public Devices tempObj;
-    public String codeLicense;
+    Main mainActivity;
+    License license;
+    DialogCaller dialogCaller;
+    APIInterface apiInterface;
+    public Device tempObj;
 
     LinearLayout llSave;
     TextInputEditText etCode;
     CheckBox cbEnabled;
+
+    DeviceDialogFragment.DeviceDialogFragmentResponse dialogResponse;
+    Runnable exitRunnable = new Runnable() {
+        @Override
+        public void run() {
+            mainActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    dialogCaller.dialogClosed(dialogResponse);
+                    DeviceDialogFragment.this.dismiss();
+                }
+            });
+        }
+    };
 
 
     /**
      * Create a new instance of MyDialogFragment, providing "num"
      * as an argument.
      */
-    public  static DeviceDialogFragment newInstance(AdminLicenseDevices adminLicenseDevices, Devices devices, String codeLicense) {
+    public  static DeviceDialogFragment newInstance(Main mainActivity, License license,DialogCaller dialogCaller, Device obj) {
 
         DeviceDialogFragment f = new DeviceDialogFragment();
-        f.adminLicenseDevices = adminLicenseDevices;
-        f.tempObj = devices;
-        f.codeLicense = codeLicense;
+        f.mainActivity = mainActivity;
+        f.license = license;
+        f.dialogCaller = dialogCaller;
+        f.tempObj = obj;
 
         // Supply num input as an argument.
         Bundle args = new Bundle();
-        if(devices != null) {
-            f.setArguments(args);
-        }
 
         return f;
     }
@@ -66,6 +91,7 @@ public class DeviceDialogFragment extends DialogFragment implements OnFailureLis
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        apiInterface = APIClient.getClient(mainActivity).create(APIInterface.class);
         return inflater.inflate(R.layout.dialog_add_edit_device, container, true);
     }
 
@@ -127,26 +153,45 @@ public class DeviceDialogFragment extends DialogFragment implements OnFailureLis
 
     public void Save(){
         if(validateDevice()) {
-            SaveDevice();
+            SaveEntity();
         }
 
         llSave.setEnabled(true);
 
     }
 
-    public void SaveDevice(){
+    public void SaveEntity(){
         try {
             String code = etCode.getText().toString();
-            Devices t = new Devices(code, cbEnabled.isChecked());
+            Device device = new Device(license.id,code,cbEnabled.isChecked());
 
-            adminLicenseDevices.getFs().collection(Tablas.generalLicencias).document(codeLicense).collection(Tablas.generalLicenciasDevices).document(t.getCODE()).set(t.toMap())
-                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void aVoid) {
-                            dismiss();
-                        }
-                    }).addOnFailureListener(this);
-            this.dismiss();
+            mainActivity.showWaitingDialog();
+            apiInterface.saveDevice(device).enqueue(new Callback<ResponseBase>() {
+                @Override
+                public void onResponse(Call<ResponseBase> call, Response<ResponseBase> response) {
+                    ResponseBase rb = response.body();
+                    if(response.isSuccessful()){
+                        Device o = (Device) rb.getData();
+                        dialogResponse = new DeviceDialogFragment.DeviceDialogFragmentResponse(o);
+                        mainActivity.showSuccessActionDialog("Saved",exitRunnable);
+                    }else{
+                        String message = rb == null?response.errorBody().toString():rb.getResposeMessage();
+                        mainActivity.showErrorDialogAutoClose(message, exitRunnable);
+                        dialogResponse = new DeviceDialogFragment.DeviceDialogFragmentResponse("99",message);
+                        mainActivity.showErrorDialogAutoClose(message, exitRunnable);
+                    }
+                    mainActivity.dismissWaitingDialog();
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBase> call, Throwable t) {
+                    dialogResponse = new DeviceDialogFragment.DeviceDialogFragmentResponse("99",t.getMessage());
+                    mainActivity.showErrorDialogAutoClose(t.getMessage(), exitRunnable);
+                    mainActivity.dismissWaitingDialog();
+                }
+            });
+
+
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -157,21 +202,34 @@ public class DeviceDialogFragment extends DialogFragment implements OnFailureLis
 
     public void EditDevice(){
         try {
-            String code = etCode.getText().toString();
+            tempObj.setEnabled(cbEnabled.isChecked());
 
-            tempObj.setCODE(code);
-            tempObj.setENABLED(cbEnabled.isChecked());
-            tempObj.setMDATE(null);
+            mainActivity.showWaitingDialog();
+            apiInterface.updateDevice(tempObj).enqueue(new Callback<ResponseBase>() {
+                @Override
+                public void onResponse(Call<ResponseBase> call, Response<ResponseBase> response) {
 
-            adminLicenseDevices.getFs().collection(Tablas.generalLicencias).document(codeLicense).collection(Tablas.generalLicenciasDevices)
-                    .document(code).update(tempObj.toMap())
-                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void aVoid) {
-                            dismiss();
-                        }
-                    }).addOnFailureListener(this);
-            this.dismiss();
+                    ResponseBase rb = response.body();
+                    if(response.isSuccessful()){
+                        tempObj = (Device) rb.getData();
+                        dialogCaller.dialogClosed(new DeviceDialogFragment.DeviceDialogFragmentResponse(tempObj));
+                        mainActivity.showSuccessActionDialog("Updated",exitRunnable);
+                    }else{
+                        String message = rb == null?response.errorBody().toString():rb.getResposeMessage();
+                        dialogCaller.dialogClosed(new DeviceDialogFragment.DeviceDialogFragmentResponse("99",message));
+                        mainActivity.showErrorDialogAutoClose(message, exitRunnable);
+                    }
+                    mainActivity.dismissWaitingDialog();
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBase> call, Throwable t) {
+                    mainActivity.showErrorDialogAutoClose(t.getMessage(), exitRunnable);
+                    dialogCaller.dialogClosed(new DeviceDialogFragment.DeviceDialogFragmentResponse("99",t.getMessage()));
+                    mainActivity.dismissWaitingDialog();
+                }
+            });
+
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -182,19 +240,56 @@ public class DeviceDialogFragment extends DialogFragment implements OnFailureLis
 
 
     public void setUpToEditProductType(){
-        etCode.setText(tempObj.getCODE());
+        etCode.setText(tempObj.getCode());
         etCode.setEnabled(false);
-        cbEnabled.setChecked(tempObj.isENABLED());
+        cbEnabled.setChecked(tempObj.isEnabled());
 
     }
 
 
 
-    @Override
-    public void onFailure(@NonNull Exception e) {
-        llSave.setEnabled(true);
+
+
+    public  class DeviceDialogFragmentResponse{
+        private Device device;
+        private String responseCode;
+        private String responseMessage;
+
+        public DeviceDialogFragmentResponse(Device device) {
+            this.device = device;
+            this.responseCode = "00";
+            this.responseMessage = "success";
+        }
+
+        public DeviceDialogFragmentResponse(String responseCode, String responseMessage) {
+            this.device = null;
+            this.responseCode = responseCode;
+            this.responseMessage = responseMessage;
+        }
+
+        public Device getDevice() {
+            return device;
+        }
+
+        public void setDevice(Device device) {
+            this.device = device;
+        }
+
+        public String getResponseCode() {
+            return responseCode;
+        }
+
+        public void setResponseCode(String responseCode) {
+            this.responseCode = responseCode;
+        }
+
+        public String getResponseMessage() {
+            return responseMessage;
+        }
+
+        public void setResponseMessage(String responseMessage) {
+            this.responseMessage = responseMessage;
+        }
     }
-
-
 
 }

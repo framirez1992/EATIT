@@ -2,19 +2,19 @@ package far.com.eatit.Dialogs;
 
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputEditText;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.UUID;
 
@@ -141,7 +141,7 @@ public class AreasDialogFragment  extends DialogFragment implements OnFailureLis
             String valueOrden = etOrden.getText().toString().trim().equals("")?areasController.getNextOrden()+"":etOrden.getText().toString().trim();
             int orden = Integer.parseInt(valueOrden);
             Areas pt = new Areas(code, name, orden);
-            areasController.sendToFireBase(pt);
+            //areasController.sendToFireBase(pt);
             this.dismiss();
         }catch(Exception e){
             e.printStackTrace();
@@ -157,7 +157,7 @@ public class AreasDialogFragment  extends DialogFragment implements OnFailureLis
             String valueOrden = etOrden.getText().toString().trim().equals("")?areasController.getNextOrden()+"":etOrden.getText().toString().trim();
             pt.setORDEN(Integer.parseInt(valueOrden));
             pt.setMDATE(null);
-            areasController.sendToFireBase(pt);
+            //areasController.sendToFireBase(pt);
             this.dismiss();
         }catch(Exception e){
             e.printStackTrace();

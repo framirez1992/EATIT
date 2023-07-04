@@ -3,15 +3,16 @@ package far.com.eatit;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import far.com.eatit.Adapters.OrdersReceipAdapter;
 import far.com.eatit.Controllers.AreasController;
@@ -98,7 +99,7 @@ public class ReceipFragment extends Fragment {
         if(mesa == null){
             return;
         }
-        OrdersReceipAdapter adapter = new OrdersReceipAdapter(activity, (ListableActivity) activity, SalesController.getInstance(getActivity()).getOrderReceipt(mesa.getKey()));
+        OrdersReceipAdapter adapter = new OrdersReceipAdapter(activity, (ListableActivity) activity, SalesController.getInstance(getActivity()).getOrderReceipt(/*mesa.getKey()*/0));
         rvList.setAdapter(adapter);
         rvList.getAdapter().notifyDataSetChanged();
         rvList.invalidate();

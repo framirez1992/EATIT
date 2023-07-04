@@ -1,10 +1,12 @@
 package far.com.eatit.Adapters.Models;
 
+import far.com.eatit.API.models.User;
 import far.com.eatit.Globales.CODES;
 
 public class UserRowModel {
     String code,systemCode, userName,userPassword,  userRole;
     boolean active, inserver;
+    User user;
 
     public UserRowModel(String code, String systemCode, String userName, String userRole, boolean active, boolean inServer){
         this.code = code;
@@ -16,14 +18,15 @@ public class UserRowModel {
     }
 
     /*admin*/
-    public UserRowModel(String code, String systemCode, String userName,String password, String userRole, boolean active, boolean inServer){
+    public UserRowModel(String code, String systemCode, String userName,String password, String userRole, boolean active,User user){
         this.code = code;
         this.systemCode = systemCode;
         this.userName = userName;
         this.userPassword = password;
         this.userRole = userRole;
         this.active = active;
-        this.inserver = inServer;
+        this.inserver = true;
+        this.user = user;
     }
     public String getCode() {
         return code;
@@ -79,6 +82,14 @@ public class UserRowModel {
 
     public void setUserPassword(String userPassword) {
         this.userPassword = userPassword;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public String getSystemCodeDescription(){

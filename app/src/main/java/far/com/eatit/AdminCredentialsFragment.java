@@ -1,26 +1,21 @@
 package far.com.eatit;
-
-
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import java.util.Date;
-
-import far.com.eatit.Utils.Funciones;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class AdminCredentialsFragment extends Fragment {
-    AdminConfiguration adminConfiguration;
+    Main mainActivity;
     EditText etUser, etPass;
     TextView btnOk;
 
@@ -28,6 +23,12 @@ public class AdminCredentialsFragment extends Fragment {
         // Required empty public constructor
     }
 
+    // TODO: Rename and change types and number of parameters
+    public static AdminCredentialsFragment newInstance(Main mainActivity) {
+        AdminCredentialsFragment fragment = new AdminCredentialsFragment();
+        fragment.mainActivity = mainActivity;
+        return fragment;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -42,9 +43,7 @@ public class AdminCredentialsFragment extends Fragment {
         init(view);
     }
 
-    public void setAdminConfiguration(AdminConfiguration adminConfiguration){
-        this.adminConfiguration = adminConfiguration;
-    }
+
     public void init(View v){
         btnOk = v.findViewById(R.id.btnOK);
         etUser = v.findViewById(R.id.etUser);
@@ -61,10 +60,13 @@ public class AdminCredentialsFragment extends Fragment {
     public void autenticate(){
         String user = etUser.getText().toString();
         String pass = etPass.getText().toString();
-        String date = Funciones.getFormatedDate(new Date()).replace(" ", "").replace(":", "");
-        String p = date.substring(4,12);
-        if(user.equals("AdminNimda") && pass.equals(p)){
-          adminConfiguration.showLicences();
+        if(user.equals("admin") && pass.equals("admin")){
+          mainActivity.setLicenseFragment();
         }
     }
+
+
+
+
+
 }

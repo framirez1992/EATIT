@@ -5,11 +5,6 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputEditText;
-import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,42 +12,77 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
+import far.com.eatit.API.APIClient;
+import far.com.eatit.API.APIInterface;
+import far.com.eatit.API.models.Company;
+import far.com.eatit.API.models.License;
+import far.com.eatit.API.models.ResponseBase;
+import far.com.eatit.API.models.UserRole;
 import far.com.eatit.AdminLicenseCompany;
-import far.com.eatit.CloudFireStoreObjects.Company;
 import far.com.eatit.Globales.Tablas;
+import far.com.eatit.Interfases.DialogCaller;
+import far.com.eatit.Main;
 import far.com.eatit.R;
 import far.com.eatit.Utils.Funciones;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static android.app.Activity.RESULT_OK;
 
-public class AdminCompanyDialogFragment  extends DialogFragment implements OnFailureListener {
+public class AdminCompanyDialogFragment  extends DialogFragment {
 
-    AdminLicenseCompany adminLicenseCompany;
-    Company tempObj;
-    String codeLicense;
+    Main mainActivity;
+    License license;
+    DialogCaller dialogCaller;
+    Company company;
+    APIInterface apiInterface;
+
+    AdminCompanyDialogFragment.AdminCompanyDialogFragmentResponse dialogResponse;
+    Runnable exitRunnable = new Runnable() {
+        @Override
+        public void run() {
+            mainActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    dialogCaller.dialogClosed(dialogResponse);
+                    AdminCompanyDialogFragment.this.dismiss();
+                }
+            });
+        }
+    };
+
 
     LinearLayout llSave;
     TextInputEditText etCode, etRnc, etName, etPhone, etPhone2, etAddress, etAddress2;
     ImageView imgLogo;
     ProgressBar pb;
     TextView tvMessage;
-    private StorageReference mStorageRef;
+    //private StorageReference mStorageRef;
     int SEARCH_REQUEST=777;
     Uri filePath;
 
-    public  static AdminCompanyDialogFragment newInstance(AdminLicenseCompany adminLicenseCompany, Company company, String codeLicense) {
+    public  static AdminCompanyDialogFragment newInstance(Main mainActivity, Company company,License license, DialogCaller dialogCaller) {
         AdminCompanyDialogFragment f = new AdminCompanyDialogFragment();
-        f.tempObj = company;
-        f.adminLicenseCompany = adminLicenseCompany;
-        f.codeLicense = codeLicense;
+        f.company = company;
+        f.mainActivity = mainActivity;
+        f.license = license;
+        f.dialogCaller = dialogCaller;
 
 
         // Supply num input as an argument.
@@ -84,7 +114,8 @@ public class AdminCompanyDialogFragment  extends DialogFragment implements OnFai
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        mStorageRef = FirebaseStorage.getInstance().getReference();
+        apiInterface = APIClient.getClient(mainActivity).create(APIInterface.class);
+        //mStorageRef = FirebaseStorage.getInstance().getReference();
         return inflater.inflate(R.layout.dialog_add_edit_company, container, true);
     }
 
@@ -136,7 +167,7 @@ public class AdminCompanyDialogFragment  extends DialogFragment implements OnFai
 
         etCode.setText(Funciones.generateCode());
 
-        if(tempObj != null){//EDIT
+        if(company != null){//EDIT
             setUpToEditCompany();
         }
     }
@@ -160,12 +191,13 @@ public class AdminCompanyDialogFragment  extends DialogFragment implements OnFai
     public void Save(){
 
         if(validate()) {
-            if(tempObj!= null && keeptLogo()){
-                EditCompany(tempObj.getLOGO());
-                dismiss();
-                endLoading();
+            if(company!= null /*&& keeptLogo()*/){
+                EditCompany(company.getLogo());
+                //dismiss();
+                //endLoading();
             }else{
-                uploadImage();
+                //uploadImage();
+                SaveCompany("");
             }
         }else{
             llSave.setEnabled(true);
@@ -173,7 +205,6 @@ public class AdminCompanyDialogFragment  extends DialogFragment implements OnFai
     }
 
     public void SaveCompany(String logo){
-        try {
             String code = etCode.getText().toString();
             String name = etName.getText().toString();
             String rnc = etRnc.getText().toString();
@@ -181,43 +212,71 @@ public class AdminCompanyDialogFragment  extends DialogFragment implements OnFai
             String address2 = etAddress2.getText().toString();
             String phone = etPhone.getText().toString();
             String phone2 = etPhone2.getText().toString();
-            Company company = new Company(code,name, rnc, address, address2, phone, phone2,logo,  null, null);
+            //int idLicense, String code, String rnc, String name, String phone, String phone2, String phone3, String address, String address2, String address3, String logo
+            Company company = new Company(license.id,code, rnc,name, phone, phone2,"", address, address2,"",logo);
 
-            adminLicenseCompany.getFs().collection(Tablas.generalUsers).document(codeLicense).collection(Tablas.generalUsersCompany).document(company.getCODE()).set(company.toMap())
-                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void aVoid) {
-                            dismiss();
-                        }
-                    }).addOnFailureListener(this);
-            this.dismiss();
-        }catch(Exception e){
-            e.printStackTrace();
-        }
+        mainActivity.showWaitingDialog();
+        apiInterface.saveCompany(company).enqueue(new Callback<ResponseBase>() {
+            @Override
+            public void onResponse(Call<ResponseBase> call, Response<ResponseBase> response) {
+                ResponseBase rb = response.body();
+                if(response.isSuccessful()){
+                    Company o = (Company) rb.getData();
+                    dialogResponse = new AdminCompanyDialogFragmentResponse(o);
+                    mainActivity.showSuccessActionDialog("Saved",exitRunnable);
+                }else{
+                    String message = rb == null?response.errorBody().toString():rb.getResposeMessage();
+                    dialogResponse = new AdminCompanyDialogFragmentResponse("99",message);
+                    mainActivity.showErrorDialogAutoClose(message, exitRunnable);
+                }
+                mainActivity.dismissWaitingDialog();
+            }
 
+            @Override
+            public void onFailure(Call<ResponseBase> call, Throwable t) {
+                dialogResponse = new AdminCompanyDialogFragmentResponse("99",t.getMessage());
+                mainActivity.showErrorDialogAutoClose(t.getMessage(), exitRunnable);
+                mainActivity.dismissWaitingDialog();
+            }
+        });
 
     }
 
     public void EditCompany(String logo){
         try {
-            tempObj.setNAME(etName.getText().toString());
-            tempObj.setRNC(etRnc.getText().toString());
-            tempObj.setADDRESS(etAddress.getText().toString());
-            tempObj.setADDRESS2(etAddress2.getText().toString());
-            tempObj.setPHONE(etPhone.getText().toString());
-            tempObj.setPHONE2(etPhone2.getText().toString());
-            tempObj.setLOGO(logo);
-            tempObj.setMDATE(null);
+            company.setName(etName.getText().toString());
+            company.setRnc(etRnc.getText().toString());
+            company.setAddress(etAddress.getText().toString());
+            company.setAddress2(etAddress2.getText().toString());
+            company.setPhone(etPhone.getText().toString());
+            company.setPhone2(etPhone2.getText().toString());
+            company.setLogo(logo);
 
-            adminLicenseCompany.getFs().collection(Tablas.generalUsers).document(codeLicense).collection(Tablas.generalUsersCompany)
-                    .document(tempObj.getCODE()).update(tempObj.toMap())
-                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void aVoid) {
-                            dismiss();
-                        }
-                    }).addOnFailureListener(this);
-            this.dismiss();
+            mainActivity.showWaitingDialog();
+            apiInterface.updateCompany(company).enqueue(new Callback<ResponseBase>() {
+                @Override
+                public void onResponse(Call<ResponseBase> call, Response<ResponseBase> response) {
+
+                    ResponseBase rb = response.body();
+                    if(response.isSuccessful()){
+                        company = (Company) rb.getData();
+                        dialogCaller.dialogClosed(new AdminCompanyDialogFragmentResponse(company));
+                        mainActivity.showSuccessActionDialog("Updated",exitRunnable);
+                    }else{
+                        String message = rb == null?response.errorBody().toString():rb.getResposeMessage();
+                        dialogCaller.dialogClosed(new AdminCompanyDialogFragmentResponse("99",message));
+                        mainActivity.showErrorDialogAutoClose(message, exitRunnable);
+                    }
+                    mainActivity.dismissWaitingDialog();
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBase> call, Throwable t) {
+                    mainActivity.showErrorDialogAutoClose(t.getMessage(), exitRunnable);
+                    dialogCaller.dialogClosed(new AdminCompanyDialogFragmentResponse("99",t.getMessage()));
+                    mainActivity.dismissWaitingDialog();
+                }
+            });
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -228,15 +287,15 @@ public class AdminCompanyDialogFragment  extends DialogFragment implements OnFai
 
     public void setUpToEditCompany(){
 
-        etCode.setText(tempObj.getCODE());
-        etName.setText(tempObj.getNAME());
-        etRnc.setText(tempObj.getRNC());
-        etPhone.setText(tempObj.getPHONE());
-        etPhone2.setText(tempObj.getPHONE2());
-        etAddress.setText(tempObj.getADDRESS());
-        etAddress2.setText(tempObj.getADDRESS2());
-        if(!tempObj.getLOGO().isEmpty()){
-            Picasso.with(adminLicenseCompany).load(tempObj.getLOGO()).into(imgLogo);
+        etCode.setText(company.getCode());
+        etName.setText(company.getName());
+        etRnc.setText(company.getRnc());
+        etPhone.setText(company.getPhone());
+        etPhone2.setText(company.getPhone2());
+        etAddress.setText(company.getAddress());
+        etAddress2.setText(company.getAddress3());
+        if(!company.getLogo().isEmpty()){
+            //Picasso.with(adminLicenseCompany).load(tempObj.getLOGO()).into(imgLogo);
         }
 
 
@@ -256,7 +315,7 @@ public class AdminCompanyDialogFragment  extends DialogFragment implements OnFai
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == SEARCH_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null){
             filePath = data.getData();
-            Picasso.with(adminLicenseCompany).load(filePath).into(imgLogo);
+            //Picasso.with(adminLicenseCompany).load(filePath).into(imgLogo);
         }else{
             Snackbar.make(getView(), "No selecciono ningun archivo", Snackbar.LENGTH_LONG ).show();
         }
@@ -280,8 +339,9 @@ public class AdminCompanyDialogFragment  extends DialogFragment implements OnFai
                     .build();
              file =uri;
         }else{
-            fileExtension=Funciones.getFileExtension(adminLicenseCompany, filePath);
+            fileExtension=Funciones.getFileExtension(mainActivity, filePath);
         }
+        /*
        // if(file != null){
             StorageReference riversRef = mStorageRef.child((tempObj!=null?tempObj.getCODE():etCode.getText().toString())+"/"+ "logo" +"."+fileExtension);
             riversRef.putFile(file)
@@ -352,15 +412,54 @@ public class AdminCompanyDialogFragment  extends DialogFragment implements OnFai
 
     public void setMessageUpload(String msg, int color){
         tvMessage.setText(msg);
-        tvMessage.setTextColor(adminLicenseCompany.getResources().getColor(color));
+        tvMessage.setTextColor(mainActivity.getResources().getColor(color));
     }
 
-    @Override
-    public void onFailure(@NonNull Exception e) {
-        llSave.setEnabled(true);
-    }
-
+/*
     public boolean keeptLogo(){
-        return filePath== null && tempObj!= null && !tempObj.getLOGO().isEmpty();
+        return filePath== null && company!= null && !company.getLOGO().isEmpty();
+    }
+*/
+
+    public  class AdminCompanyDialogFragmentResponse{
+        private Company company;
+        private String responseCode;
+        private String responseMessage;
+
+        public AdminCompanyDialogFragmentResponse(Company company) {
+            this.company = company;
+            this.responseCode = "00";
+            this.responseMessage = "success";
+        }
+
+        public AdminCompanyDialogFragmentResponse(String responseCode, String responseMessage) {
+            this.company = null;
+            this.responseCode = responseCode;
+            this.responseMessage = responseMessage;
+        }
+
+        public Company getCompany() {
+            return company;
+        }
+
+        public void setCompany(Company company) {
+            this.company = company;
+        }
+
+        public String getResponseCode() {
+            return responseCode;
+        }
+
+        public void setResponseCode(String responseCode) {
+            this.responseCode = responseCode;
+        }
+
+        public String getResponseMessage() {
+            return responseMessage;
+        }
+
+        public void setResponseMessage(String responseMessage) {
+            this.responseMessage = responseMessage;
+        }
     }
 }

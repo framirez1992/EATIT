@@ -7,16 +7,20 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.Date;
 
+import far.com.eatit.API.models.UserRole;
 import far.com.eatit.CloudFireStoreObjects.ProductsMeasure;
 import far.com.eatit.CloudFireStoreObjects.UserInbox;
 import far.com.eatit.Controllers.AreasController;
 import far.com.eatit.Controllers.AreasDetailController;
+import far.com.eatit.Controllers.ClientController;
 import far.com.eatit.Controllers.CombosController;
 import far.com.eatit.Controllers.CompanyController;
+import far.com.eatit.Controllers.DayController;
 import far.com.eatit.Controllers.DevicesController;
 import far.com.eatit.Controllers.LicenseController;
 import far.com.eatit.Controllers.MeasureUnitsController;
 import far.com.eatit.Controllers.MeasureUnitsInvController;
+import far.com.eatit.Controllers.PaymentController;
 import far.com.eatit.Controllers.PriceListController;
 import far.com.eatit.Controllers.ProductsControlController;
 import far.com.eatit.Controllers.ProductsController;
@@ -34,10 +38,12 @@ import far.com.eatit.Controllers.SalesHistoryController;
 import far.com.eatit.Controllers.StoreHouseController;
 import far.com.eatit.Controllers.StoreHouseDetailController;
 import far.com.eatit.Controllers.TableCodeController;
+import far.com.eatit.Controllers.TableController;
 import far.com.eatit.Controllers.TableFilterController;
 import far.com.eatit.Controllers.TempOrdersController;
 import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Controllers.UserInboxController;
+import far.com.eatit.Controllers.UserRolesController;
 import far.com.eatit.Controllers.UserTypesController;
 import far.com.eatit.Controllers.UsersController;
 import far.com.eatit.Globales.Tablas;
@@ -61,11 +67,16 @@ public class DB extends SQLiteOpenHelper {
 
         try {
             db.beginTransaction();
+            db.execSQL(UserRolesController.QUERY_CREATE);
+            db.execSQL(ClientController.QUERY_CREATE);
+            db.execSQL(TableController.QUERY_CREATE);
+            db.execSQL(PaymentController.QUERY_CREATE);
+            db.execSQL(DayController.QUERY_CREATE);
 
             db.execSQL(AreasController.QUERY_CREATE);
             db.execSQL(AreasDetailController.QUERY_CREATE);
             db.execSQL(LicenseController.QUERY_CREATE);
-            db.execSQL(UsersController.QUERY_CREATE);
+            //db.execSQL(UsersController.QUERY_CREATE);
             db.execSQL(UserTypesController.QUERY_CREATE);
             db.execSQL(CombosController.QUERY_CREATE);
             db.execSQL(CompanyController.QUERY_CREATE);

@@ -1,51 +1,85 @@
 package far.com.eatit.Dialogs;
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputEditText;
-import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
 
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputEditText;
+
 import java.util.UUID;
 
+import far.com.eatit.API.APIClient;
+import far.com.eatit.API.APIInterface;
+import far.com.eatit.API.models.LoginResponse;
+import far.com.eatit.API.models.ProductSubType;
+import far.com.eatit.API.models.ProductType;
+import far.com.eatit.API.models.ResponseBase;
 import far.com.eatit.CloudFireStoreObjects.ProductsSubTypes;
-import far.com.eatit.Controllers.ProductsSubTypesController;
-import far.com.eatit.Controllers.ProductsSubTypesInvController;
 import far.com.eatit.Controllers.ProductsTypesController;
 import far.com.eatit.Controllers.ProductsTypesInvController;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
+import far.com.eatit.Interfases.DialogCaller;
+import far.com.eatit.Main;
 import far.com.eatit.R;
 import far.com.eatit.Utils.Funciones;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ProductSubTypeDialogFragment extends DialogFragment implements OnFailureListener {
 
-    ProductsSubTypes tempObj;
+    Main mainActivity;
+    APIInterface apiInterface;
+    DialogCaller dialogCaller;
+    LoginResponse loginResponse;
 
+    SpinnerAdapter spnFamilyAdapter;
+    ProductSubType tempObj;
     LinearLayout llFamilia;
     Spinner spnFamilia;
     LinearLayout llSave;
     TextInputEditText etName, etOrden;
     String type;
 
-    ProductsSubTypesController productsSubTypesController;
-    ProductsSubTypesInvController productsSubTypesInvController;
+    ProductSubTypeDialogFragmentResponse dialogResponse;
+    Runnable exitRunnable = new Runnable() {
+        @Override
+        public void run() {
+            mainActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    dialogCaller.dialogClosed(dialogResponse);
+                    ProductSubTypeDialogFragment.this.dismiss();
+                }
+            });
+        }
+    };
+
+    //ProductsSubTypesController productsSubTypesController;
+    //ProductsSubTypesInvController productsSubTypesInvController;
 
     /**
      * Create a new instance of MyDialogFragment, providing "num"
      * as an argument.
      */
-    public  static ProductSubTypeDialogFragment newInstance(String type, ProductsSubTypes pt) {
+    public  static ProductSubTypeDialogFragment newInstance(Main mainActivity, SpinnerAdapter spnFamilyAdapter, String type, ProductSubType pt, DialogCaller dialogCaller) {
 
         ProductSubTypeDialogFragment f = new ProductSubTypeDialogFragment();
+        f.mainActivity = mainActivity;
+        f.spnFamilyAdapter = spnFamilyAdapter;
+        f.dialogCaller = dialogCaller;
         f.tempObj = pt;
         f.type = type;
 
@@ -65,8 +99,8 @@ public class ProductSubTypeDialogFragment extends DialogFragment implements OnFa
         // Pick a style based on the num.
         int style = DialogFragment.STYLE_NORMAL, theme = 0;
         setStyle(style, theme);
-        productsSubTypesController = ProductsSubTypesController.getInstance(getActivity());
-        productsSubTypesInvController = ProductsSubTypesInvController.getInstance(getActivity());
+        //productsSubTypesController = ProductsSubTypesController.getInstance(getActivity());
+        //productsSubTypesInvController = ProductsSubTypesInvController.getInstance(getActivity());
 
     }
 
@@ -80,7 +114,8 @@ public class ProductSubTypeDialogFragment extends DialogFragment implements OnFa
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-
+        loginResponse = Funciones.getLoginResponseData(mainActivity);
+        apiInterface = APIClient.getClient(mainActivity).create(APIInterface.class);
         return inflater.inflate(R.layout.dialog_spn_save, container, true);
     }
 
@@ -130,6 +165,7 @@ public class ProductSubTypeDialogFragment extends DialogFragment implements OnFa
         });
 
 
+        spnFamilia.setAdapter(spnFamilyAdapter);
 
         if(tempObj != null) {//EDIT
             prepareForProductSubType();
@@ -162,14 +198,40 @@ public class ProductSubTypeDialogFragment extends DialogFragment implements OnFa
         try {
             String code = Funciones.generateCode();
             String name = etName.getText().toString();
-            String codeProductType = ((KV)spnFamilia.getSelectedItem()).getKey();
+            String idProductType = ((KV)spnFamilia.getSelectedItem()).getKey();
             int orden = (etOrden.getText().toString().trim().equals(""))?9999:Integer.parseInt(etOrden.getText().toString());
-            ProductsSubTypes pst = new ProductsSubTypes(code,codeProductType,name, orden);
-            if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
+            ProductSubType pst = new ProductSubType(Integer.parseInt(idProductType),code,name, orden);
+
+            /*if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
                 productsSubTypesController.sendToFireBase(pst);
             }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
                 productsSubTypesInvController.sendToFireBase(pst);
-            }
+            }*/
+
+            mainActivity.showWaitingDialog();
+            apiInterface.saveProductSubType(pst).enqueue(new Callback<ResponseBase>() {
+                @Override
+                public void onResponse(Call<ResponseBase> call, Response<ResponseBase> response) {
+                    ResponseBase rb = response.body();
+                    if(response.isSuccessful()){
+                        ProductSubType pt = (ProductSubType) rb.getData();
+                        dialogResponse = new ProductSubTypeDialogFragment.ProductSubTypeDialogFragmentResponse(pt);
+                        mainActivity.showSuccessActionDialog("Saved",exitRunnable);
+                    }else{
+                        String message = rb == null?response.errorBody().toString():rb.getResposeMessage();
+                        dialogResponse = new ProductSubTypeDialogFragment.ProductSubTypeDialogFragmentResponse("99",message);
+                        mainActivity.showErrorDialogAutoClose(message, exitRunnable);
+                    }
+                    mainActivity.dismissWaitingDialog();
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBase> call, Throwable t) {
+                    dialogResponse = new ProductSubTypeDialogFragment.ProductSubTypeDialogFragmentResponse("99",t.getMessage());
+                    mainActivity.showErrorDialogAutoClose(t.getMessage(), exitRunnable);
+                    mainActivity.dismissWaitingDialog();
+                }
+            });
 
             this.dismiss();
         }catch(Exception e){
@@ -179,18 +241,43 @@ public class ProductSubTypeDialogFragment extends DialogFragment implements OnFa
 
     public void EditProductSubType(){
         try {
-            ProductsSubTypes pst = tempObj;
+            ProductSubType pst = tempObj;
             int orden = (etOrden.getText().toString().trim().equals(""))?9999:Integer.parseInt(etOrden.getText().toString());
-            pst.setDESCRIPTION(etName.getText().toString());
-            pst.setCODETYPE(((KV)spnFamilia.getSelectedItem()).getKey());
-            pst.setMDATE(null);
-            pst.setORDEN(orden);
-            if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
+            pst.setDescription(etName.getText().toString());
+            pst.setIdproductType(Integer.parseInt(((KV)spnFamilia.getSelectedItem()).getKey()));
+            pst.setPosition(orden);
+
+            /*if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
             productsSubTypesController.sendToFireBase(pst);
             }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
              productsSubTypesInvController.sendToFireBase(pst);
-            }
+            }*/
 
+
+            mainActivity.showWaitingDialog();
+            apiInterface.updateProductSubType(tempObj).enqueue(new Callback<ResponseBase>() {
+                @Override
+                public void onResponse(Call<ResponseBase> call, Response<ResponseBase> response) {
+                    ResponseBase rb = response.body();
+                    if(response.isSuccessful()){
+                        ProductSubType pt = (ProductSubType) rb.getData();
+                        dialogResponse = new ProductSubTypeDialogFragment.ProductSubTypeDialogFragmentResponse(pt);
+                        mainActivity.showSuccessActionDialog("Saved",exitRunnable);
+                    }else{
+                        String message = rb == null?response.errorBody().toString():rb.getResposeMessage();
+                        dialogResponse = new ProductSubTypeDialogFragment.ProductSubTypeDialogFragmentResponse("99",message);
+                        mainActivity.showErrorDialogAutoClose(message, exitRunnable);
+                    }
+                    mainActivity.dismissWaitingDialog();
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBase> call, Throwable t) {
+                    dialogResponse = new ProductSubTypeDialogFragment.ProductSubTypeDialogFragmentResponse("99",t.getMessage());
+                    mainActivity.showErrorDialogAutoClose(t.getMessage(), exitRunnable);
+                    mainActivity.dismissWaitingDialog();
+                }
+            });
             this.dismiss();
         }catch(Exception e){
             e.printStackTrace();
@@ -200,12 +287,12 @@ public class ProductSubTypeDialogFragment extends DialogFragment implements OnFa
 
     public void prepareForProductSubType(){
         setFamilia();
-        etName.setText(tempObj.getDESCRIPTION());
-        etOrden.setText(tempObj.getORDEN()+"");
+        etName.setText(tempObj.getDescription());
+        etOrden.setText(tempObj.getPosition()+"");
     }
     public void setFamilia(){
         for(int i = 0; i< spnFamilia.getAdapter().getCount(); i++){
-            if(((KV)spnFamilia.getAdapter().getItem(i)).getKey().equals(tempObj.getCODETYPE())){
+            if(((KV)spnFamilia.getAdapter().getItem(i)).getKey().equals(String.valueOf(tempObj.getIdproductType()))){
                 spnFamilia.setSelection(i);
                 break;
             }
@@ -215,5 +302,48 @@ public class ProductSubTypeDialogFragment extends DialogFragment implements OnFa
     @Override
     public void onFailure(@NonNull Exception e) {
         llSave.setEnabled(true);
+    }
+
+
+    public  class ProductSubTypeDialogFragmentResponse{
+        private ProductSubType productSubType;
+        private String responseCode;
+        private String responseMessage;
+
+        public ProductSubTypeDialogFragmentResponse(ProductSubType productSubType) {
+            this.productSubType = productSubType;
+            this.responseCode = "00";
+            this.responseMessage = "success";
+        }
+
+        public ProductSubTypeDialogFragmentResponse(String responseCode, String responseMessage) {
+            this.productSubType = null;
+            this.responseCode = responseCode;
+            this.responseMessage = responseMessage;
+        }
+
+        public ProductSubType getProductSubType() {
+            return productSubType;
+        }
+
+        public void setProductSubType(ProductSubType productSubType) {
+            this.productSubType = productSubType;
+        }
+
+        public String getResponseCode() {
+            return responseCode;
+        }
+
+        public void setResponseCode(String responseCode) {
+            this.responseCode = responseCode;
+        }
+
+        public String getResponseMessage() {
+            return responseMessage;
+        }
+
+        public void setResponseMessage(String responseMessage) {
+            this.responseMessage = responseMessage;
+        }
     }
 }

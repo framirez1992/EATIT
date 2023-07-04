@@ -1,16 +1,18 @@
 package far.com.eatit.Dialogs;
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+
+import far.com.eatit.API.models.Sale;
 import far.com.eatit.Adapters.Models.NotificationRowModel;
 import far.com.eatit.CloudFireStoreObjects.Sales;
 import far.com.eatit.CloudFireStoreObjects.UserInbox;
@@ -127,7 +129,7 @@ public class NotificationsDialog  extends DialogFragment {
         this.notificationRowModel = n;
         if(notificationRowModel.getType().equals(CODES.CODE_TYPE_OPERATION_SALES+"")){
             changeFragment(ordersEditionFragment, R.id.notificationsDetails);
-            ordersEditionFragment.setSales(SalesController.getInstance(getActivity()).getSaleByCode(notificationRowModel.getCodeMessage()));
+            ordersEditionFragment.setSales(SalesController.getInstance(getActivity()).getSaleById(/*notificationRowModel.getCodeMessage()*/0));
             ordersEditionFragment.setupEdition();
         }else if(notificationRowModel.getType().equals(CODES.CODE_TYPE_OPERATION_MESSAGE+"")){
             changeFragment(messageDetailFragment, R.id.notificationsDetails);
@@ -144,7 +146,7 @@ public class NotificationsDialog  extends DialogFragment {
         ((MainOrders)getActivity()).callMsgDialog(messageDetailFragment.getUserInbox());
     }
 
-    public void editOrder(Sales s){
+    public void editOrder(Sale s){
         ((MainOrders)getActivity()).editOrder(s);
         dismiss();
     }

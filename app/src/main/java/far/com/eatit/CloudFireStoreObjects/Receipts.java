@@ -33,7 +33,7 @@ public class Receipts {
     }
 
     public Receipts(Cursor c){
-        this.code = c.getString(c.getColumnIndex(ReceiptController.CODE));
+       /* this.code = c.getString(c.getColumnIndex(ReceiptController.CODE));
         this.codeuser =c.getString(c.getColumnIndex(ReceiptController.CODEUSER));
         this.codeareadetail = c.getString(c.getColumnIndex(ReceiptController.CODEAREADETAIL));
         this.status = c.getString(c.getColumnIndex(ReceiptController.STATUS));
@@ -43,13 +43,15 @@ public class Receipts {
         this.discount = c.getDouble(c.getColumnIndex(ReceiptController.DISCOUNT));
         this.date = Funciones.parseStringToDate(c.getString(c.getColumnIndex(ReceiptController.DATE)));
         this.mdate = Funciones.parseStringToDate(c.getString(c.getColumnIndex(ReceiptController.MDATE)));
+        */
+
     }
 
 
     public HashMap<String, Object> toMap(){
 
         HashMap<String, Object> data = new HashMap<>();
-        data.put(ReceiptController.CODE,code);
+        /*data.put(ReceiptController.CODE,code);
         data.put(ReceiptController.CODEUSER, codeuser);
         data.put(ReceiptController.CODEAREADETAIL, codeareadetail);
         data.put(ReceiptController.STATUS, status);
@@ -60,6 +62,7 @@ public class Receipts {
         data.put(ReceiptController.TOTAL, total);
         data.put(ReceiptController.DATE, (date == null)? FieldValue.serverTimestamp(): date);
         data.put(ReceiptController.MDATE, (mdate == null)? FieldValue.serverTimestamp():mdate);
+         */
 
 
         return  data;

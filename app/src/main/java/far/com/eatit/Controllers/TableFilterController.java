@@ -244,7 +244,7 @@ public class TableFilterController {
 
 
         public String getConditionsByTableTask(String table, String task){
-            String where = "";
+           /* String where = "";
             String condition = ENABLED+" = ? AND "+TABLES+" = ? AND "+TASK+" = ? AND ("+USER+" = ? OR "+USERTYPE+" = ?) ";
             String[] args = new String[]{"1", table, task, Funciones.getPreferences(context, CODES.PREFERENCE_USERSKEY_CODE),Funciones.getPreferences(context, CODES.PREFERENCE_USERSKEY_USERTYPE) };
             Cursor c = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME, columns,condition,args, null, null, null );
@@ -269,7 +269,8 @@ public class TableFilterController {
                 where+=(!where.equals(""))?") ":"";
             }
 
-            return where;
+            return where;*/
+            return null;
 
         }
 

@@ -2,12 +2,6 @@ package far.com.eatit.Dialogs;
 
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputEditText;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,10 +9,17 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.UUID;
 
+import far.com.eatit.API.models.AreaDetail;
 import far.com.eatit.CloudFireStoreObjects.AreasDetail;
 import far.com.eatit.Controllers.AreasController;
 import far.com.eatit.Controllers.AreasDetailController;
@@ -31,7 +32,7 @@ import far.com.eatit.Utils.Funciones;
  */
 public class AreasDetailDialogFragment extends DialogFragment implements OnFailureListener {
 
-    private static AreasDetail tempObj;
+    private static AreaDetail tempObj;
 
     LinearLayout llArea;
     Spinner spnArea;
@@ -44,7 +45,7 @@ public class AreasDetailDialogFragment extends DialogFragment implements OnFailu
      * Create a new instance of MyDialogFragment, providing "num"
      * as an argument.
      */
-    public  static AreasDetailDialogFragment newInstance(AreasDetail pt) {
+    public  static AreasDetailDialogFragment newInstance(AreaDetail pt) {
 
         tempObj = pt;
 
@@ -159,7 +160,7 @@ public class AreasDetailDialogFragment extends DialogFragment implements OnFailu
             int orden = etOrden.getText().toString().trim().equals("")?9999:Integer.parseInt(etOrden.getText().toString());
             String codeProductType = ((KV)spnArea.getSelectedItem()).getKey();
             AreasDetail pst = new AreasDetail(code,codeProductType,name, orden);
-            areasDetailController.sendToFireBase(pst);
+            //areasDetailController.sendToFireBase(pst);
             this.dismiss();
         }catch(Exception e){
             e.printStackTrace();
@@ -168,13 +169,13 @@ public class AreasDetailDialogFragment extends DialogFragment implements OnFailu
 
     public void EditProductSubType(){
         try {
-            AreasDetail pst = tempObj;
+            AreaDetail pst = tempObj;
             int orden = etOrden.getText().toString().trim().equals("")?9999:Integer.parseInt(etOrden.getText().toString());
-            pst.setORDEN(orden);
-            pst.setDESCRIPTION(etName.getText().toString());
-            pst.setCODEAREA(((KV)spnArea.getSelectedItem()).getKey());
-            pst.setMDATE(null);
-            areasDetailController.sendToFireBase(pst);
+            pst.setPosition(orden);
+            pst.setDescription(etName.getText().toString());
+            pst.setIdarea(Integer.parseInt(((KV)spnArea.getSelectedItem()).getKey()));
+
+            //areasDetailController.sendToFireBase(pst);
             this.dismiss();
         }catch(Exception e){
             e.printStackTrace();
@@ -184,12 +185,12 @@ public class AreasDetailDialogFragment extends DialogFragment implements OnFailu
 
     public void prepareForProductSubType(){
         setFamilia();
-        etName.setText(tempObj.getDESCRIPTION());
-        etOrden.setText(tempObj.getORDEN()+"");
+        etName.setText(tempObj.getDescription());
+        etOrden.setText(tempObj.getPosition()+"");
     }
     public void setFamilia(){
         for(int i = 0; i< spnArea.getAdapter().getCount(); i++){
-            if(((KV)spnArea.getAdapter().getItem(i)).getKey().equals(tempObj.getCODEAREA())){
+            if(((KV)spnArea.getAdapter().getItem(i)).getKey().equals(tempObj.getIdarea()+"")){
                 spnArea.setSelection(i);
                 break;
             }

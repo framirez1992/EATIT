@@ -3,7 +3,8 @@ package far.com.eatit.Controllers;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -348,8 +349,8 @@ public class SalesHistoryController {
     public ArrayList<PercentRowModel> getTopSalesProducts(String familia, String grupo, String dateIni, String dateEnd){
         ArrayList<PercentRowModel> list = new ArrayList<>();
         try {
-            String wFamilia = (familia != null && !familia.equals("0"))?" AND p."+ ProductsController.TYPE+" = '"+familia+"' ":" ";
-            String wGrupo = (grupo != null && !grupo.equals("0"))?" AND p."+ ProductsController.SUBTYPE+" = '"+grupo+"' ":" ";
+            String wFamilia = (familia != null && !familia.equals("0"))?" AND p."+ ProductsController.IDPRODUCTTYPE +" = '"+familia+"' ":" ";
+            String wGrupo = (grupo != null && !grupo.equals("0"))?" AND p."+ ProductsController.IDPRODUCTSUBTYPE +" = '"+grupo+"' ":" ";
             String where = " WHERE "+STATUS + " = '" + CODES.CODE_ORDER_STATUS_CLOSED + "' " +
                     "AND julianday(substr(s."+DATE+",1,4)||'-'||substr(s."+DATE+",5,2)||'-'||substr(s."+DATE+",7,2)||' '||substr(s."+DATE+",10,length(s."+DATE+")))  "+
                     "BETWEEN julianday('"+dateIni+"') AND julianday('"+dateEnd+"') ";//+
@@ -368,11 +369,11 @@ public class SalesHistoryController {
             }cu.close();
 
             String sql = "SELECT sum(sd." + DETAIL_QUANTITY + ") as cantidad, sum(ifnull(sd."+DETAIL_PRICE+", 0.0) * ifnull(sd."+DETAIL_QUANTITY+", 0.0)) as monto, p." + ProductsController.DESCRIPTION + " as description, ( CAST(sum(sd." + DETAIL_QUANTITY + ") AS REAL) * 100.0 /(" + totalCloseSales + ")) as percent," +
-                    "p."+ProductsController.TYPE+" as "+ProductsController.TYPE+", p."+ProductsController.SUBTYPE+" as "+ProductsController.SUBTYPE+"  " +
+                    "p."+ProductsController.IDPRODUCTTYPE +" as "+ProductsController.IDPRODUCTTYPE +", p."+ProductsController.IDPRODUCTSUBTYPE +" as "+ProductsController.IDPRODUCTSUBTYPE+"  " +
                     "FROM " + TABLE_NAME_DETAIL + " sd " +
                     "INNER JOIN " + TABLE_NAME + " s on s." + CODE + " = sd." + DETAIL_CODESALES + "  AND s." + STATUS + " = '" + CODES.CODE_ORDER_STATUS_CLOSED + "' " +
                     "INNER JOIN " + ProductsController.TABLE_NAME + " p on p." + ProductsController.CODE + " = sd." + DETAIL_CODEPRODUCT + " " +
-                    "INNER JOIN "+ ProductsTypesController.TABLE_NAME+" pt on pt."+ProductsTypesController.CODE+" = p."+ProductsController.TYPE+" "+
+                    "INNER JOIN "+ ProductsTypesController.TABLE_NAME+" pt on pt."+ProductsTypesController.CODE+" = p."+ProductsController.IDPRODUCTTYPE +" "+
                     "WHERE s." + STATUS + " = '" + CODES.CODE_ORDER_STATUS_CLOSED + "' " +
                     "AND julianday(substr(s."+DATE+",1,4)||'-'||substr(s."+DATE+",5,2)||'-'||substr(s."+DATE+",7,2)||' '||substr(s."+DATE+",10,length(s."+DATE+")))  " +
                     "BETWEEN julianday('"+dateIni+"') AND julianday('"+dateEnd+"') "+
@@ -382,9 +383,9 @@ public class SalesHistoryController {
                     "HAVING  ( CAST(count(sd." + DETAIL_CODEPRODUCT + ") AS REAL) * 100.0 /(" + totalCloseSales + ")) > 0 ";
 
             if((familia != null && !familia.equals("0"))){
-                sql = "SELECT * FROM ("+sql+") as tabla WHERE "+ProductsController.TYPE+" = '"+familia+"' ";
+                sql = "SELECT * FROM ("+sql+") as tabla WHERE "+ProductsController.IDPRODUCTTYPE +" = '"+familia+"' ";
                 if(grupo != null && !grupo.equals("0")){
-                    sql+= " AND "+ProductsController.SUBTYPE+" = '"+grupo+"' ";
+                    sql+= " AND "+ProductsController.IDPRODUCTSUBTYPE +" = '"+grupo+"' ";
                 }
             }
             sql+= "ORDER BY 4 DESC, 3 DESC ";//porcentaje, descripcion;
@@ -406,7 +407,7 @@ public class SalesHistoryController {
     public ArrayList<PercentRowModel> getTopSalesGeneraldata(String familia,String dateIni, String dateEnd){
         ArrayList<PercentRowModel> list = new ArrayList<>();
         try {
-            String wFamilia = (familia.equals("1"))?" AND p."+ ProductsController.TYPE+" = '"+familia+"' ":" ";
+            String wFamilia = (familia.equals("1"))?" AND p."+ ProductsController.IDPRODUCTTYPE +" = '"+familia+"' ":" ";
             String where = " WHERE "+STATUS + " = '" + CODES.CODE_ORDER_STATUS_CLOSED + "' " +
                     "AND julianday(substr(s."+DATE+",1,4)||'-'||substr(s."+DATE+",5,2)||'-'||substr(s."+DATE+",7,2)||' '||substr(s."+DATE+",10,length(s."+DATE+")))  "+
                     "BETWEEN julianday('"+dateIni+"') AND julianday('"+dateEnd+"') "+
@@ -426,21 +427,21 @@ public class SalesHistoryController {
 
 
             String sql = "SELECT sum(sd."+DETAIL_QUANTITY+") AS cantidad, sum(ifnull(sd."+DETAIL_PRICE+", 0.0)) as monto,  pt."+ProductsTypesController.DESCRIPTION+" as description, ( CAST(sum(sd."+DETAIL_QUANTITY+") AS REAL) * 100.0 /(" + totalCloseSales + ")) as percent," +
-                    "p."+ProductsController.TYPE+" as "+ProductsController.TYPE+", p."+ProductsController.SUBTYPE+" as "+ProductsController.SUBTYPE+" " +
+                    "p."+ProductsController.IDPRODUCTTYPE+" as "+ProductsController.IDPRODUCTTYPE+", p."+ProductsController.IDPRODUCTSUBTYPE +" as "+ProductsController.IDPRODUCTSUBTYPE+" " +
                     "FROM " + TABLE_NAME_DETAIL + " sd " +
                     "INNER JOIN " + TABLE_NAME + " s on s." + CODE + " = sd." + DETAIL_CODESALES + "  " +
                     "INNER JOIN " + ProductsController.TABLE_NAME + " p on p." + ProductsController.CODE + " = sd." + DETAIL_CODEPRODUCT + " " +
-                    "INNER JOIN "+ ProductsTypesController.TABLE_NAME+" pt on pt."+ProductsTypesController.CODE+" = p."+ProductsController.TYPE+" "+
+                    "INNER JOIN "+ ProductsTypesController.TABLE_NAME+" pt on pt."+ProductsTypesController.CODE+" = p."+ProductsController.IDPRODUCTTYPE+" "+
                     "WHERE s." + STATUS + " = '" + CODES.CODE_ORDER_STATUS_CLOSED + "' " +
                     "AND julianday(substr(s."+DATE+",1,4)||'-'||substr(s."+DATE+",5,2)||'-'||substr(s."+DATE+",7,2)||' '||substr(s."+DATE+",10,length(s."+DATE+")))  " +
                     "BETWEEN julianday('"+dateIni+"') AND julianday('"+dateEnd+"') "+
                     wFamilia+
-                    "GROUP BY p." + ProductsController.TYPE + " " ;
+                    "GROUP BY p." + ProductsController.IDPRODUCTTYPE + " " ;
             //"HAVING  ( CAST(count(sd." + DETAIL_CODEPRODUCT + ") AS REAL) * 100.0 /(" + totalCloseSales + ")) > 0 "+
 
 
             if(!familia.equals("0")){
-                sql = "SELECT * FROM ("+sql+") as tabla where "+ProductsController.TYPE+" = '"+familia+"' ";
+                sql = "SELECT * FROM ("+sql+") as tabla where "+ProductsController.IDPRODUCTTYPE+" = '"+familia+"' ";
             }
 
             sql +=  "ORDER BY 4 DESC, 3 DESC ";// descripcion;
@@ -609,6 +610,7 @@ public class SalesHistoryController {
         sh.setDATE(s.getDATE());
         sh.setMDATE(s.getMDATE());
 
+        /*
         String sql = "SELECT u."+UsersController.USERNAME+" as USERNAME, ad."+AreasDetailController.DESCRIPTION+" as AREADESCRIPTION, " +
                 "pt."+ProductsTypesController.DESCRIPTION+" as PTDESCRIPTION, pst."+ProductsSubTypesController.DESCRIPTION+" as PSTDESCRIPTION " +
                 "FROM "+SalesController.TABLE_NAME+" s " +
@@ -623,7 +625,7 @@ public class SalesHistoryController {
             sh.setAREADETAILDESCRIPTION(c.getString(c.getColumnIndex("AREADESCRIPTION")));
             sh.setPRODUCTTYPEDESCRIPTION(c.getString(c.getColumnIndex("PTDESCRIPTION")));
             sh.setPRODUCTSUBTYPEDESCRIPTION(c.getString(c.getColumnIndex("PSTDESCRIPTION")));
-        }c.close();
+        }c.close();*/
 
         return sh;
     }

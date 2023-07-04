@@ -1,28 +1,35 @@
 package far.com.eatit;
 
 import android.app.Dialog;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.ContextMenu;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -31,170 +38,87 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import far.com.eatit.API.APIClient;
+import far.com.eatit.API.APIInterface;
+import far.com.eatit.API.models.License;
+import far.com.eatit.API.models.User;
 import far.com.eatit.Adapters.AdminUserRowAdapter;
 import far.com.eatit.Adapters.Models.UserRowModel;
-import far.com.eatit.CloudFireStoreObjects.Company;
-import far.com.eatit.CloudFireStoreObjects.Licenses;
-import far.com.eatit.CloudFireStoreObjects.UserTypes;
-import far.com.eatit.CloudFireStoreObjects.Users;
-import far.com.eatit.Controllers.UsersDevicesController;
 import far.com.eatit.Dialogs.AdminUserDialogFragment;
-import far.com.eatit.Globales.CODES;
-import far.com.eatit.Globales.Tablas;
+import far.com.eatit.Interfases.DialogCaller;
 import far.com.eatit.Interfases.ListableActivity;
 import far.com.eatit.Utils.Funciones;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-public class AdminLicenseUsers extends AppCompatActivity implements ListableActivity {
+public class AdminLicenseUsers extends Fragment implements ListableActivity, DialogCaller {
+
+    Main mainActivity;
+    License license;
+    APIInterface apiInterface;
+    ProgressBar pb;
+
     RecyclerView rvList;
-    ArrayList<UserRowModel> objects;
-    AdminUserRowAdapter adapter;
+    User user = null;
 
-    Users user = null;
-    Licenses license;
-    String lastSearch = null;
-    FirebaseFirestore fs;
-    ArrayList<Users> users;
-    ArrayList<Company> companies;
-    ArrayList<UserTypes>userTypes;
+    public AdminLicenseUsers() {
+        // Required empty public constructor
+    }
+
+    // TODO: Rename and change types and number of parameters
+    public static AdminLicenseUsers newInstance(Main mainActivity, License license) {
+        AdminLicenseUsers fragment = new AdminLicenseUsers();
+        fragment.mainActivity = mainActivity;
+        fragment.license = license;
+        return fragment;
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        apiInterface = APIClient.getClient(mainActivity).create(APIInterface.class);
+        return inflater.inflate(R.layout.maintenance_w_spinner, container, false);
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.maintenance_w_spinner);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-        if(getIntent().getExtras()== null || !getIntent().getExtras().containsKey(CODES.EXTRA_ADMIN_LICENSE) ){
-            finish();
-            return;
-        }
-        fs = FirebaseFirestore.getInstance();
-        license = (Licenses) getIntent().getSerializableExtra(CODES.EXTRA_ADMIN_LICENSE);
+        view.findViewById(R.id.cvSpinner).setVisibility(View.GONE);
+        view.findViewById(R.id.llMenu).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showOptions(true);
+            }
+        });
 
-        findViewById(R.id.cvSpinner).setVisibility(View.GONE);
+        rvList = view.findViewById(R.id.rvList);
+        pb = view.findViewById(R.id.pb);
 
-        rvList = findViewById(R.id.rvList);
-        objects = new ArrayList<>();
-        users = new ArrayList<>();
-        companies = new ArrayList<>();
-        userTypes = new ArrayList<>();
-
-        LinearLayoutManager manager = new LinearLayoutManager(AdminLicenseUsers.this);
+        LinearLayoutManager manager = new LinearLayoutManager(mainActivity);
         rvList.setLayoutManager(manager);
-        adapter = new AdminUserRowAdapter(this,this, objects);
-        rvList.setAdapter(adapter);
 
-        refreshList();
-
-
-
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        setUpListeners();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-
-        try{
-            getMenuInflater().inflate(R.menu.search_menu, menu);
-            MenuItem searchItem = menu.findItem(R.id.action_search);
-            SearchView search = (SearchView) searchItem.getActionView();
-
-            search.setOnQueryTextListener(searchListener);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        return (super.onCreateOptionsMenu(menu));
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
-            case R.id.action_new:
-                callAddDialog(true);
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
+        searchEntities();
     }
 
 
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_edit_delete, menu);
-        super.onCreateContextMenu(menu, v, menuInfo);
-    }
 
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
 
-        switch (item.getItemId()) {
-            case R.id.actionEdit:
-                callAddDialog(false);
-                return true;
-            case R.id.actionDelete:
-                callDeleteConfirmation();
-                return  true;
-
-            default:return super.onContextItemSelected(item);
-        }
-    }
-
-    public void setUpListeners(){
-
-        fs.collection(Tablas.generalUsers).document(license.getCODE())
-                .collection(Tablas.generalUsersUsers)
-                .addSnapshotListener(AdminLicenseUsers.this, new EventListener<QuerySnapshot>() {
-                    @Override
-                    public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
-                        users = new ArrayList<>();
-                        for (DocumentSnapshot ds : querySnapshot) {
-                            Users t = ds.toObject(Users.class);
-                            t.setDocumentReference(ds.getReference());
-                            users.add(t);
-                        }
-                        refreshList();
-
-                    }
-                });
-
-        fs.collection(Tablas.generalUsers).document(license.getCODE()).collection(Tablas.generalUsersCompany).addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@javax.annotation.Nullable QuerySnapshot querySnapshot, @javax.annotation.Nullable FirebaseFirestoreException e) {
-                companies = new ArrayList<>();
-                for (DocumentSnapshot ds : querySnapshot) {
-                    Company c = ds.toObject(Company.class);
-                    companies.add(c);
-                }
-            }
-        });
-
-        fs.collection(Tablas.generalUsers).document(license.getCODE()).collection(Tablas.generalUsersUserTypes).addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@javax.annotation.Nullable QuerySnapshot querySnapshot, @javax.annotation.Nullable FirebaseFirestoreException e) {
-                userTypes = new ArrayList<>();
-                for (DocumentSnapshot ds : querySnapshot) {
-                    UserTypes c = ds.toObject(UserTypes.class);
-                    userTypes.add(c);
-                }
-            }
-        });
-    }
     public void callAddDialog(boolean isNew){
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        Fragment prev = getSupportFragmentManager().findFragmentByTag("dialog");
+        FragmentTransaction ft = mainActivity.getSupportFragmentManager().beginTransaction();
+        Fragment prev = mainActivity.getSupportFragmentManager().findFragmentByTag("dialog");
         if (prev != null) {
             ft.remove(prev);
         }
         ft.addToBackStack(null);
         DialogFragment newFragment = null;
         if(isNew){
-            newFragment = AdminUserDialogFragment.newInstance(this,null,companies,userTypes, license.getCODE());
+            newFragment = AdminUserDialogFragment.newInstance(mainActivity,license,this::dialogClosed, null);
         }else {
-            newFragment = AdminUserDialogFragment.newInstance(this,user,companies,userTypes, license.getCODE());
+            newFragment = AdminUserDialogFragment.newInstance(mainActivity,license,this::dialogClosed,user);
         }
 
         // Create and show the dialog.
@@ -204,63 +128,15 @@ public class AdminLicenseUsers extends AppCompatActivity implements ListableActi
 
     public void callDeleteConfirmation(){
 
-        String msg = "Esta seguro que desea eliminar el usuario \'"+user.getUSERNAME()+"\' permanentemente?";
-        final Dialog d = Funciones.getCustomDialog2Btn(this,getResources().getColor(R.color.red_700),"Delete", msg,R.drawable.delete,null, null);
+        String msg = "Esta seguro que desea eliminar el usuario \'"+user.getName()+"\' permanentemente?";
+        final Dialog d = Funciones.getCustomDialog2Btn(mainActivity,getResources().getColor(R.color.red_700),"Delete", msg,R.drawable.delete,null, null);
         CardView btnAceptar = d.findViewById(R.id.btnPositive);
         CardView btnCancelar = d.findViewById(R.id.btnNegative);
         btnAceptar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                /*fs.collection(Tablas.generalUsers).document(codeLicense).collection(Tablas.generalUsersToken).document(user.getCODE()).delete()
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                user = null;
-                                d.dismiss();
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(AdminLicenseUsers.this, e.getMessage(),Toast.LENGTH_LONG).show();
-                    }
-                });*/
-
-                fs.collection(Tablas.generalUsers).document(license.getCODE()).collection(Tablas.generalUsersUsersDevices)
-                        .whereEqualTo(UsersDevicesController.CODEUSER, user.getCODE()).get()
-                        .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                            @Override
-                            public void onSuccess(QuerySnapshot querySnapshot) {
-                                WriteBatch lote = fs.batch();
-                                if(querySnapshot!=null && !querySnapshot.isEmpty()){
-                                    for(DocumentSnapshot ds : querySnapshot){
-                                        lote.delete(ds.getReference());
-                                    }
-                                }
-                                lote.delete(user.getDocumentReference());
-                                lote.commit().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        user = null;
-                                        d.dismiss();
-                                    }
-                                }).addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Toast.makeText(AdminLicenseUsers.this, e.getMessage(),Toast.LENGTH_LONG).show();
-                                    }
-                                });
-
-
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(AdminLicenseUsers.this, e.getMessage(),Toast.LENGTH_LONG).show();
-                    }
-                });
-
-
-
+                user = null;
+                d.dismiss();
             }
         });
 
@@ -278,77 +154,105 @@ public class AdminLicenseUsers extends AppCompatActivity implements ListableActi
 
     }
 
-    public void refreshList(){
-        objects.clear();
-        for(Users t: users){
-            //String code, String systemCode, String userName,String password, String userRole, boolean active, boolean inServer
-            objects.add(new UserRowModel(t.getCODE(), t.getSYSTEMCODE(), t.getUSERNAME(), t.getPASSWORD(), t.getROLE(), t.isENABLED(), true));
-        }
-        adapter.notifyDataSetChanged();
+
+    public void searchEntities(){
+        startLoading();
+        apiInterface.getUsers(license.getId()).enqueue(new Callback<List<User>>() {
+            @Override
+            public void onResponse(Call<List<User>> call, Response<List<User>> response) {
+                ArrayList<UserRowModel> lrm = new ArrayList<>();
+                endLoading();
+
+                if(response.isSuccessful()){
+                    List<User> list = response.body();
+                    for(User obj : list){
+                        lrm.add(new UserRowModel(obj.getCode(), obj.getIduserRole()+"", obj.getName(), obj.getPassword(), obj.getIduserRole()+"", obj.isEnabled(), obj));
+                    }
+                }
+                refreshList(lrm);
+
+            }
+
+            @Override
+            public void onFailure(Call<List<User>> call, Throwable t) {
+                Snackbar.make(getView(),t.getMessage(), BaseTransientBottomBar.LENGTH_LONG).show();
+                endLoading();
+            }
+        });
+
     }
+
+
+    public void refreshList(ArrayList<UserRowModel> list){
+        AdminUserRowAdapter la = new AdminUserRowAdapter(mainActivity, this,list);
+        rvList.setAdapter(la);
+        rvList.invalidate();
+    }
+
+    public void startLoading(){
+        pb.setVisibility(View.VISIBLE);
+    }
+    public void endLoading(){
+        pb.setVisibility(View.GONE);
+    }
+
 
 
     @Override
     public void onClick(Object obj) {
         UserRowModel item = (UserRowModel)obj;
-        for(Users t :users){
-            if(t.getCODE().equals(item.getCode())){
-                user = t;
-                break;
-            }
+        user =  (User) item.getUser();
+        showOptions(false);
+
+    }
+
+    @Override
+    public void dialogClosed(Object o) {
+        if(o instanceof AdminUserDialogFragment.UserDialogFragmentResponse){
+            searchEntities();
         }
 
     }
 
+    private void showOptions(boolean fromMenu) {
 
+        final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(mainActivity);
+        bottomSheetDialog.setContentView(R.layout.admin_licenses_menu);
 
-    public SearchView.OnQueryTextListener searchListener = new SearchView.OnQueryTextListener() {
-        @Override
-        public boolean onQueryTextSubmit(String query) {
-            if(!query.equals("")) {
-                lastSearch = query;
-                refreshList();
-                return true;
+        View settings = bottomSheetDialog.findViewById(R.id.trSettings);
+        View edit = bottomSheetDialog.findViewById(R.id.trEdit);
+        View add = bottomSheetDialog.findViewById(R.id.trAdd);
+
+        settings.setVisibility(View.GONE);
+        edit.setVisibility(fromMenu?View.GONE:View.VISIBLE);
+        add.setVisibility(fromMenu?View.VISIBLE:View.GONE);
+
+        settings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bottomSheetDialog.dismiss();
+                mainActivity.setAdminLicenseSetupFragment(license);
             }
-            return false;
-        }
+        });
 
-        @Override
-        public boolean onQueryTextChange(String newText) {
-            if(newText.equals("")){
-                lastSearch = null;
-                refreshList();
-                return true;
+        edit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bottomSheetDialog.dismiss();
+                callAddDialog(false);
             }
-            return false;
-        }
-    };
+        });
 
-
-  /*  public String getMsgDependency(){
-        String msgDependency ="";
-        if(productsType != null){
-            if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
-                msgDependency = productsTypesController.hasDependencies(productsType.getCODE());
-            }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY) ){
-                msgDependency = productsTypesInvController.hasDependencies(productsType.getCODE());
+        add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bottomSheetDialog.dismiss();
+                callAddDialog(true);
             }
-
-        }
-        return msgDependency;
-    }*/
-
-    public FirebaseFirestore getFs(){
-        return fs;
+        });
+        bottomSheetDialog.show();
     }
 
-    public Users getUserByCode(String code){
-        for(Users u: users){
-            if(u.getCODE().equals(code)){
-                return u;
-            }
-        }
-        return null;
-    }
+
 
 }

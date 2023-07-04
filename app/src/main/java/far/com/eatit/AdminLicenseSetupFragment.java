@@ -3,9 +3,6 @@ package far.com.eatit;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +10,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 
-import far.com.eatit.CloudFireStoreObjects.Licenses;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
+
+import far.com.eatit.API.models.License;
 import far.com.eatit.Globales.CODES;
 
 
@@ -22,14 +26,22 @@ import far.com.eatit.Globales.CODES;
  */
 public class AdminLicenseSetupFragment extends Fragment {
 
-    AdminConfiguration adminConfiguration;
-    Licenses licenses;
+
+    Main mainActivity;
+    License license;
     ImageView btnDevices, btnTokens, btnUserDevices, btnUsers, btnUserTypes, btnCompany, btnControls;
 
     public AdminLicenseSetupFragment() {
         // Required empty public constructor
     }
 
+    // TODO: Rename and change types and number of parameters
+    public static AdminLicenseSetupFragment newInstance(Main mainActivity, License l) {
+        AdminLicenseSetupFragment fragment = new AdminLicenseSetupFragment();
+        fragment.mainActivity = mainActivity;
+        fragment.license = l;
+        return fragment;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -52,44 +64,36 @@ public class AdminLicenseSetupFragment extends Fragment {
         btnTokens.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(getContext(), AdminLicenseTokens.class);
-                i.putExtra(CODES.EXTRA_ADMIN_LICENSE, licenses);
-                startActivity(i);
+                Snackbar.make(getView(),"NO REQUIRED. FULLY ONLINE APP", BaseTransientBottomBar.LENGTH_LONG).show();
+                return;
+                //mainActivity.setAdminLicenseTokens(license);
             }
         });
         btnDevices.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i  = new Intent(getContext(), AdminLicenseDevices.class);
-                i.putExtra(CODES.EXTRA_ADMIN_LICENSE, licenses);
-                startActivity(i);
+                mainActivity.setAdminLicenseDevices(license);
             }
         });
 
         btnUsers.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(getContext(), AdminLicenseUsers.class);
-                i.putExtra(CODES.EXTRA_ADMIN_LICENSE, licenses);
-                startActivity(i);
+               mainActivity.setAdminLicenseUsers(license);
             }
         });
 
         btnUserDevices.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(getContext(), AdminLicenseUserDevice.class);
-                i.putExtra(CODES.EXTRA_ADMIN_LICENSE, licenses);
-                startActivity(i);
+                mainActivity.setAdminLicenseUserDevice(license);
             }
         });
 
         btnCompany.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(getContext(), AdminLicenseCompany.class);
-                i.putExtra(CODES.EXTRA_ADMIN_LICENSE, licenses);
-                startActivity(i);
+                mainActivity.setAdminLicenseCompany(license);
             }
         });
 
@@ -97,30 +101,24 @@ public class AdminLicenseSetupFragment extends Fragment {
         btnUserTypes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(getContext(), AdminLicenseUserTypes.class);
-                i.putExtra(CODES.EXTRA_ADMIN_LICENSE, licenses);
-                startActivity(i);
+                mainActivity.setAdminLicenseUserRole(license);
             }
         });
         btnControls.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(getContext(), AdminLicenseControls.class);
-                i.putExtra(CODES.EXTRA_ADMIN_LICENSE, licenses);
+                i.putExtra(CODES.EXTRA_ADMIN_LICENSE, license);
                 startActivity(i);
             }
         });
 
-        if(licenses != null){
-            ((TextView)view.findViewById(R.id.tvLicenceDescription)).setText(licenses.getCODE()+" - "+licenses.getCLIENTNAME());
+        if(license != null){
+            ((TextView)view.findViewById(R.id.tvLicenceDescription)).setText(license.getCode()+" - "+license.getClientName());
         }
     }
 
-    public void setAdminConfiguration(AdminConfiguration adminConfiguration){
-        this.adminConfiguration = adminConfiguration;
-    }
-    public void setLicense(Licenses l){
-        this.licenses = l;
-    }
+
+
 
 }

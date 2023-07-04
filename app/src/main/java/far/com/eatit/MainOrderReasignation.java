@@ -1,12 +1,6 @@
 package far.com.eatit;
 
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -14,8 +8,17 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.snackbar.Snackbar;
+
 import java.util.ArrayList;
 
+import far.com.eatit.API.models.Sale;
 import far.com.eatit.Adapters.Models.SelectableOrderRowModel;
 import far.com.eatit.Adapters.OrderSelectionAdapter;
 import far.com.eatit.CloudFireStoreObjects.Sales;
@@ -122,7 +125,7 @@ public class MainOrderReasignation extends AppCompatActivity implements Listable
         selected.clear();
         if(spn1.getSelectedItem() != null){
             String codeAreaDetail = ((KV)spn1.getSelectedItem()).getKey();
-            ArrayList<SelectableOrderRowModel> data = SalesController.getInstance(MainOrderReasignation.this).getSelectableOrderModelsByAreaDetail(codeAreaDetail);
+            ArrayList<SelectableOrderRowModel> data = SalesController.getInstance(MainOrderReasignation.this).getSelectableOrderModelsByAreaDetail(/*codeAreaDetail*/0);
             OrderSelectionAdapter adapter = new OrderSelectionAdapter(this, this,data,selected);
             rvList.setAdapter(adapter);
         }
@@ -132,23 +135,23 @@ public class MainOrderReasignation extends AppCompatActivity implements Listable
     @Override
     public void onClick(Object obj) {
         SelectableOrderRowModel sor = (SelectableOrderRowModel)obj;
-        callWorkedOrdersDialog(SalesController.getInstance(MainOrderReasignation.this).getSaleByCode(sor.getCode()));
+        callWorkedOrdersDialog(SalesController.getInstance(MainOrderReasignation.this).getSaleById(/*sor.getCode()*/0));
     }
 
     public void save(){
        if(validate()){
-           ArrayList<Sales> list = new ArrayList<>();
+           ArrayList<Sale> list = new ArrayList<>();
            KV user = (KV)spn3.getSelectedItem();
            KV codeAreaDetail = (KV)spn2.getSelectedItem();
            for(SelectableOrderRowModel srm : selected){
-               Sales s = SalesController.getInstance(MainOrderReasignation.this).getSaleByCode(srm.getCode());
-               s.setCODEUSER(user.getKey());
-               s.setCODEAREADETAIL(codeAreaDetail.getKey());
+               Sale s = SalesController.getInstance(MainOrderReasignation.this).getSaleById(/*srm.getCode()*/0);
+               s.setIduser(/*user.getKey()*/0);
+               s.setIdTable(codeAreaDetail.getKey());
                list.add(s);
            }
-           SalesController.getInstance(MainOrderReasignation.this).sendToFireBase(list,null);
+           //SalesController.getInstance(MainOrderReasignation.this).sendToFireBase(list,null);
            /////////////////////////////////////////////////////////////////////////////////////////////
-           for(Sales s: list){
+           for(Sale s: list){
                SalesController.getInstance(MainOrderReasignation.this).update(s);
            }
 
@@ -173,7 +176,7 @@ public class MainOrderReasignation extends AppCompatActivity implements Listable
         return true;
     }
 
-    public void callWorkedOrdersDialog(Sales s){
+    public void callWorkedOrdersDialog(Sale s){
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         Fragment prev = getSupportFragmentManager().findFragmentByTag("dialogWorkedOrders");
         if (prev != null) {

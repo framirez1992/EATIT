@@ -2,11 +2,6 @@ package far.com.eatit.Dialogs;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputLayout;
-import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +11,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
 
@@ -146,17 +148,17 @@ public class PaymentDialog extends DialogFragment {
     }
 
     public void refreshAmount(){
-        double amount = SalesController.getInstance(parentActivity).getReceiptByCodeAreadetail(codeAreaDetail).getTotal();
+        double amount = SalesController.getInstance(parentActivity).getReceiptByCodeAreadetail(/*codeAreaDetail*/0).getTotal();
         tvAmount.setText("$"+Funciones.formatDecimal(amount));
         prepareAmounts(amount);
     }
 
     public ArrayList<Sales> getSales(){
-        return SalesController.getInstance(parentActivity).getDeliveredOrdersByCodeAreadetail(codeAreaDetail);
+        return SalesController.getInstance(parentActivity).getDeliveredOrdersByCodeAreadetail(/*codeAreaDetail*/0);
     }
 
     public Receipts getReceipt(){
-        return SalesController.getInstance(parentActivity).getReceiptByCodeAreadetail(codeAreaDetail);
+        return SalesController.getInstance(parentActivity).getReceiptByCodeAreadetail(/*codeAreaDetail*/0);
     }
     public boolean validate(){
         if(getSales().size() == 0){

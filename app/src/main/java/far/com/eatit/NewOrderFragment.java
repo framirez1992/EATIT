@@ -3,11 +3,6 @@ package far.com.eatit;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,8 +10,15 @@ import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import java.util.ArrayList;
 
+import far.com.eatit.API.models.ProductSubType;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.Adapters.NewOrderProductRowAdapter;
 import far.com.eatit.CloudFireStoreObjects.ProductsSubTypes;
@@ -136,11 +138,11 @@ public class NewOrderFragment extends Fragment {
                 x.add("%"+lastSeach+"%");
             }else {
                 if (lastType != null && lastType != "0") {
-                    where += "AND p." + ProductsController.TYPE + " = ?";
+                    where += "AND p." + ProductsController.IDPRODUCTTYPE  + " = ?";
                     x.add(lastType);
                 }
                 if (lastSubType != null && lastSubType != "0") {
-                    where += "AND p." + ProductsController.SUBTYPE + " = ?";
+                    where += "AND p." + ProductsController.IDPRODUCTSUBTYPE  + " = ?";
                     x.add(lastSubType);
                 }
             }
@@ -176,11 +178,11 @@ public class NewOrderFragment extends Fragment {
         }else if(s.getCODEPRODUCTSUBTYPE() != null){
             spnFamilia.setOnItemSelectedListener(null);
             spnGrupo.setOnItemSelectedListener(null);
-            ProductsSubTypes ps = ProductsSubTypesController.getInstance(parentActivity).getProductTypeByCode(s.getCODEPRODUCTSUBTYPE());
-            setSpnSelection(spnFamilia,ps.getCODETYPE());
+            ProductSubType ps = ProductsSubTypesController.getInstance(parentActivity).getProductTypeByCode(s.getCODEPRODUCTSUBTYPE());
+            setSpnSelection(spnFamilia,ps.getCode());
             spnFamilia.setEnabled(false);
-            ProductsSubTypesController.getInstance(parentActivity).fillSpinner(spnGrupo,false,ps.getCODETYPE());
-            setSpnSelection(spnGrupo,ps.getCODE());
+            ProductsSubTypesController.getInstance(parentActivity).fillSpinner(spnGrupo,false,ps.getIdproductType()+"");
+            setSpnSelection(spnGrupo,ps.getCode());
             spnGrupo.setEnabled(false);
 
             lastType = ((KV)spnFamilia.getSelectedItem()).getKey();

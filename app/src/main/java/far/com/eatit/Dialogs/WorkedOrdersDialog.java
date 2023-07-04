@@ -2,16 +2,18 @@ package far.com.eatit.Dialogs;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+
+import far.com.eatit.API.models.Sale;
 import far.com.eatit.Adapters.Models.NotificationRowModel;
 import far.com.eatit.Adapters.Models.WorkedOrdersRowModel;
 import far.com.eatit.CloudFireStoreObjects.Sales;
@@ -22,7 +24,7 @@ import far.com.eatit.NotificationFragment;
 import far.com.eatit.OrdersEditionFragment;
 import far.com.eatit.R;
 
-public class WorkedOrdersDialog extends DialogFragment{
+public class WorkedOrdersDialog extends DialogFragment {
 
 
     OrdersEditionFragment ordersEditionFragment;
@@ -31,7 +33,7 @@ public class WorkedOrdersDialog extends DialogFragment{
     String codeAreaDetail;
 
     boolean showOnlyDetail;
-    Sales sales;
+    Sale sales;
 
     public  static WorkedOrdersDialog newInstance() {
 
@@ -156,7 +158,7 @@ public class WorkedOrdersDialog extends DialogFragment{
 
         goToMessageDetail();
         changeFragment(ordersEditionFragment, R.id.notificationsDetails);
-        ordersEditionFragment.setSales(SalesController.getInstance(getActivity()).getSaleByCode(n.getCode()));
+        ordersEditionFragment.setSales(SalesController.getInstance(getActivity()).getSaleById(/*n.getCode()*/0));
         ordersEditionFragment.setupEdition();
 
     }
@@ -171,7 +173,7 @@ public class WorkedOrdersDialog extends DialogFragment{
         }
     }
 
-    public void editOrder(Sales s){
+    public void editOrder(Sale s){
         ((MainOrders)getActivity()).editOrder(s);
         dismiss();
     }
@@ -183,7 +185,7 @@ public class WorkedOrdersDialog extends DialogFragment{
 
     }
 
-    public void setShowOnlyDetail(boolean b, Sales s){
+    public void setShowOnlyDetail(boolean b, Sale s){
         this.showOnlyDetail = b;
         this.sales = s;
     }

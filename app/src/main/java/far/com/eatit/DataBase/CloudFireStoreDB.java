@@ -11,31 +11,8 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.UUID;
-
-import far.com.eatit.CloudFireStoreObjects.Areas;
-import far.com.eatit.CloudFireStoreObjects.AreasDetail;
-import far.com.eatit.CloudFireStoreObjects.Combos;
-import far.com.eatit.CloudFireStoreObjects.Company;
-import far.com.eatit.CloudFireStoreObjects.MeasureUnits;
-import far.com.eatit.CloudFireStoreObjects.PriceList;
-import far.com.eatit.CloudFireStoreObjects.Products;
-import far.com.eatit.CloudFireStoreObjects.ProductsControl;
-import far.com.eatit.CloudFireStoreObjects.ProductsMeasure;
-import far.com.eatit.CloudFireStoreObjects.ProductsSubTypes;
-import far.com.eatit.CloudFireStoreObjects.ProductsTypes;
-import far.com.eatit.CloudFireStoreObjects.Sales;
-import far.com.eatit.CloudFireStoreObjects.SalesDetails;
-import far.com.eatit.CloudFireStoreObjects.StoreHouse;
-import far.com.eatit.CloudFireStoreObjects.StoreHouseDetail;
-import far.com.eatit.CloudFireStoreObjects.TableCode;
-import far.com.eatit.CloudFireStoreObjects.TableFilter;
-import far.com.eatit.CloudFireStoreObjects.UserControl;
-import far.com.eatit.CloudFireStoreObjects.UserInbox;
 import far.com.eatit.CloudFireStoreObjects.UserTypes;
 import far.com.eatit.CloudFireStoreObjects.Users;
 import far.com.eatit.CloudFireStoreObjects.UsersDevices;
@@ -244,7 +221,7 @@ public class CloudFireStoreDB {
                 licenseController.insert(license);
 
                 okListener.sendMessage("CARGANDO USERS ");
-                areasController.getDataFromFireBase(license.getCODE(),onSuccessListenerUsers,failureListener);
+                //areasController.getDataFromFireBase(license.getCODE(),onSuccessListenerUsers,failureListener);
             }
         }
     };
@@ -281,7 +258,7 @@ public class CloudFireStoreDB {
                     usersController.insert(doc.toObject(Users.class));
                 }
             okListener.sendMessage("CARGANDO ROLES ");
-            measureUnitsController.getDataFromFireBase(license.getCODE(), onSuccessListenerRoles, failureListener);
+            //measureUnitsController.getDataFromFireBase(license.getCODE(), onSuccessListenerRoles, failureListener);
         }
     };
    /* public OnSuccessListener<QuerySnapshot> onSuccessListenerCombos = new OnSuccessListener<QuerySnapshot>() {
@@ -588,7 +565,7 @@ public class CloudFireStoreDB {
 
 
     public void ActualizarTabla(String key, KV tabla){
-        switch (tabla.getKey()){
+       /* switch (tabla.getKey()){
             case Tablas.generalUsersAreas: areasController.getAllDataFromFireBase(key, failureListener);break;
             case Tablas.generalUsersAreasDetail: areasDetailController.getAllDataFromFireBase(key, failureListener); break;
             case Tablas.generalUsersCombos: combosController.getAllDataFromFireBase(key, failureListener);  break;
@@ -619,7 +596,7 @@ public class CloudFireStoreDB {
 
 
 
-        }
+        }*/
     }
 
     public ArrayList<DocumentReference> getDocumentsReferencesByTableName(KV2 data){
@@ -636,7 +613,7 @@ public class CloudFireStoreDB {
         case ProductsControlController.TABLE_NAME: break;
         case ProductsController.TABLE_NAME: break;
         case ProductsInvController.TABLE_NAME: break;
-        case ProductsMeasureController.TABLE_NAME: return productsMeasureController.getReferences(data.getDescription(), data.getDescription2());
+        //case ProductsMeasureController.TABLE_NAME: return productsMeasureController.getReferences(data.getDescription(), data.getDescription2());
         case ProductsMeasureInvController.TABLE_NAME: return productsMeasureInvController.getReferences(data.getDescription(), data.getDescription2());
         case ProductsSubTypesController.TABLE_NAME: break;
         case ProductsSubTypesInvController.TABLE_NAME: break;

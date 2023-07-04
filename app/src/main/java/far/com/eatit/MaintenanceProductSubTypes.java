@@ -1,31 +1,46 @@
 package far.com.eatit;
 
 import android.app.Dialog;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
 import android.view.ContextMenu;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import far.com.eatit.API.APIClient;
+import far.com.eatit.API.APIInterface;
+import far.com.eatit.API.models.LoginResponse;
+import far.com.eatit.API.models.ProductSubType;
+import far.com.eatit.API.models.ProductType;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.Adapters.SimpleRowEditionAdapter;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
@@ -39,68 +54,81 @@ import far.com.eatit.Controllers.ProductsTypesInvController;
 import far.com.eatit.Dialogs.ProductSubTypeDialogFragment;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
+import far.com.eatit.Interfases.DialogCaller;
 import far.com.eatit.Interfases.ListableActivity;
 import far.com.eatit.Utils.Funciones;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-public class MaintenanceProductSubTypes extends AppCompatActivity implements ListableActivity {
+public class MaintenanceProductSubTypes extends Fragment implements ListableActivity, DialogCaller {
+
+    Main mainActivity;
+    String type;
+    APIInterface apiInterface;
+    LoginResponse loginResponse;
 
     RecyclerView rvList;
     ArrayList<SimpleRowModel> objects;
     SimpleRowEditionAdapter adapter;
-    ProductsTypesController productsTypesController;
-    ProductsSubTypesController productsSubTypesController;
-    ProductsTypesInvController productsTypesInvController;
-    ProductsSubTypesInvController productsSubTypesInvController;
-    ProductsSubTypes productsSubType = null;
-    Licenses licence;
+    ProductSubType productsSubType = null;
     String lastSearch = null;
     Spinner spnFamily;
-    String type;
+
+
+    public MaintenanceProductSubTypes(){
+
+    }
+    public static MaintenanceProductSubTypes newInstance(Main mainActivity, String type){
+        MaintenanceProductSubTypes fragment = new MaintenanceProductSubTypes();
+        fragment.mainActivity = mainActivity;
+        fragment.type = type;
+        return fragment;
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        loginResponse = Funciones.getLoginResponseData(mainActivity);
+        apiInterface = APIClient.getClient(mainActivity).create(APIInterface.class);
+        return inflater.inflate(R.layout.maintenance_w_spinner, container, false);
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.maintenance_w_spinner);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-        if(getIntent().getExtras()== null || !getIntent().getExtras().containsKey(CODES.EXTRA_TYPE_FAMILY) ){
-            finish();
-            return;
-        }
+        view.findViewById(R.id.llMenu).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showOptions(true);
+            }
+        });
 
-        type = getIntent().getStringExtra(CODES.EXTRA_TYPE_FAMILY);
-
-        productsTypesController = ProductsTypesController.getInstance(MaintenanceProductSubTypes.this);
-        productsSubTypesController = ProductsSubTypesController.getInstance(MaintenanceProductSubTypes.this);
-        productsTypesInvController = ProductsTypesInvController.getInstance(MaintenanceProductSubTypes.this);
-        productsSubTypesInvController = ProductsSubTypesInvController.getInstance(MaintenanceProductSubTypes.this);
-
-        licence = LicenseController.getInstance(MaintenanceProductSubTypes.this).getLicense();
-
-
-        rvList = findViewById(R.id.rvList);
-        spnFamily = findViewById(R.id.spn);
-        ((TextView)findViewById(R.id.spnTitle)).setText("Familia");
+        rvList = view.findViewById(R.id.rvList);
+        spnFamily = view.findViewById(R.id.spn);
+        ((TextView)view.findViewById(R.id.spnTitle)).setText("Familia");
 
         objects = new ArrayList<>();
 
-        LinearLayoutManager manager = new LinearLayoutManager(MaintenanceProductSubTypes.this);
+        LinearLayoutManager manager = new LinearLayoutManager(mainActivity);
         rvList.setLayoutManager(manager);
-        adapter = new SimpleRowEditionAdapter(this,this, objects);
+        adapter = new SimpleRowEditionAdapter(mainActivity,this, objects);
         rvList.setAdapter(adapter);
 
+        /*
         if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
             productsTypesController.fillSpinner(spnFamily, true);
         }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
             productsTypesInvController.fillSpinner(spnFamily, true);
         }
+         */
+
         spnFamily.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 KV obj = ((KV)spnFamily.getSelectedItem());
-                if(obj.getKey().equals("0"))
-                refreshList();
-                else
-                refreshList();//DESCRIPCION
+                searchEntities(Integer.parseInt(obj.getKey()));
             }
 
             @Override
@@ -109,140 +137,24 @@ public class MaintenanceProductSubTypes extends AppCompatActivity implements Lis
             }
         });
 
+        fillProductTypes();
 
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        setUpListeners();
-    }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-
-        try{
-            getMenuInflater().inflate(R.menu.search_menu, menu);
-            MenuItem searchItem = menu.findItem(R.id.action_search);
-            SearchView search = (SearchView) searchItem.getActionView();
-
-            search.setOnQueryTextListener(searchListener);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        return (super.onCreateOptionsMenu(menu));
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
-            case R.id.action_new:
-                callAddDialog(true);
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_edit_delete, menu);
-        super.onCreateContextMenu(menu, v, menuInfo);
-    }
-
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-
-        switch (item.getItemId()) {
-            case R.id.actionEdit:
-                callAddDialog(false);
-                return true;
-            case R.id.actionDelete:
-                callDeleteConfirmation();
-                return  true;
-
-            default:return super.onContextItemSelected(item);
-        }
-    }
-
-
-    public void setUpListeners(){
-
-        if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)) {
-            productsTypesController.getReferenceFireStore().addSnapshotListener(new EventListener<QuerySnapshot>() {
-                @Override
-                public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                    productsTypesController.delete(null, null);//limpia la tabla
-
-                    for (DocumentSnapshot ds : querySnapshot) {
-
-                        ProductsTypes pt = ds.toObject(ProductsTypes.class);
-                        productsTypesController.insert(pt);
-                    }
-
-                    refreshList();
-                }
-            });
-            productsSubTypesController.getReferenceFireStore().addSnapshotListener(new EventListener<QuerySnapshot>() {
-                @Override
-                public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                    productsSubTypesController.delete(null, null);
-
-                    for (DocumentSnapshot ds : querySnapshot) {
-                        if (ds.exists()) {
-                            ProductsSubTypes pst = ds.toObject(ProductsSubTypes.class);
-                            productsSubTypesController.insert(pst);
-                        }
-                    }
-
-                    refreshList();
-                }
-            });
-        }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
-            productsTypesInvController.getReferenceFireStore().addSnapshotListener(new EventListener<QuerySnapshot>() {
-                @Override
-                public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                    productsTypesInvController.delete(null, null);//limpia la tabla
-
-                    for (DocumentSnapshot ds : querySnapshot) {
-
-                        ProductsTypes pt = ds.toObject(ProductsTypes.class);
-                        productsTypesInvController.insert(pt);
-                    }
-
-                    refreshList();
-                }
-            });
-            productsSubTypesInvController.getReferenceFireStore().addSnapshotListener(new EventListener<QuerySnapshot>() {
-                @Override
-                public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                    productsSubTypesInvController.delete(null, null);
-
-                    for (DocumentSnapshot ds : querySnapshot) {
-                        if (ds.exists()) {
-                            ProductsSubTypes pst = ds.toObject(ProductsSubTypes.class);
-                            productsSubTypesInvController.insert(pst);
-                        }
-                    }
-
-                    refreshList();
-                }
-            });
-        }
-    }
     public void callAddDialog(boolean isNew){
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        Fragment prev = getSupportFragmentManager().findFragmentByTag("dialog");
+        FragmentTransaction ft =mainActivity.getSupportFragmentManager().beginTransaction();
+        Fragment prev = mainActivity.getSupportFragmentManager().findFragmentByTag("dialog");
+
         if (prev != null) {
             ft.remove(prev);
         }
         ft.addToBackStack(null);
         DialogFragment newFragment = null;
         if(isNew)
-            newFragment = ProductSubTypeDialogFragment.newInstance(type, null);
+            newFragment = ProductSubTypeDialogFragment.newInstance(mainActivity,spnFamily.getAdapter(),type, null, this::dialogClosed);
             else
-            newFragment = ProductSubTypeDialogFragment.newInstance(type, productsSubType);
+            newFragment = ProductSubTypeDialogFragment.newInstance(mainActivity,spnFamily.getAdapter(),type,productsSubType, this::dialogClosed);
 
 
         // Create and show the dialog.
@@ -253,10 +165,10 @@ public class MaintenanceProductSubTypes extends AppCompatActivity implements Lis
 
         String description = "";
         if(productsSubType != null){
-            description = productsSubType.getDESCRIPTION();
+            description = productsSubType.getDescription();
         }
 
-        final Dialog d = new Dialog(MaintenanceProductSubTypes.this);
+        final Dialog d = new Dialog(mainActivity);
         d.setTitle("Delete");
         d.setContentView(R.layout.msg_2_buttons);
         TextView tvMsg = d.findViewById(R.id.tvMsg);
@@ -270,17 +182,17 @@ public class MaintenanceProductSubTypes extends AppCompatActivity implements Lis
 
                 String msgDependency = getMsgDependency();
                 if(!msgDependency.isEmpty()) {
-                    Funciones.showAlertDependencies(MaintenanceProductSubTypes.this, msgDependency);
+                    Funciones.showAlertDependencies(mainActivity, msgDependency);
                     d.dismiss();
                     return;
                 }
-                 if(productsSubType != null){
+               /*  if(productsSubType != null){
                      if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)) {
                          productsSubTypesController.deleteFromFireBase(productsSubType);
                      }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
                          productsSubTypesInvController.deleteFromFireBase(productsSubType);
                      }
-                }
+                }*/
                 d.dismiss();
             }
         });
@@ -296,6 +208,7 @@ public class MaintenanceProductSubTypes extends AppCompatActivity implements Lis
 
     }
 
+    /*
     public void refreshList(){
 
         objects.clear();
@@ -327,17 +240,19 @@ public class MaintenanceProductSubTypes extends AppCompatActivity implements Lis
         }
         adapter.notifyDataSetChanged();
     }
-
+*/
 
     @Override
     public void onClick(Object obj) {
-        productsSubType = null;
         SimpleRowModel sr = (SimpleRowModel)obj;
-        if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
+        productsSubType = (ProductSubType)sr.getEntity();
+        /*if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
             productsSubType = productsSubTypesController.getProductTypeByCode(sr.getId());
         }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
             productsSubType = productsSubTypesInvController.getProductTypeByCode(sr.getId());
         }
+         */
+        callAddDialog(false);
 
     }
 
@@ -347,7 +262,7 @@ public class MaintenanceProductSubTypes extends AppCompatActivity implements Lis
         public boolean onQueryTextSubmit(String query) {
             if(!query.equals("")) {
                 lastSearch = query;
-                refreshList();
+                //refreshList();
                 return true;
             }
             return false;
@@ -357,7 +272,7 @@ public class MaintenanceProductSubTypes extends AppCompatActivity implements Lis
         public boolean onQueryTextChange(String newText) {
             if(newText.equals("")){
                 lastSearch = null;
-                refreshList();
+                //refreshList();
                 return true;
             }
             return false;
@@ -366,16 +281,130 @@ public class MaintenanceProductSubTypes extends AppCompatActivity implements Lis
 
     public String getMsgDependency(){
         String msgDependency ="";
-        if(productsSubType != null){
+       /* if(productsSubType != null){
             if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
                 msgDependency = productsSubTypesController.hasDependencies(productsSubType.getCODE());
             }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY) ){
                 msgDependency = productsSubTypesInvController.hasDependencies(productsSubType.getCODE());
             }
 
-        }
+        }*/
         return msgDependency;
     }
 
+    private void showOptions(boolean fromMenu) {
+
+        final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(mainActivity);
+        bottomSheetDialog.setContentView(R.layout.admin_licenses_menu);
+
+        View settings = bottomSheetDialog.findViewById(R.id.trSettings);
+        View edit = bottomSheetDialog.findViewById(R.id.trEdit);
+        View add = bottomSheetDialog.findViewById(R.id.trAdd);
+
+        settings.setVisibility(View.GONE);
+        edit.setVisibility(fromMenu?View.GONE:View.VISIBLE);
+        add.setVisibility(fromMenu?View.VISIBLE:View.GONE);
+
+        edit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bottomSheetDialog.dismiss();
+                callAddDialog(false);
+            }
+        });
+
+        add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bottomSheetDialog.dismiss();
+                callAddDialog(true);
+            }
+        });
+        bottomSheetDialog.show();
+    }
+
+
+    public void searchEntities(int idProductType){
+        startLoading();
+        apiInterface.getProductSubTypes(loginResponse.getLicense().getId(), idProductType).enqueue(new Callback<List<ProductSubType>>() {
+            @Override
+            public void onResponse(Call<List<ProductSubType>> call, Response<List<ProductSubType>> response) {
+                ArrayList<SimpleRowModel> lrm = new ArrayList<>();
+                endLoading();
+
+                if(response.isSuccessful()){
+                    List<ProductSubType> list = response.body();
+                    for(ProductSubType obj : list){
+                        //String id, String text, Object entity
+                        lrm.add(new SimpleRowModel(String.valueOf(obj.getId()),obj.getDescription(),obj));
+                    }
+                }else{
+                    Snackbar.make(getView(),response.errorBody().byteStream().toString(), BaseTransientBottomBar.LENGTH_LONG).show();
+                }
+                refreshList(lrm);
+
+            }
+
+            @Override
+            public void onFailure(Call<List<ProductSubType>> call, Throwable t) {
+                Snackbar.make(getView(),t.getMessage(), BaseTransientBottomBar.LENGTH_LONG).show();
+                endLoading();
+            }
+        });
+
+    }
+
+
+    private void fillProductTypes(){
+        startLoading();
+        apiInterface.getProductTypes(loginResponse.getLicense().getId()).enqueue(new Callback<List<ProductType>>() {
+            @Override
+            public void onResponse(Call<List<ProductType>> call, Response<List<ProductType>> response) {
+                ArrayList<KV> lrm = new ArrayList<>();
+                endLoading();
+
+                if(response.isSuccessful()){
+                    List<ProductType> list = response.body();
+                    for(ProductType obj : list){
+                        //String id, String text, Object entity
+                        lrm.add(new KV(String.valueOf(obj.getId()),obj.getDescription()));
+                    }
+                }else{
+                    Snackbar.make(getView(),response.errorBody().byteStream().toString(), BaseTransientBottomBar.LENGTH_LONG).show();
+                }
+
+                ArrayAdapter<KV> adapter = new ArrayAdapter<KV>(mainActivity, android.R.layout.simple_list_item_1,lrm);
+                spnFamily.setAdapter(adapter);
+
+            }
+
+            @Override
+            public void onFailure(Call<List<ProductType>> call, Throwable t) {
+                Snackbar.make(getView(),t.getMessage(), BaseTransientBottomBar.LENGTH_LONG).show();
+                endLoading();
+            }
+        });
+
+    }
+
+    public void refreshList(ArrayList<SimpleRowModel> list){
+        SimpleRowEditionAdapter la = new SimpleRowEditionAdapter(mainActivity, this,list);
+        rvList.setAdapter(la);
+        rvList.invalidate();
+    }
+
+    private void startLoading(){
+        mainActivity.showWaitingDialog();
+    }
+
+    private void endLoading(){
+        mainActivity.dismissWaitingDialog();
+    }
+
+    @Override
+    public void dialogClosed(Object o) {
+        KV pt = (KV) spnFamily.getSelectedItem();
+        searchEntities(Integer.parseInt(pt.getKey()));
+    }
 }
 

@@ -1,20 +1,22 @@
 package far.com.eatit.Adapters;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-import far.com.eatit.Adapters.Holders.OptionHolder;
 import far.com.eatit.Adapters.Models.OptionModel;
 import far.com.eatit.Interfases.ListableActivity;
 import far.com.eatit.R;
 
-public class OptionsAdapter extends RecyclerView.Adapter<OptionHolder> {
+public class OptionsAdapter extends RecyclerView.Adapter<OptionsAdapter.OptionHolder> {
 
     ArrayList<OptionModel> objects;
     Context context;
@@ -46,5 +48,20 @@ public class OptionsAdapter extends RecyclerView.Adapter<OptionHolder> {
     @Override
     public int getItemCount() {
         return objects.size();
+    }
+
+    public class OptionHolder extends RecyclerView.ViewHolder {
+        ImageView img;
+        TextView text;
+        public OptionHolder(View itemView) {
+            super(itemView);
+            img = itemView.findViewById(R.id.img);
+            text = itemView.findViewById(R.id.text);
+        }
+
+        public void fillData(OptionModel om){
+            img.setImageResource(om.getImgResource());
+            text.setText(om.getText());
+        }
     }
 }

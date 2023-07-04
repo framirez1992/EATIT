@@ -1,41 +1,29 @@
 package far.com.eatit;
 
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
+
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnCanceledListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import org.json.JSONArray;
 
-import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
-
-import far.com.eatit.Adapters.Models.SimpleRowModel;
-import far.com.eatit.Adapters.SimpleRowEditionAdapter;
-import far.com.eatit.CloudFireStoreObjects.Licenses;
-import far.com.eatit.CloudFireStoreObjects.TableFilter;
 import far.com.eatit.CloudFireStoreObjects.Token;
 import far.com.eatit.Controllers.AreasController;
 import far.com.eatit.Controllers.AreasDetailController;
 import far.com.eatit.Controllers.CombosController;
 import far.com.eatit.Controllers.CompanyController;
-import far.com.eatit.Controllers.LicenseController;
 import far.com.eatit.Controllers.MeasureUnitsController;
 import far.com.eatit.Controllers.MeasureUnitsInvController;
 import far.com.eatit.Controllers.PriceListController;
@@ -48,7 +36,6 @@ import far.com.eatit.Controllers.ProductsSubTypesController;
 import far.com.eatit.Controllers.ProductsSubTypesInvController;
 import far.com.eatit.Controllers.ProductsTypesController;
 import far.com.eatit.Controllers.ProductsTypesInvController;
-import far.com.eatit.Controllers.RolesController;
 import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Controllers.TableCodeController;
 import far.com.eatit.Controllers.TableFilterController;
@@ -56,13 +43,8 @@ import far.com.eatit.Controllers.TokenController;
 import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Controllers.UserInboxController;
 import far.com.eatit.Controllers.UserTypesController;
-import far.com.eatit.Controllers.UsersController;
-import far.com.eatit.DataBase.CloudFireStoreDB;
-import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
 import far.com.eatit.Globales.Tablas;
-import far.com.eatit.Interfases.FireBaseOK;
-import far.com.eatit.Interfases.ListableActivity;
 
 public class MainActualizationCenter extends AppCompatActivity implements OnSuccessListener<QuerySnapshot>, OnFailureListener, OnCompleteListener, OnCanceledListener {
 
@@ -115,35 +97,35 @@ public class MainActualizationCenter extends AppCompatActivity implements OnSucc
         try{
             if(tableList.length()>0){
                 if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersAreas)){
-                    AreasController.getInstance(MainActualizationCenter.this).searchChanges(true, this, this);
+                    //AreasController.getInstance(MainActualizationCenter.this).searchChanges(true, this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersAreasDetail)){
-                    AreasDetailController.getInstance(MainActualizationCenter.this).searchDetailChanges(true, this, this);
+                    //AreasDetailController.getInstance(MainActualizationCenter.this).searchDetailChanges(true, this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersCombos)){
                     CombosController.getInstance(MainActualizationCenter.this).searchChanges(true, this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersCompany)){
-                    CompanyController.getInstance(MainActualizationCenter.this).searchChanges(true,  this, this);
+                    //CompanyController.getInstance(MainActualizationCenter.this).searchChanges(true,  this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersMeasureUnits)){
-                    MeasureUnitsController.getInstance(MainActualizationCenter.this).searchChanges(true,  this, this);
+                    //MeasureUnitsController.getInstance(MainActualizationCenter.this).searchChanges(true,  this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersMeasureUnitsInv)){
                     MeasureUnitsInvController.getInstance(MainActualizationCenter.this).searchChanges(true, this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersPriceList)){
                     PriceListController.getInstance(MainActualizationCenter.this).searchChanges(true, this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProducts)){
-                    ProductsController.getInstance(MainActualizationCenter.this).searchChanges(true,  this, this);
+                    //ProductsController.getInstance(MainActualizationCenter.this).searchChanges(true,  this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProductsInv)){
                     ProductsInvController.getInstance(MainActualizationCenter.this).searchChanges(true,  this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProductsControl)){
                     ProductsControlController.getInstance(MainActualizationCenter.this).searchChanges(true,  this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProductsMeasure)){
-                    ProductsMeasureController.getInstance(MainActualizationCenter.this).searchChanges(true,  this, this);
+                    //ProductsMeasureController.getInstance(MainActualizationCenter.this).searchChanges(true,  this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProductsMeasureInv)){
                     ProductsMeasureInvController.getInstance(MainActualizationCenter.this).searchChanges(true, this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProductsTypes)){
-                    ProductsTypesController.getInstance(MainActualizationCenter.this).searchChanges(true,  this, this);
+                    //ProductsTypesController.getInstance(MainActualizationCenter.this).searchChanges(true,  this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProductsTypesInv)){
                     ProductsTypesInvController.getInstance(MainActualizationCenter.this).searchChanges(true, this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProductsSubTypes)){
-                    ProductsSubTypesController.getInstance(MainActualizationCenter.this).searchChanges(true,  this, this);
+                   // ProductsSubTypesController.getInstance(MainActualizationCenter.this).searchChanges(true,  this, this);
                 }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProductsSubTypesInv)){
                     ProductsSubTypesInvController.getInstance(MainActualizationCenter.this).searchChanges(true, this, this);
                 }/*else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersSales)){
@@ -207,41 +189,41 @@ public class MainActualizationCenter extends AppCompatActivity implements OnSucc
 
         try{
             if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersAreas)){
-                AreasController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
+                //AreasController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersAreasDetail)){
-                AreasDetailController.getInstance(MainActualizationCenter.this).consumeDetailQuerySnapshot(true, querySnapshot);
+                //AreasDetailController.getInstance(MainActualizationCenter.this).consumeDetailQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersCombos)){
                 CombosController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersCompany)){
-                CompanyController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
+                //CompanyController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersMeasureUnits)){
-                MeasureUnitsController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
+                //MeasureUnitsController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersMeasureUnitsInv)){
                 MeasureUnitsInvController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersPriceList)){
                 PriceListController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProducts)){
-                ProductsController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
+                //ProductsController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProductsInv)){
                 ProductsInvController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProductsControl)){
                 ProductsControlController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProductsMeasure)){
-                ProductsMeasureController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
+                //ProductsMeasureController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProductsMeasureInv)){
                 ProductsMeasureInvController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProductsTypes)){
-                ProductsTypesController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
+                //ProductsTypesController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProductsTypesInv)){
                 ProductsTypesInvController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProductsSubTypes)){
-                ProductsSubTypesController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
+               // ProductsSubTypesController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersProductsSubTypesInv)){
                 ProductsSubTypesInvController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersSales)){
-                SalesController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
+               // SalesController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersSalesDetails)){
-                SalesController.getInstance(MainActualizationCenter.this).consumeDetailQuerySnapshot(true, querySnapshot);
+              //  SalesController.getInstance(MainActualizationCenter.this).consumeDetailQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersTableCode)){
                 TableCodeController.getInstance(MainActualizationCenter.this).consumeQuerySnapshot(true, querySnapshot);
             }else if(tableList.get(0).toString().equalsIgnoreCase(Tablas.generalUsersTableFilter)){

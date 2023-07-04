@@ -23,23 +23,23 @@ public class AreasDetail {
     }
     public HashMap<String, Object> toMap(){
         HashMap<String, Object> map = new HashMap<>();
-        map.put(AreasDetailController.CODE, CODE);
+        /*map.put(AreasDetailController.CODE, CODE);
         map.put(AreasDetailController.CODEAREA, CODEAREA);
         map.put(AreasDetailController.DESCRIPTION, DESCRIPTION);
         map.put(AreasDetailController.ORDER, ORDEN);
         map.put(AreasDetailController.DATE, (DATE == null)? FieldValue.serverTimestamp():DATE);
-        map.put(AreasDetailController.MDATE, (MDATE == null)? FieldValue.serverTimestamp():MDATE);
+        map.put(AreasDetailController.MDATE, (MDATE == null)? FieldValue.serverTimestamp():MDATE);*/
 
         return map;
 
     }
     public AreasDetail(Cursor c){
-        this.CODE = c.getString(c.getColumnIndex(AreasDetailController.CODE));
+        /*his.CODE = c.getString(c.getColumnIndex(AreasDetailController.CODE));
         this.CODEAREA = c.getString(c.getColumnIndex(AreasDetailController.CODEAREA));
         this.DESCRIPTION = c.getString(c.getColumnIndex(AreasDetailController.DESCRIPTION));
         this.ORDEN = c.getInt(c.getColumnIndex(AreasDetailController.ORDER));
         this.DATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(AreasDetailController.DATE)));
-        this.DATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(AreasDetailController.MDATE)));
+        this.DATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(AreasDetailController.MDATE)));*/
     }
 
     public String getCODE() {

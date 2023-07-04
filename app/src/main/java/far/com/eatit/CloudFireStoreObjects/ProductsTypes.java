@@ -28,20 +28,22 @@ public class ProductsTypes {
 
     public HashMap<String, Object> toMap(){
         HashMap<String, Object> map = new HashMap<>();
-        map.put(ProductsTypesController.CODE, CODE);
+        /*map.put(ProductsTypesController.CODE, CODE);
         map.put(ProductsTypesController.DESCRIPTION, DESCRIPTION);
-        map.put(ProductsTypesController.ORDER, ORDEN);
+        map.put(ProductsTypesController.POSITION, ORDEN);
         map.put(ProductsTypesController.DATE, (DATE == null)? FieldValue.serverTimestamp():DATE);
-        map.put(ProductsTypesController.MDATE,  (MDATE == null)? FieldValue.serverTimestamp():MDATE);
+        map.put(ProductsTypesController.MDATE,  (MDATE == null)? FieldValue.serverTimestamp():MDATE);*/
         return map;
 
     }
     public ProductsTypes(Cursor c){
-        this.CODE = c.getString(c.getColumnIndex(ProductsTypesController.CODE));
+       /* this.CODE = c.getString(c.getColumnIndex(ProductsTypesController.CODE));
         this.DESCRIPTION = c.getString(c.getColumnIndex(ProductsTypesController.DESCRIPTION));
         this.ORDEN = c.getInt(c.getColumnIndex(ProductsTypesController.ORDER));
         this.DATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(ProductsTypesController.DATE)));
         this.MDATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(ProductsTypesController.MDATE)));
+        */
+
     }
 
     public String getCODE() {

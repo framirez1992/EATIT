@@ -2,38 +2,39 @@ package far.com.eatit;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.annotation.Nullable;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
-import far.com.eatit.Adapters.Models.OptionModel;
-import far.com.eatit.Adapters.OptionsAdapter;
-import far.com.eatit.Controllers.SalesController;
+import far.com.eatit.API.models.License;
+import far.com.eatit.API.models.LoginResponse;
 import far.com.eatit.Controllers.UserControlController;
 import far.com.eatit.Globales.CODES;
-import far.com.eatit.Interfases.ListableActivity;
+import far.com.eatit.Utils.Funciones;
 
 
 public class MaintenanceFragment extends Fragment {
 
 
+    Main mainActivity;
     ImageView btnFamily, btnGroup, btnMeasures, btnProducts,btnFamilyInv, btnGroupInv, btnMeasuresInv, btnProductsInv, btnUsers, btnUserRol, btnAreas, btnMesas,btnControls, btnTableCode,
             btnTableFilter/*, btnActualizationCenter*/, btnUserTable, btnUsersControl, btnRolesControl, btnOrderSplit, btnOrderSplitDestiny, btnOrderMove;
     LinearLayout llMainScreen,llMaintenanceControls, llMaintenanceAreas, llMaintenanceUsers, llMaintenanceProducts,llMaintenanceInventory;
+
     public MaintenanceFragment() {
         // Required empty public constructor
     }
 
+    public static MaintenanceFragment newInstance(Main mainActivity) {
+        MaintenanceFragment fragment = new MaintenanceFragment();
+        fragment.mainActivity = mainActivity;
+        return fragment;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -105,8 +106,6 @@ public class MaintenanceFragment extends Fragment {
 
        //btnActualizationCenter.setOnClickListener(imageClick);
 
-
-
     }
 
     public View.OnClickListener imageClick = new View.OnClickListener() {
@@ -117,14 +116,24 @@ public class MaintenanceFragment extends Fragment {
             switch (v.getId()){
                 case R.id.btnFamily:
                 case R.id.btnFamilyInv:
-                    i = new Intent(getActivity(), MaintenanceProductTypes.class);
-                    i.putExtra(CODES.EXTRA_TYPE_FAMILY, (v.getId() == R.id.btnFamilyInv)? CODES.ENTITY_TYPE_EXTRA_INVENTORY:CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE );
-                    break;
+                    mainActivity.setMaintenanceProductTypes((v.getId() == R.id.btnFamilyInv)? CODES.ENTITY_TYPE_EXTRA_INVENTORY:CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE );
+                    //i = new Intent(getActivity(), MaintenanceProductTypes.class);
+                    //i.putExtra(CODES.EXTRA_TYPE_FAMILY, (v.getId() == R.id.btnFamilyInv)? CODES.ENTITY_TYPE_EXTRA_INVENTORY:CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE );
+                    return;
+                case R.id.btnGroups:
+                case R.id.btnGroupsInv:
+                    mainActivity.setMaintenanceProductSubTypes((v.getId() == R.id.btnGroupsInv)? CODES.ENTITY_TYPE_EXTRA_INVENTORY:CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE );
+                    return;
+                    /*i = new Intent(getActivity(), MaintenanceProductSubTypes.class);
+                    i.putExtra(CODES.EXTRA_TYPE_FAMILY, (v.getId() == R.id.btnGroupsInv)? CODES.ENTITY_TYPE_EXTRA_INVENTORY:CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE );
+                    break;*/
                 case R.id.btnMeasures:
                 case R.id.btnMeasuresInv:
-                    i = new Intent(getActivity(), MaintenanceUnitMeasure.class);
+                    mainActivity.setMaintenanceUnitMeasure((v.getId() == R.id.btnMeasuresInv)? CODES.ENTITY_TYPE_EXTRA_INVENTORY:CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE);
+                    /*i = new Intent(getActivity(), MaintenanceUnitMeasure.class);
                     i.putExtra(CODES.EXTRA_TYPE_FAMILY, (v.getId() == R.id.btnMeasuresInv)? CODES.ENTITY_TYPE_EXTRA_INVENTORY:CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE );
-                    break;
+                    break;*/
+                    return;
                 case R.id.btnUsers:
                     i = new Intent(getActivity(), MaintenanceUsers.class);
                     break;
@@ -136,16 +145,15 @@ public class MaintenanceFragment extends Fragment {
                     i.putExtra(CODES.EXTRA_MAINASSIGNATION_TABLE, UserControlController.TABLE_NAME);
                     i.putExtra(CODES.EXTRA_MAINASSIGNATION_TARGET, CODES.USERCONTROL_TABLEASSIGN);
                     break;
-                case R.id.btnGroups:
-                case R.id.btnGroupsInv:
-                    i = new Intent(getActivity(), MaintenanceProductSubTypes.class);
-                    i.putExtra(CODES.EXTRA_TYPE_FAMILY, (v.getId() == R.id.btnGroupsInv)? CODES.ENTITY_TYPE_EXTRA_INVENTORY:CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE );
-                    break;
                 case R.id.btnProducts:
                 case R.id.btnProductsInv:
+                    /*
                     i = new Intent(getActivity(), MaintenanceProducts.class);
                     i.putExtra(CODES.EXTRA_TYPE_FAMILY, (v.getId() == R.id.btnProductsInv)? CODES.ENTITY_TYPE_EXTRA_INVENTORY:CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE );
                     break;
+                     */
+                    mainActivity.setMaintenanceProducts((v.getId() == R.id.btnProductsInv)? CODES.ENTITY_TYPE_EXTRA_INVENTORY:CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE);
+                    return;
                 case R.id.btnAreas:
                     i = new Intent(getActivity(), MaintenanceAreas.class);
                     break;

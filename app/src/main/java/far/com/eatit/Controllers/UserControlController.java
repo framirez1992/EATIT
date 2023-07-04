@@ -3,9 +3,10 @@ package far.com.eatit.Controllers;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.support.annotation.NonNull;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+
+import androidx.annotation.NonNull;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -489,10 +490,10 @@ public class UserControlController {
     public ArrayList<SimpleSeleccionRowModel> getUserTableSSRM(String target, String targerCode){
 
         ArrayList<SimpleSeleccionRowModel> list = new ArrayList<>();
-        String sql = "SELECT ad."+AreasDetailController.CODE+" as CODEAREADETAIL, ad."+AreasDetailController.DESCRIPTION+" as AREADETAILDESCRIPTION, ifnull(uc."+CODE+", -1), ifnull(uc."+TARGET+", '"+target+"'), ifnull(uc."+TARGETCODE+", '"+targerCode+"'), ifnull(uc."+ACTIVE+", 0) as CHECKED " +
+        String sql = "SELECT ad."+AreasDetailController.IDAREADETAIL +" as CODEAREADETAIL, ad."+AreasDetailController.DESCRIPTION+" as AREADETAILDESCRIPTION, ifnull(uc."+CODE+", -1), ifnull(uc."+TARGET+", '"+target+"'), ifnull(uc."+TARGETCODE+", '"+targerCode+"'), ifnull(uc."+ACTIVE+", 0) as CHECKED " +
                      "FROM "+AreasDetailController.TABLE_NAME+" ad " +
-                     "LEFT JOIN "+TABLE_NAME+" uc ON uc."+TARGET+" = '"+target+"' AND uc."+TARGETCODE+" = '"+targerCode+"' AND  uc."+CONTROL+" = '"+CODES.USERCONTROL_TABLEASSIGN+"' AND  ad."+AreasDetailController.CODE+" = uc."+VALUE+" " +
-                     "ORDER BY ad."+AreasDetailController.ORDER+" ASC ";
+                     "LEFT JOIN "+TABLE_NAME+" uc ON uc."+TARGET+" = '"+target+"' AND uc."+TARGETCODE+" = '"+targerCode+"' AND  uc."+CONTROL+" = '"+CODES.USERCONTROL_TABLEASSIGN+"' AND  ad."+AreasDetailController.IDAREADETAIL +" = uc."+VALUE+" " +
+                     "ORDER BY ad."+AreasDetailController.POSITION+" ASC ";
         Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
         while(c.moveToNext()){
             list.add(new SimpleSeleccionRowModel(c.getString(c.getColumnIndex("CODEAREADETAIL")),c.getString(c.getColumnIndex("AREADETAILDESCRIPTION")), c.getString(c.getColumnIndex("CHECKED")).equals("1")));
@@ -633,7 +634,7 @@ public class UserControlController {
     }
     public String getOrderSplitDestinyIn(){
         String result = getOrderSplitDestiny();
-        return " AND ( (ifnull("+SalesController.CODEPRODUCTTYPE+", '') = '' AND ifnull("+SalesController.CODEPRODUCTSUBTYPE+", '') = '') OR   "+SalesController.CODEPRODUCTTYPE+" IN ("+result+") OR "+SalesController.CODEPRODUCTSUBTYPE+" IN ("+result+")   ) ";
+        return null;// " AND ( (ifnull("+SalesController.CODEPRODUCTTYPE+", '') = '' AND ifnull("+SalesController.CODEPRODUCTSUBTYPE+", '') = '') OR   "+SalesController.CODEPRODUCTTYPE+" IN ("+result+") OR "+SalesController.CODEPRODUCTSUBTYPE+" IN ("+result+")   ) ";
 
     }
 
@@ -703,7 +704,7 @@ public class UserControlController {
         list.add(new KV("-1", "NONE"));
         String sql = "SELECT u."+UsersController.CODE+", u."+UsersController.USERNAME+" " +
                 "FROM "+UsersController.TABLE_NAME+" u " +
-                "INNER JOIN "+SalesController.TABLE_NAME+" s on s."+SalesController.CODEUSER+" = u."+UsersController.CODE+" AND s."+SalesController.STATUS+" IN ("+CODES.CODE_ORDER_STATUS_OPEN+", "+CODES.CODE_ORDER_STATUS_DELIVERED+", "+CODES.CODE_ORDER_STATUS_READY+") " +
+                "INNER JOIN "+SalesController.TABLE_NAME+" s on s."+SalesController.IDUSER+" = u."+UsersController.CODE+" AND s."+SalesController.STATUS+" IN ("+CODES.CODE_ORDER_STATUS_OPEN+", "+CODES.CODE_ORDER_STATUS_DELIVERED+", "+CODES.CODE_ORDER_STATUS_READY+") " +
                 "INNER JOIN "+UserControlController.TABLE_NAME+" uc on uc."+UserControlController.CONTROL+" = '"+CODES.USER_CONTROL_CREATEORDER+"' AND uc."+UserControlController.TARGET+" = '"+CODES.USERSCONTROL_TARGET_USER_ROL+"' AND uc."+UserControlController.TARGETCODE+" = u."+UsersController.ROLE+" " +
                 "WHERE u."+UsersController.ENABLED+" = ? " +
                 "GROUP BY u."+UsersController.CODE+", u."+UsersController.USERNAME;

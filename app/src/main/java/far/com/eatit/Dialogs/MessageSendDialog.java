@@ -2,12 +2,6 @@ package far.com.eatit.Dialogs;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.TextInputEditText;
-import android.support.v4.app.DialogFragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,10 +10,19 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.textfield.TextInputEditText;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import far.com.eatit.API.models.Sale;
 import far.com.eatit.Adapters.Models.SimpleSeleccionRowModel;
 import far.com.eatit.Adapters.SimpleSelectionRowAdapter;
 import far.com.eatit.CloudFireStoreObjects.Sales;
@@ -37,7 +40,7 @@ public class MessageSendDialog extends DialogFragment {
 
 
     UserInbox userInbox;
-    Sales sales;
+    Sale sales;
 
     UserInboxController userInboxController;
     Spinner spnTarget, spnDestiny;
@@ -63,7 +66,7 @@ public class MessageSendDialog extends DialogFragment {
 
         return f;
     }
-    public  static MessageSendDialog newInstance(Activity act, Sales sales) {
+    public  static MessageSendDialog newInstance(Activity act, Sale sales) {
         MessageSendDialog f = new MessageSendDialog();
         f.activity = act;
         f.sales = sales;
@@ -233,14 +236,14 @@ public class MessageSendDialog extends DialogFragment {
             mails.add(new UserInbox(Funciones.generateCode(),userInbox.getCODEUSER(),userInbox.getCODESENDER(),msgID,userInbox.getSUBJECT(),etMessage.getText().toString(),CODES.CODE_TYPE_OPERATION_MESSAGE+"",CODES.CODE_ICON_MESSAGE_NEW,CODES.CODE_USERINBOX_STATUS_NO_READ));
 
         }else if(sales != null){
-            msgID = sales.getCODE();
+            msgID = sales.getId()+"";
             String msg = etMessage.getText().toString();
-            String subject = "Orden: "+sales.getCODE();
+            String subject = "Orden: "+sales.getId();
             UserInbox ui = new UserInbox(Funciones.generateCode(), Funciones.getCodeuserLogged(activity),Funciones.getCodeuserLogged(getActivity()),msgID,subject,msg,CODES.CODE_TYPE_OPERATION_SALES+"",CODES.CODE_ICON_MESSAGE_ALERT,CODES.CODE_USERINBOX_STATUS_READ);
 
 
             mails.add(ui);//mensaje para mi mismo en status leido.
-            mails.add(new UserInbox(Funciones.generateCode(),Funciones.getCodeuserLogged(activity),sales.getCODEUSER(),msgID,subject,msg,CODES.CODE_TYPE_OPERATION_SALES+"",CODES.CODE_ICON_MESSAGE_ALERT,CODES.CODE_USERINBOX_STATUS_NO_READ));
+            mails.add(new UserInbox(Funciones.generateCode(),Funciones.getCodeuserLogged(activity),sales.getId()+"",msgID,subject,msg,CODES.CODE_TYPE_OPERATION_SALES+"",CODES.CODE_ICON_MESSAGE_ALERT,CODES.CODE_USERINBOX_STATUS_NO_READ));
 
         }
 

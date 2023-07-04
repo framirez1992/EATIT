@@ -1,15 +1,7 @@
 package far.com.eatit;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -17,8 +9,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
@@ -27,6 +27,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 
+import far.com.eatit.API.models.AreaDetail;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.Adapters.SimpleRowEditionAdapter;
 import far.com.eatit.CloudFireStoreObjects.AreasDetail;
@@ -44,7 +45,7 @@ public class MaintenanceAreasDetail extends AppCompatActivity implements Listabl
     ArrayList<SimpleRowModel> objects;
     SimpleRowEditionAdapter adapter;
     AreasDetailController areasDetailController;
-    AreasDetail areasDetail = null;
+    AreaDetail areasDetail = null;
     Licenses licence;
     String lastSearch = null;
     Spinner spnAreas;
@@ -86,26 +87,7 @@ public class MaintenanceAreasDetail extends AppCompatActivity implements Listabl
 
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
 
-        areasDetailController.getReferenceFireStore().addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                areasDetailController.delete(null, null);
-
-                for(DocumentSnapshot ds: querySnapshot){
-                    if(ds.exists()){
-                        AreasDetail pst = ds.toObject(AreasDetail.class);
-                        areasDetailController.insert(pst);
-                    }
-                }
-
-                refreshList();
-            }
-        });
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -177,7 +159,7 @@ public class MaintenanceAreasDetail extends AppCompatActivity implements Listabl
 
         String description = "";
         if(areasDetail != null){
-            description = areasDetail.getDESCRIPTION();
+            description = areasDetail.getDescription();
         }
 
         final Dialog d = new Dialog(MaintenanceAreasDetail.this);
@@ -192,7 +174,7 @@ public class MaintenanceAreasDetail extends AppCompatActivity implements Listabl
             @Override
             public void onClick(View v) {
                 if(areasDetail != null){
-                    areasDetailController.deleteFromFireBase(areasDetail);
+                    //areasDetailController.deleteFromFireBase(areasDetail);
                 }
                 d.dismiss();
             }
@@ -238,7 +220,7 @@ public class MaintenanceAreasDetail extends AppCompatActivity implements Listabl
     public void onClick(Object obj) {
         areasDetail = null;
         SimpleRowModel sr = (SimpleRowModel)obj;
-        areasDetail = areasDetailController.getAreasDetailByCode(sr.getId());
+        areasDetail = areasDetailController.getAreasDetail(sr.getId());
 
     }
 

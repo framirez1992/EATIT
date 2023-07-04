@@ -252,7 +252,7 @@ public class ProductsTypesInvController {
 
 
     public void fillSpinner(Spinner spn, boolean addTodos){
-        String orderBy = ProductsTypesController.ORDER+" ASC, "+ProductsTypesController.DESCRIPTION;
+        String orderBy = ProductsTypesController.POSITION+" ASC, "+ProductsTypesController.DESCRIPTION;
         ArrayList<ProductsTypes> list = getProductTypes(null, null, orderBy);
         ArrayList<KV> data = new ArrayList<>();
         if(addTodos){

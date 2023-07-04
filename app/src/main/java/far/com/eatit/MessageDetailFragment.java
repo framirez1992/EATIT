@@ -3,11 +3,6 @@ package far.com.eatit;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,8 +11,15 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
+import com.google.android.material.snackbar.Snackbar;
+
 import java.util.ArrayList;
 
+import far.com.eatit.API.models.Sale;
 import far.com.eatit.CloudFireStoreObjects.Sales;
 import far.com.eatit.CloudFireStoreObjects.UserInbox;
 import far.com.eatit.Controllers.SalesController;
@@ -103,8 +105,8 @@ public class MessageDetailFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if(userInbox != null) {
-                    Sales s = SalesController.getInstance(parent.getActivity()).getSaleByCode(userInbox.getCODEMESSAGE());
-                    if(s != null && s.getSTATUS() == CODES.CODE_ORDER_STATUS_OPEN){
+                    Sale s = SalesController.getInstance(parent.getActivity()).getSaleById(/*userInbox.getCODEMESSAGE()*/0);
+                    if(s != null && s.getStatus() == CODES.CODE_ORDER_STATUS_OPEN){
                         parent.editOrder(s);
                     }else{
                         Snackbar.make(parent.getView(), "Esta orden ya esta trabajada", Snackbar.LENGTH_SHORT).show();

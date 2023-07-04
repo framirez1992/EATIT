@@ -3,17 +3,18 @@ package far.com.eatit;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
@@ -187,13 +188,13 @@ public class NotificationFragment extends Fragment {
 
 
     public void searchOrders() {
-        String where = " s."+SalesController.CODEUSER+" = '"+ Funciones.getCodeuserLogged(parent) +"' ";
+        String where = " s."+SalesController.IDUSER+" = '"+ Funciones.getCodeuserLogged(parent) +"' ";
         if(status != null && !status.getKey().equals("-1")){
             where += " AND s."+SalesController.STATUS+" = '"+status.getKey()+"' ";
         }
         if(area!= null && !area.getKey().equals("-1")){
             if(mesa != null && !mesa.getKey().equals("-1")){
-                where += " AND s."+ SalesController.CODEAREADETAIL+" = '"+mesa.getKey()+"' ";
+                where += " AND s."+ SalesController.IDTABLE+" = '"+mesa.getKey()+"' ";
             }else{
                 where += " AND a."+AreasController.CODE+" = '"+area.getKey()+"' ";
             }
@@ -206,7 +207,7 @@ public class NotificationFragment extends Fragment {
     }
 
     public void searchDeliveredOrders(){
-    String where= " s." + SalesController.CODEAREADETAIL + " = '" + codeAreaDetail + "' ";
+    String where= " s." + SalesController.IDTABLE + " = '" + codeAreaDetail + "' ";
     where += " AND s." + SalesController.STATUS + " = '" + CODES.CODE_ORDER_STATUS_DELIVERED + "' ";
     WorkedOrdersRowAdapter adapter = new WorkedOrdersRowAdapter(parent, (MainReceipt) parent, SalesController.getInstance(parent).getWorkedOrderModels(where));
     rvList.setAdapter(adapter);

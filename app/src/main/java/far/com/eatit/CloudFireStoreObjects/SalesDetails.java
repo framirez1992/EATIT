@@ -33,7 +33,7 @@ public class SalesDetails {
     public HashMap<String, Object> toMap(){
 
         HashMap<String, Object> map = new HashMap<>();
-        map.put(SalesController.DETAIL_CODE, CODE);
+       /* map.put(SalesController.DETAIL_CODE, CODE);
         map.put(SalesController.DETAIL_CODESALES,CODESALES);
         map.put(SalesController.DETAIL_CODEPRODUCT, CODEPRODUCT);
         map.put(SalesController.DETAIL_CODEUND, CODEUND);
@@ -43,12 +43,12 @@ public class SalesDetails {
         map.put(SalesController.DETAIL_PRICE, PRICE);
         map.put(SalesController.DETAIL_DISCOUNT, DISCOUNT);
         map.put(SalesController.DETAIL_DATE, (DATE == null)? FieldValue.serverTimestamp(): DATE);
-        map.put(SalesController.DETAIL_MDATE, (MDATE == null)?FieldValue.serverTimestamp(): MDATE);
+        map.put(SalesController.DETAIL_MDATE, (MDATE == null)?FieldValue.serverTimestamp(): MDATE);*/
         return map;
     }
 
     public SalesDetails(Cursor c){
-        this.CODE = c.getString(c.getColumnIndex(SalesController.DETAIL_CODE));
+        /*this.CODE = c.getString(c.getColumnIndex(SalesController.DETAIL_CODE));
         this.CODESALES = c.getString(c.getColumnIndex(SalesController.DETAIL_CODESALES));
         this.CODEPRODUCT = c.getString(c.getColumnIndex(SalesController.DETAIL_CODEPRODUCT));
         this.CODEUND = c.getString(c.getColumnIndex(SalesController.DETAIL_CODEUND));
@@ -59,10 +59,12 @@ public class SalesDetails {
         this.DISCOUNT = c.getDouble(c.getColumnIndex(SalesController.DETAIL_DISCOUNT));
         this.DATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(SalesController.DETAIL_DATE)));
         this.MDATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(SalesController.DETAIL_MDATE)));
+        */
+
     }
 
     public SalesDetails(Map<String, Object> map){
-        this.CODE = map.get(SalesController.DETAIL_CODE).toString();
+        /*this.CODE = map.get(SalesController.DETAIL_CODE).toString();
         this.CODESALES = map.get(SalesController.DETAIL_CODESALES).toString();
         this.CODEPRODUCT = map.get(SalesController.DETAIL_CODEPRODUCT).toString();
         this.CODEUND = map.get(SalesController.DETAIL_CODEUND).toString();
@@ -72,7 +74,7 @@ public class SalesDetails {
         this.PRICE =  Double.parseDouble(map.get(SalesController.DETAIL_PRICE).toString());
         this.DISCOUNT =  Double.parseDouble(map.get(SalesController.DETAIL_DISCOUNT).toString());
         this.DATE = (Date)map.get(SalesController.DETAIL_DATE);
-        this.MDATE = (Date)map.get(SalesController.DETAIL_MDATE);
+        this.MDATE = (Date)map.get(SalesController.DETAIL_MDATE);*/
     }
 
     public String getCODE() {

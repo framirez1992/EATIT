@@ -25,20 +25,20 @@ public class Areas {
 
     public HashMap<String, Object> toMap(){
         HashMap<String, Object> map = new HashMap<>();
-        map.put(AreasController.CODE, CODE);
+        /*map.put(AreasController.CODE, CODE);
         map.put(AreasController.DESCRIPTION, DESCRIPTION);
         map.put(AreasController.ORDER, ORDEN);
         map.put(AreasController.DATE, (DATE == null)? FieldValue.serverTimestamp():DATE);
-        map.put(AreasController.MDATE,  (MDATE == null)? FieldValue.serverTimestamp():MDATE);
+        map.put(AreasController.MDATE,  (MDATE == null)? FieldValue.serverTimestamp():MDATE);*/
         return map;
 
     }
     public Areas(Cursor c){
-        this.CODE = c.getString(c.getColumnIndex(AreasController.CODE));
+        /*this.CODE = c.getString(c.getColumnIndex(AreasController.CODE));
         this.DESCRIPTION = c.getString(c.getColumnIndex(AreasController.DESCRIPTION));
         this.ORDEN = c.getInt(c.getColumnIndex(AreasController.ORDER));
         this.DATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(AreasController.DATE)));
-        this.MDATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(AreasController.MDATE)));
+        this.MDATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(AreasController.MDATE)));*/
     }
 
     public String getCODE() {

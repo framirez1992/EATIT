@@ -21,20 +21,13 @@ public class MeasureUnits {
         this.CODE = code; this.DESCRIPTION = description;
     }
 
-    public HashMap<String, Object> toMap(){
-        HashMap<String, Object> map = new HashMap<>();
-        map.put(MeasureUnitsController.CODE, CODE);
-        map.put(MeasureUnitsController.DESCRIPTION,DESCRIPTION);
-        map.put(MeasureUnitsController.DATE, (DATE == null)? FieldValue.serverTimestamp():DATE);
-        map.put(MeasureUnitsController.MDATE,(MDATE == null)? FieldValue.serverTimestamp():MDATE);
 
-        return map;
-    }
     public MeasureUnits(Cursor c){
-        this.CODE = c.getString(c.getColumnIndex(MeasureUnitsController.CODE));
+      /*  this.CODE = c.getString(c.getColumnIndex(MeasureUnitsController.CODE));
         this.DESCRIPTION = c.getString(c.getColumnIndex(MeasureUnitsController.DESCRIPTION));
         this.DATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(MeasureUnitsController.DATE)));
         this.MDATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(MeasureUnitsController.MDATE)));
+        */
     }
 
     public String getCODE() {

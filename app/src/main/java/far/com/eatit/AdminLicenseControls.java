@@ -1,14 +1,7 @@
 package far.com.eatit;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.ContextMenu;
-import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,8 +14,15 @@ import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
@@ -33,11 +33,11 @@ import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
 
+import far.com.eatit.API.models.Company;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.Adapters.Models.SimpleSeleccionRowModel;
 import far.com.eatit.Adapters.SimpleRowEditionAdapter;
 import far.com.eatit.Adapters.SimpleSelectionRowAdapter;
-import far.com.eatit.CloudFireStoreObjects.Company;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.UserControl;
 import far.com.eatit.CloudFireStoreObjects.UserTypes;
@@ -169,11 +169,11 @@ public class AdminLicenseControls extends AppCompatActivity implements ListableA
                     @Override
                     public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
                         companies = new ArrayList<>();
-                        for (DocumentSnapshot ds : querySnapshot) {
-                            Company t = ds.toObject(Company.class);
-                            t.setDocumentReference(ds.getReference());
-                            companies.add(t);
-                        }
+                        //for (DocumentSnapshot ds : querySnapshot) {
+                        //    Company t = ds.toObject(Company.class);
+                        //    t.setDocumentReference(ds.getReference());
+                        //    companies.add(t);
+                        //}
                         refreshList();
 
                     }
@@ -227,9 +227,9 @@ public class AdminLicenseControls extends AppCompatActivity implements ListableA
                 objects.add(new SimpleRowModel(t.getCODE(), t.getDESCRIPTION(), true));
             }
         }else if(((KV)spnType.getSelectedItem()).getKey().equals(CODES.USERSCONTROL_TARGET_COMPANY)){
-            for(Company t: companies){
-                objects.add(new SimpleRowModel(t.getCODE(), t.getNAME(), true));
-            }
+           // for(Company t: companies){
+           //     objects.add(new SimpleRowModel(t.getCODE(), t.getNAME(), true));
+           // }
         }
 
         adapter.notifyDataSetChanged();

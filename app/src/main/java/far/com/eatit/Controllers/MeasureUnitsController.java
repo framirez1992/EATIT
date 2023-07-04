@@ -23,6 +23,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import far.com.eatit.API.models.Company;
+import far.com.eatit.API.models.MeasureUnit;
 import far.com.eatit.Adapters.Models.EditSelectionRowModel;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.Adapters.Models.SimpleSeleccionRowModel;
@@ -35,17 +37,28 @@ import far.com.eatit.Utils.Funciones;
 
 public class MeasureUnitsController {
     public static final  String TABLE_NAME = "MEASUREUNITS";
-    public static String CODE = "code", DESCRIPTION = "description", DATE = "date", MDATE = "mdate";
-    public static String[]columns = new String[]{CODE, DESCRIPTION, DATE, MDATE};
+    public static String IDMEASUREUNIT="idMeasureUnit",IDLICENSE="idLicense",CODE = "code", DESCRIPTION = "description",
+            CREATEDATE = "createDate", CREATEUSER = "createUser", UPDATEDATE="updateDate", UPDATEUSER="updateUser",DELETEDATE="deleteDate",DELETEUSER="deleteUser" ;
+    public static String[]columns = new String[]{IDMEASUREUNIT,IDLICENSE,CODE, DESCRIPTION,CREATEDATE, CREATEUSER,UPDATEDATE, UPDATEUSER, DELETEDATE, DELETEUSER};
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+" ("
-            +CODE+" TEXT, "+DESCRIPTION+" TEXT, "+DATE+" TEXT, "+MDATE+" TEXT)";
+            +IDMEASUREUNIT+" INTEGER, "
+            +IDLICENSE+" INTEGER, "
+            +CODE+" TEXT, "
+            +DESCRIPTION+" TEXT, "
+            +CREATEDATE+" TEXT, "
+            +CREATEUSER+" TEXT, "
+            +UPDATEDATE+" TEXT, "
+            +UPDATEUSER+" TEXT, "
+            +DELETEDATE+" TEXT, "
+            +DELETEUSER+" TEXT "
+            +")";
 
         Context context;
-        FirebaseFirestore db;
+        DB db;
         private static MeasureUnitsController instance;
         private MeasureUnitsController(Context c){
             this.context = c;
-            this.db = FirebaseFirestore.getInstance();
+            this.db = DB.getInstance(c);
         }
 
         public static MeasureUnitsController getInstance(Context context){
@@ -55,120 +68,71 @@ public class MeasureUnitsController {
             return instance;
         }
 
-    public CollectionReference getReferenceFireStore(){
-        Licenses l = LicenseController.getInstance(context).getLicense();
-        if(l == null){
-            return null;
-        }
-        CollectionReference reference = db.collection(Tablas.generalUsers).document(l.getCODE()).collection(Tablas.generalUsersMeasureUnits);
-        return reference;
+    public void insertOrUpdate(MeasureUnit obj){
+        String sql ="insert or replace into "+TABLE_NAME+" ("+IDMEASUREUNIT+", "+IDLICENSE+", "+CODE+", "+DESCRIPTION+", "+CREATEDATE+", "+CREATEUSER+","+UPDATEDATE+", "+UPDATEUSER+", "+DELETEDATE+", "+DELETEUSER+") values " +
+                "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        db.getWritableDatabase().execSQL(sql,new String[]{obj.getId()+"", obj.getIdLicense()+"", obj.getCode(), obj.getDescription(), obj.getCreateDate(), obj.getCreateUser(),  obj.getUpdateDate(),obj.getUpdateUser(),  obj.getDeleteDate(), obj.getDeleteUser() });
     }
 
-    public long insert(MeasureUnits mu){
+    public long insert(MeasureUnit obj){
         ContentValues cv = new ContentValues();
-        cv.put(CODE,mu.getCODE());
-        cv.put(DESCRIPTION,mu.getDESCRIPTION());
-        cv.put(DATE, Funciones.getFormatedDate(mu.getDATE()));
-        cv.put(MDATE, Funciones.getFormatedDate(mu.getMDATE()));
+        cv.put(IDMEASUREUNIT,obj.getId());
+        cv.put(IDLICENSE,obj.getIdLicense());
+        cv.put(CODE,obj.getCode());
+        cv.put(DESCRIPTION,obj.getDescription());
+        cv.put(CREATEDATE, obj.getCreateDate());
+        cv.put(CREATEUSER, obj.getCreateUser());
+        cv.put(UPDATEDATE, obj.getCreateDate());
+        cv.put(UPDATEUSER, obj.getUpdateUser());
+        cv.put(DELETEDATE, obj.getCreateDate());
+        cv.put(DELETEUSER, obj.getDeleteUser());
 
         long result = DB.getInstance(context).getWritableDatabase().insert(TABLE_NAME,null,cv);
         return result;
     }
 
-    public long update(MeasureUnits d, String where, String[] args){
+    public long update(MeasureUnit obj){
         ContentValues cv = new ContentValues();
-        cv.put(CODE,d.getCODE() );
-        cv.put(DESCRIPTION,d.getDESCRIPTION());
-        cv.put(MDATE, Funciones.getFormatedDate(d.getMDATE()));
+        cv.put(IDMEASUREUNIT,obj.getId());
+        cv.put(IDLICENSE,obj.getIdLicense());
+        cv.put(CODE,obj.getCode());
+        cv.put(DESCRIPTION,obj.getDescription());
+        cv.put(CREATEDATE, obj.getCreateDate());
+        cv.put(CREATEUSER, obj.getCreateUser());
+        cv.put(UPDATEDATE, obj.getCreateDate());
+        cv.put(UPDATEUSER, obj.getUpdateUser());
+        cv.put(DELETEDATE, obj.getCreateDate());
+        cv.put(DELETEUSER, obj.getDeleteUser());
 
-        long result = DB.getInstance(context).getWritableDatabase().update(TABLE_NAME,cv,where, args);
+        long result = DB.getInstance(context).getWritableDatabase().update(TABLE_NAME,cv,IDMEASUREUNIT.concat("= ?"), new String[]{obj.getId()+""});
         return result;
     }
 
-    public long delete(String where, String[] args){
-        long result = DB.getInstance(context).getWritableDatabase().delete(TABLE_NAME,where, args);
+    public long delete(MeasureUnit obj){
+        long result = DB.getInstance(context).getWritableDatabase().delete(TABLE_NAME,IDMEASUREUNIT.concat("= ?"), new String[]{obj.getId()+""});
         return result;
     }
 
-    public void getDataFromFireBase(String key, OnSuccessListener<QuerySnapshot> onSuccessListener,
-                                    OnFailureListener onFailureListener){
-        try {
-            Task<QuerySnapshot> measureUnits = db.collection(Tablas.generalUsers).document(key).collection(Tablas.generalUsersMeasureUnits).get();
-            measureUnits.addOnSuccessListener(onSuccessListener);
-            measureUnits.addOnFailureListener(onFailureListener);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
 
 
-    public void getAllDataFromFireBase(String key, OnFailureListener onFailureListener){
-        try {
-            Task<QuerySnapshot> reference = getReferenceFireStore().get();
-            reference.addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot querySnapshot) {
-                    if(querySnapshot != null && querySnapshot.getDocumentChanges()!= null && !querySnapshot.getDocumentChanges().isEmpty()){
-                        for(DocumentChange dc : querySnapshot.getDocumentChanges()) {
-                            MeasureUnits object = dc.getDocument().toObject(MeasureUnits.class);
-                            String where = CODE+" = ?";
-                            String[]args = new String[]{object.getCODE()};
-                            delete(where, args);
-                            insert(object);
-                        }
-                    }
-                }
-            }).addOnFailureListener(onFailureListener);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    public void sendToFireBase(MeasureUnits mu){
-        try {
-            WriteBatch lote = db.batch();
-            lote.set(getReferenceFireStore().document(mu.getCODE()), mu.toMap());
-            lote.commit();
-
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-
-    }
-
-    public void deleteFromFireBase(MeasureUnits mu){
-        try {
-            getReferenceFireStore().document(mu.getCODE()).delete();
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-
-
-    public ArrayList<MeasureUnits> getMeasureUnits(String where, String[]args, String orderBy){
-            ArrayList<MeasureUnits> result = new ArrayList<>();
+    public ArrayList<MeasureUnit> getMeasureUnits(String where, String[]args, String orderBy){
+            ArrayList<MeasureUnit> result = new ArrayList<>();
             try{
                 Cursor c = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME,columns,where,args,null,null,orderBy);
                 while(c.moveToNext()){
-                    result.add(new MeasureUnits(c));
+                    result.add(new MeasureUnit(c));
                 }
             }catch(Exception e){
               e.printStackTrace();
             }
             return result;
     }
-    public MeasureUnits getMeasureUnitByCode(String code){
-            String where = CODE+" = ?";
-        ArrayList<MeasureUnits> pts = getMeasureUnits(where, new String[]{code}, null);
-        if(pts.size()>0){
-            return  pts.get(0);
-        }
-        return null;
-    }
+
+
 
     public ArrayList<SimpleRowModel> getMeasureUnitsSRM(String where, String[] args, String campoOrder){
             ArrayList<SimpleRowModel> result = new ArrayList<>();
-            if(campoOrder == null){campoOrder = DESCRIPTION;}
+          /*  if(campoOrder == null){campoOrder = DESCRIPTION;}
             try {
                 Cursor c = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME, columns, where, args, null, null, campoOrder);
                 while(c.moveToNext()){
@@ -176,7 +140,7 @@ public class MeasureUnitsController {
                 }
             }catch(Exception e){
                e.printStackTrace();
-            }
+            }*/
 
             return result;
 
@@ -187,7 +151,7 @@ public class MeasureUnitsController {
                 ArrayList<KV> result = new ArrayList<>();
                 Cursor c = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME, columns, null, null, null, null, DESCRIPTION);
                 while(c.moveToNext()){
-                    result.add(new KV(c.getString(c.getColumnIndex(CODE)), c.getString(c.getColumnIndex(DESCRIPTION))));
+                    result.add(new KV(c.getString(c.getColumnIndex(IDMEASUREUNIT)), c.getString(c.getColumnIndex(DESCRIPTION))));
                 }
                 c.close();
 
@@ -202,7 +166,7 @@ public class MeasureUnitsController {
         try {
             Cursor c = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME, columns, null, null, null, null, DESCRIPTION);
             while(c.moveToNext()){
-                result.add(new KV(c.getString(c.getColumnIndex(CODE)), c.getString(c.getColumnIndex(DESCRIPTION))));
+                result.add(new KV(c.getString(c.getColumnIndex(IDMEASUREUNIT)), c.getString(c.getColumnIndex(DESCRIPTION))));
             }
             c.close();
 
@@ -226,12 +190,12 @@ public class MeasureUnitsController {
         where=((where != null)? "WHERE "+where:"");
         try {
 
-            String sql = "SELECT u."+CODE+" as CODE, u."+DESCRIPTION+" AS DESCRIPTION,  u."+MDATE+" AS MDATE " +
+            String sql = "SELECT u."+IDMEASUREUNIT+" as IDMEASUREUNIT, u."+DESCRIPTION+" AS DESCRIPTION,  u."+CREATEDATE+" AS CREATEDATE " +
                     "FROM "+TABLE_NAME+" u " +
                     where;
             Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, args);
             while(c.moveToNext()){
-                String code = c.getString(c.getColumnIndex("CODE"));
+                String code = c.getString(c.getColumnIndex("IDMEASUREUNIT"));
                 String name = c.getString(c.getColumnIndex("DESCRIPTION"));
                 result.add(new EditSelectionRowModel(code,name ,"", false));
             }
@@ -243,38 +207,4 @@ public class MeasureUnitsController {
 
     }
 
-
-
-    public void searchChanges(boolean all, OnSuccessListener<QuerySnapshot> success,  OnFailureListener failure){
-
-        Date mdate = all?null: DB.getLastMDateSaved(context, TABLE_NAME);
-        if(mdate != null){
-            getReferenceFireStore().
-                    whereGreaterThan(MDATE, mdate).//mayor que, ya que las fechas (la que buscamos de la DB) tienen hora, minuto y segundos.
-                    get().
-                    addOnSuccessListener(success).
-                    addOnFailureListener(failure);
-        }else{//TODOS
-            getReferenceFireStore().
-                    get().
-                    addOnSuccessListener(success).
-                    addOnFailureListener(failure);
-        }
-
-    }
-
-    public void consumeQuerySnapshot(boolean clear, QuerySnapshot querySnapshot){
-        if(clear){
-            delete(null, null);
-        }
-        if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
-            for(DocumentSnapshot doc: querySnapshot){
-                MeasureUnits obj = doc.toObject(MeasureUnits.class);
-                if(update(obj, CODE+"=?", new String[]{obj.getCODE()}) <=0){
-                    insert(obj);
-                }
-            }
-        }
-
-    }
 }

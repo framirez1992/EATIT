@@ -193,7 +193,7 @@ public class TempOrdersController{
                             c.getString(c.getColumnIndex("CODEMEDIDA")),
                             c.getString(c.getColumnIndex("MEDIDA")),
                             c.getString(c.getColumnIndex("BLOQUED")),
-                            ProductsMeasureController.getInstance(context).getProductsMeasureKVByCodeProduct(c.getString(c.getColumnIndex("CODEPRODUCT"))));
+                            ProductsMeasureController.getInstance(context).getProductsMeasureKVByCodeProduct(c.getInt(c.getColumnIndex("CODEPRODUCT"))));
                     objects.add(om);
 
                 }
@@ -304,10 +304,10 @@ public class TempOrdersController{
 
     public ArrayList<String> getDistinctProductTypesInOrderDetail(){
             ArrayList<String> familys = new ArrayList<>();
-            String sql = "SELECT  p."+ProductsController.TYPE+" " +
+            String sql = "SELECT  p."+ProductsController.IDPRODUCTTYPE+" " +
                     "FROM "+ProductsController.TABLE_NAME+" p " +
                     "INNER JOIN "+ TABLE_NAME_DETAIL+" od on od."+DETAIL_CODEPRODUCT+" = p."+ProductsController.CODE+" " +
-                    "GROUP BY p."+ProductsController.TYPE;
+                    "GROUP BY p."+ProductsController.IDPRODUCTTYPE;
             try {
                 Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
                 while(c.moveToNext()){
@@ -320,10 +320,10 @@ public class TempOrdersController{
     }
     public ArrayList<String> getDistinctProductSubTypesInOrderDetail(){
         ArrayList<String> groups = new ArrayList<>();
-        String sql = "SELECT  p."+ProductsController.SUBTYPE+" " +
+        String sql = "SELECT  p."+ProductsController.IDPRODUCTSUBTYPE+" " +
                 "FROM "+ProductsController.TABLE_NAME+" p " +
                 "INNER JOIN "+ TABLE_NAME_DETAIL+" od on od."+DETAIL_CODEPRODUCT+" = p."+ProductsController.CODE+" " +
-                "GROUP BY p."+ProductsController.SUBTYPE;
+                "GROUP BY p."+ProductsController.IDPRODUCTSUBTYPE;
         try {
             Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
             while(c.moveToNext()){
@@ -357,8 +357,8 @@ public class TempOrdersController{
                 "ifnull(uc."+UserControlController.VALUE+", -1) as CODETYPE, ifnull(uc2."+UserControlController.VALUE+", -1) as CODESUBTYPE "+
                 "FROM " + TABLE_NAME_DETAIL + " od " +
                 "INNER JOIN " + ProductsController.TABLE_NAME + " p on p." + ProductsController.CODE + " = od." + DETAIL_CODEPRODUCT + " " +
-                "LEFT JOIN "+UserControlController.TABLE_NAME+" uc on uc."+UserControlController.CONTROL+" = '"+CODES.USERCONTROL_ORDERSPLIT+"' AND uc."+UserControlController.ACTIVE+" = '1' AND uc."+ UserControlController.VALUE+" = p."+ProductsController.TYPE+" " +
-                "LEFT JOIN "+UserControlController.TABLE_NAME+" uc2 on uc2."+UserControlController.CONTROL+" = '"+CODES.USERCONTROL_ORDERSPLIT+"' AND uc2."+UserControlController.ACTIVE+" = '1' AND uc2."+ UserControlController.VALUE+" = p."+ProductsController.SUBTYPE+" " +
+                "LEFT JOIN "+UserControlController.TABLE_NAME+" uc on uc."+UserControlController.CONTROL+" = '"+CODES.USERCONTROL_ORDERSPLIT+"' AND uc."+UserControlController.ACTIVE+" = '1' AND uc."+ UserControlController.VALUE+" = p."+ProductsController.IDPRODUCTTYPE+" " +
+                "LEFT JOIN "+UserControlController.TABLE_NAME+" uc2 on uc2."+UserControlController.CONTROL+" = '"+CODES.USERCONTROL_ORDERSPLIT+"' AND uc2."+UserControlController.ACTIVE+" = '1' AND uc2."+ UserControlController.VALUE+" = p."+ProductsController.IDPRODUCTSUBTYPE+" " +
                 "ORDER BY uc."+UserControlController.VALUE+", uc2."+UserControlController.VALUE;
         Cursor c = sqlite.getReadableDatabase().rawQuery(sql, null);
         String lastHead = "";
@@ -494,8 +494,8 @@ public class TempOrdersController{
     public void updatePrices(){
             String sql = "SELECT sd."+DETAIL_CODEPRODUCT+" as CODEPRODUCT, sd."+DETAIL_CODEUND+" as CODEUND, pm."+ProductsMeasureController.PRICE+" as PRICE " +
                     "FROM "+TABLE_NAME_DETAIL+" sd " +
-                    "INNER JOIN "+ProductsMeasureController.TABLE_NAME+" pm on sd."+DETAIL_CODEPRODUCT+" = pm."+ProductsMeasureController.CODEPRODUCT+" " +
-                    "AND sd."+DETAIL_CODEUND+" = pm."+ProductsMeasureController.CODEMEASURE+" ";
+                    "INNER JOIN "+ProductsMeasureController.TABLE_NAME+" pm on sd."+DETAIL_CODEPRODUCT+" = pm."+ProductsMeasureController.IDPRODUCT+" " +
+                    "AND sd."+DETAIL_CODEUND+" = pm."+ProductsMeasureController.IDPRODUCTMEASURE+" ";
             Cursor c = sqlite.getReadableDatabase().rawQuery(sql,null);
             while(c.moveToNext()){
                 ContentValues cv = new ContentValues();

@@ -2,11 +2,6 @@ package far.com.eatit.Adapters;
 
 import android.app.Activity;
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,10 +13,17 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.RecyclerView;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
 
+import far.com.eatit.API.models.ProductMeasure;
 import far.com.eatit.Adapters.Holders.NewOrderProductHolder;
 import far.com.eatit.Adapters.Models.NewOrderProductModel;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
@@ -211,7 +213,7 @@ public class NewOrderProductRowAdapter extends RecyclerView.Adapter<NewOrderProd
 
 
     public void saveOrderLine(NewOrderProductModel opm){
-        ProductsMeasure pm = ProductsMeasureController.getInstance(activity).getProductsMeasure(ProductsMeasureController.CODEMEASURE+"=? AND "+ProductsMeasureController.CODEPRODUCT+" = ?",
+        ProductMeasure pm = ProductsMeasureController.getInstance(activity).getProductsMeasure(ProductsMeasureController.IDPRODUCTMEASURE+"=? AND "+ProductsMeasureController.IDPRODUCT+" = ?",
                 new String[]{opm.getMeasure(), opm.getCodeProduct()})
                 .get(0);
         String code = Funciones.generateCode();
@@ -221,7 +223,7 @@ public class NewOrderProductRowAdapter extends RecyclerView.Adapter<NewOrderProd
         int position = Integer.parseInt(Funciones.getSimpleTimeFormat().format(new Date()));
         double quantity = Double.parseDouble(opm.getQuantity());
         double unit = 0;
-        double price =pm.getPRICE();
+        double price =pm.getPrice();
         double discount = 0;
         SalesDetails sd = new SalesDetails(code,codeSale, codeProduct, codeUnd, position, quantity, unit, price, discount);
         TempOrdersController.getInstance(activity).insert_Detail(sd);

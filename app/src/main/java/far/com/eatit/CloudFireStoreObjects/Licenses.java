@@ -10,6 +10,7 @@ import java.util.HashMap;
 
 import far.com.eatit.Controllers.LicenseController;
 
+
 @IgnoreExtraProperties
 public class Licenses implements Serializable {
     private String CODE,PASSWORD, CLIENTNAME ;

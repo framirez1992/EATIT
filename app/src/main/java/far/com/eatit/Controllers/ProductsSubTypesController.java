@@ -23,6 +23,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import far.com.eatit.API.models.ProductSubType;
+import far.com.eatit.API.models.ProductType;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.Adapters.Models.SimpleSeleccionRowModel;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
@@ -34,18 +36,29 @@ import far.com.eatit.Utils.Funciones;
 
 public class ProductsSubTypesController {
     public static final  String TABLE_NAME = "PRODUCTSSUBTYPES";
-    public static String CODE = "code", CODETYPE = "codetype", DESCRIPTION = "description", ORDER = "orden",
-    DATE = "date", MDATE="mdate";
-    private String[]colums = new String[]{CODE, CODETYPE, DESCRIPTION, ORDER, DATE, MDATE};
+    public static String IDPRODUCTSUBTYPE="idProductSubType",IDPRODUCTTYPE="idProductType",CODE = "code", DESCRIPTION = "description", POSITION = "position",
+            CREATEDATE = "createDate", CREATEUSER = "createUser", UPDATEDATE="updateDate", UPDATEUSER="updateUser",DELETEDATE="deleteDate",DELETEUSER="deleteUser" ;
+    private String[]colums = new String[]{IDPRODUCTSUBTYPE,IDPRODUCTTYPE,CODE,  DESCRIPTION, POSITION, CREATEDATE, CREATEUSER,UPDATEDATE, UPDATEUSER, DELETEDATE, DELETEUSER};
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+" ("
-            +CODE+" TEXT,"+CODETYPE+" TEXT, "+DESCRIPTION+" TEXT, "+ORDER+" INTEGER, "+DATE+" TEXT, "+MDATE+" TEXT)";
+            +IDPRODUCTSUBTYPE+" TEXT,"
+            +IDPRODUCTTYPE+" TEXT,"
+            +CODE+" TEXT,"
+            +DESCRIPTION+" TEXT, "
+            +POSITION+" INTEGER, "
+            +CREATEDATE+" TEXT, "
+            +CREATEUSER+" TEXT, "
+            +UPDATEDATE+" TEXT, "
+            +UPDATEUSER+" TEXT, "
+            +DELETEDATE+" TEXT, "
+            +DELETEUSER+" TEXT "
+            +")";
 
     Context context;
-    FirebaseFirestore db;
+    DB db;
     private static  ProductsSubTypesController instance;
     private ProductsSubTypesController(Context c){
         this.context = c;
-        this.db = FirebaseFirestore.getInstance();
+        this.db = DB.getInstance(c);
     }
     public static ProductsSubTypesController getInstance(Context context){
         if(instance == null){
@@ -54,70 +67,65 @@ public class ProductsSubTypesController {
         return instance;
     }
 
-    public CollectionReference getReferenceFireStore(){
-        Licenses l = LicenseController.getInstance(context).getLicense();
-        if(l == null){
-            return null;
-        }
-        CollectionReference reference = db.collection(Tablas.generalUsers).document(l.getCODE()).collection(Tablas.generalUsersProductsSubTypes);
-        return reference;
+    public void insertOrUpdate(ProductSubType obj){
+        String sql ="insert or replace into "+TABLE_NAME+" ("+IDPRODUCTSUBTYPE+", "+IDPRODUCTTYPE+", "+CODE+", "+DESCRIPTION+", "+POSITION+", "+CREATEDATE+", "+CREATEUSER+","+UPDATEDATE+", "+UPDATEUSER+", "+DELETEDATE+", "+DELETEUSER+") values " +
+                "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        db.getWritableDatabase().execSQL(sql,new String[]{obj.getId()+"", obj.getIdproductType()+"",obj.getCode(), obj.getDescription(),obj.getPosition()+"" ,obj.getCreateDate(), obj.getCreateUser(),  obj.getUpdateDate(),obj.getUpdateUser(),  obj.getDeleteDate(), obj.getDeleteUser() });
     }
-    public long insert(ProductsSubTypes pt){
+
+    public long insert(ProductSubType obj){
         ContentValues cv = new ContentValues();
-        cv.put(CODE,pt.getCODE());
-        cv.put(CODETYPE, pt.getCODETYPE());
-        cv.put(DESCRIPTION,pt.getDESCRIPTION());
-        cv.put(ORDER, pt.getORDEN());
-        cv.put(DATE, (pt.getDATE() != null)?Funciones.getFormatedDate(pt.getDATE()): null);
-        cv.put(MDATE,  (pt.getDATE() != null)?Funciones.getFormatedDate(pt.getMDATE()):null);
+        cv.put(IDPRODUCTSUBTYPE,obj.getId());
+        cv.put(IDPRODUCTTYPE,obj.getIdproductType());
+        cv.put(CODE,obj.getCode());
+        cv.put(DESCRIPTION,obj.getDescription());
+        cv.put(POSITION, obj.getPosition());
+        cv.put(CREATEDATE, obj.getCreateDate());
+        cv.put(CREATEUSER, obj.getCreateUser());
+        cv.put(UPDATEDATE, obj.getCreateDate());
+        cv.put(UPDATEUSER, obj.getUpdateUser());
+        cv.put(DELETEDATE, obj.getCreateDate());
+        cv.put(DELETEUSER, obj.getDeleteUser());
 
         long result = DB.getInstance(context).getWritableDatabase().insert(TABLE_NAME,null,cv);
         return result;
     }
 
-    public long update(ProductsSubTypes pt, String where, String[] args){
+    public long update(ProductSubType obj){
         ContentValues cv = new ContentValues();
-        cv.put(CODE,pt.getCODE() );
-        cv.put(CODETYPE, pt.getCODETYPE());
-        cv.put(DESCRIPTION,pt.getDESCRIPTION());
-        cv.put(ORDER, pt.getORDEN());
-        cv.put(MDATE,  (pt.getDATE() != null)?Funciones.getFormatedDate(pt.getMDATE()):null);
+        cv.put(IDPRODUCTSUBTYPE,obj.getId());
+        cv.put(IDPRODUCTTYPE,obj.getIdproductType());
+        cv.put(CODE,obj.getCode());
+        cv.put(DESCRIPTION,obj.getDescription());
+        cv.put(POSITION, obj.getPosition());
+        cv.put(CREATEDATE, obj.getCreateDate());
+        cv.put(CREATEUSER, obj.getCreateUser());
+        cv.put(UPDATEDATE, obj.getCreateDate());
+        cv.put(UPDATEUSER, obj.getUpdateUser());
+        cv.put(DELETEDATE, obj.getCreateDate());
+        cv.put(DELETEUSER, obj.getDeleteUser());
 
-        long result = DB.getInstance(context).getWritableDatabase().update(TABLE_NAME,cv,where, args);
+        long result = DB.getInstance(context).getWritableDatabase().update(TABLE_NAME,cv,IDPRODUCTSUBTYPE.concat("= ?"), new String[]{obj.getId()+""});
         return result;
     }
 
-    public long delete(String where, String[] args){
-        long result = DB.getInstance(context).getWritableDatabase().delete(TABLE_NAME,where, args);
+    public long delete(ProductSubType obj){
+        long result = DB.getInstance(context).getWritableDatabase().delete(TABLE_NAME,IDPRODUCTSUBTYPE.concat(" = ?"), new String[]{obj.getId()+""});
         return result;
     }
 
-    public int getNextOrden(){
-        int result = 9999;
-        /*String sql = "SELECT CAST(MAX("+ORDER+") AS INTEGER) + 1 " +
-                "FROM "+TABLE_NAME;
-        try{
-            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
-            if(c.moveToFirst()){
-                result = c.getInt(0);
-            }
-            c.close();
-        }catch (Exception e){
-            e.printStackTrace();
-        }*/
-        return result;
-    }
 
-    public ArrayList<ProductsSubTypes> getProductSubTypes(String[] camposFiltros, String[]argumentos, String campoOrderBy){
 
-        ArrayList<ProductsSubTypes> result = new ArrayList<>();
+    public ArrayList<ProductSubType> getProductSubTypes(String[] camposFiltros, String[]argumentos, String campoOrderBy){
+
+        ArrayList<ProductSubType> result = new ArrayList<>();
         if(campoOrderBy == null){
             campoOrderBy=DESCRIPTION;
         }
         try {
             Cursor c =  DB.getInstance(context).getReadableDatabase().query(TABLE_NAME, colums, ((camposFiltros!=null)?DB.getWhereFormat(camposFiltros):null), argumentos, null, null, campoOrderBy);
             while (c.moveToNext()){
-                result.add(new ProductsSubTypes(c));
+                result.add(new ProductSubType(c));
             }
             c.close();
         }catch (Exception e){
@@ -126,68 +134,14 @@ public class ProductsSubTypesController {
         return result;
     }
 
-    public ProductsSubTypes getProductTypeByCode(String code){
-        ArrayList<ProductsSubTypes> pts = getProductSubTypes(new String[]{CODE}, new String[]{code}, null);
+    public ProductSubType getProductTypeByCode(String code){
+        ArrayList<ProductSubType> pts = getProductSubTypes(new String[]{CODE}, new String[]{code}, null);
         if(pts.size()>0){
             return  pts.get(0);
         }
         return null;
     }
-
-
-    public void sendToFireBase(ProductsSubTypes pst){
-        try {
-            WriteBatch lote = db.batch();
-            lote.set(getReferenceFireStore().document(pst.getCODE()), pst.toMap());
-            lote.commit();
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-
-
-    public void deleteFromFireBase(ProductsSubTypes pst){
-        try {
-            getReferenceFireStore().document(pst.getCODE()).delete();
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    public void getDataFromFireBase(String key, OnSuccessListener<QuerySnapshot> onSuccessListener,
-                                    OnFailureListener onFailureListener){
-        try {
-            Task<QuerySnapshot> measureUnits = db.collection(Tablas.generalUsers).document(key).collection(Tablas.generalUsersProductsSubTypes).get();
-            measureUnits.addOnSuccessListener(onSuccessListener);
-            measureUnits.addOnFailureListener(onFailureListener);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-
-
-    public void getAllDataFromFireBase(String key, OnFailureListener onFailureListener){
-        try {
-            Task<QuerySnapshot> reference = getReferenceFireStore().get();
-            reference.addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot querySnapshot) {
-                    if(querySnapshot != null && querySnapshot.getDocumentChanges()!= null && !querySnapshot.getDocumentChanges().isEmpty()){
-                        for(DocumentChange dc : querySnapshot.getDocumentChanges()) {
-                            ProductsSubTypes object = dc.getDocument().toObject(ProductsSubTypes.class);
-                            String where = CODE+" = ?";
-                            String[]args = new String[]{object.getCODE()};
-                            delete(where, args);
-                            insert(object);
-                        }
-                    }
-                }
-            }).addOnFailureListener(onFailureListener);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-
+/*
     public ArrayList<SimpleRowModel> getAllProductSubTypesSRM(String where,String[] args, String campoOrderBy){
 
         ArrayList<SimpleRowModel> result = new ArrayList<>();
@@ -216,7 +170,7 @@ public class ProductsSubTypesController {
             e.printStackTrace();
         }
         return result;
-    }
+    }*/
 
     /**
      * Simple seleccion row model
@@ -227,7 +181,7 @@ public class ProductsSubTypesController {
      */
     public ArrayList<SimpleSeleccionRowModel> getProductSubTypesSSRM(String where, String[] args, String campoOrder){
         ArrayList<SimpleSeleccionRowModel> result = new ArrayList<>();
-        if(campoOrder == null){ campoOrder=ORDER+" ASC, "+DESCRIPTION;}
+        if(campoOrder == null){ campoOrder=POSITION+" ASC, "+DESCRIPTION;}
         where=((where != null)? "WHERE "+where:"");
         try {
 
@@ -253,21 +207,21 @@ public class ProductsSubTypesController {
          fillSpinner(spn,addTodos, null);
     }
     public void fillSpinner(Spinner spn, boolean addTodos, String type){
-        String orderBy = ProductsSubTypesController.ORDER+" ASC, "+ProductsSubTypesController.DESCRIPTION;
+        String orderBy = ProductsSubTypesController.POSITION+" ASC, "+ProductsSubTypesController.DESCRIPTION;
         String[] camposFiltros = null;
         String[]args = null;
         if(type != null){
-            camposFiltros = new String[]{CODETYPE};
+            camposFiltros = new String[]{IDPRODUCTTYPE};
             args = new String[]{type};
         }
-        ArrayList<ProductsSubTypes> list = getProductSubTypes(camposFiltros, args, orderBy);
+        ArrayList<ProductSubType> list = getProductSubTypes(camposFiltros, args, orderBy);
         ArrayList<KV> data = new ArrayList<>();
         if(addTodos){
             KV obj = new KV("0", "TODOS");
             data.add(obj);
         }
-        for(ProductsSubTypes pt : list){
-            data.add(new KV(pt.getCODE(), pt.getDESCRIPTION()));
+        for(ProductSubType pt : list){
+            data.add(new KV(pt.getCode(), pt.getDescription()));
         }
 
         ArrayAdapter<KV> adapter = new ArrayAdapter<KV>(context,android.R.layout.simple_list_item_1, data);
@@ -290,11 +244,11 @@ public class ProductsSubTypesController {
         try {
             String sql = "SELECT pst." + ProductsSubTypesController.CODE + ", pst." + ProductsSubTypesController.DESCRIPTION + " " +
                     "FROM " + ProductsSubTypesController.TABLE_NAME + " pst " +
-                    "INNER JOIN " + ProductsController.TABLE_NAME + " p on p." + ProductsController.SUBTYPE + " = pst." + ProductsSubTypesController.CODE + " " +
+                    "INNER JOIN " + ProductsController.TABLE_NAME + " p on p." + ProductsController.IDPRODUCTSUBTYPE + " = pst." + ProductsSubTypesController.CODE + " " +
                     "INNER JOIN " + ProductsControlController.TABLE_NAME + " pc on pc." + ProductsControlController.CODEPRODUCT + " = p." + ProductsController.CODE + " " +
-                    "WHERE pc." + ProductsControlController.BLOQUED + " = ? AND p."+ProductsController.TYPE+" = ? " +
+                    "WHERE pc." + ProductsControlController.BLOQUED + " = ? AND p."+ProductsController.IDPRODUCTTYPE  +" = ? " +
                     "GROUP BY pst." + ProductsSubTypesController.CODE + ", pst." + ProductsSubTypesController.DESCRIPTION + " " +
-                    "ORDER BY pst." + ProductsSubTypesController.ORDER + " ASC, pst." + ProductsSubTypesController.DESCRIPTION;
+                    "ORDER BY pst." + ProductsSubTypesController.POSITION + " ASC, pst." + ProductsSubTypesController.DESCRIPTION;
 
             Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, new String[]{"1", type});
             while (c.moveToNext()) {
@@ -309,56 +263,4 @@ public class ProductsSubTypesController {
         spn.setAdapter(adapter);
     }
 
-
-    /**
-     * retorna true si el codigo tiene dependencias en otras tablas (llave foranea)
-     * @param code
-     * @return
-     */
-    public String hasDependencies(String code){
-        String msg = "";
-        ArrayList<String> tables = new ArrayList<>();
-        if(DB.getInstance(context).hasDependencies(ProductsController.TABLE_NAME,ProductsController.SUBTYPE,code))
-            tables.add(ProductsInvController.TABLE_NAME);
-
-        for(String s: tables){
-            msg+= s+"\n";
-        }
-        return msg;
-    }
-
-
-
-    public void searchChanges(boolean all, OnSuccessListener<QuerySnapshot> success,  OnFailureListener failure){
-
-        Date mdate = all?null: DB.getLastMDateSaved(context, TABLE_NAME);
-        if(mdate != null){
-            getReferenceFireStore().
-                    whereGreaterThan(MDATE, mdate).//mayor que, ya que las fechas (la que buscamos de la DB) tienen hora, minuto y segundos.
-                    get().
-                    addOnSuccessListener(success).
-                    addOnFailureListener(failure);
-        }else{//TODOS
-            getReferenceFireStore().
-                    get().
-                    addOnSuccessListener(success).
-                    addOnFailureListener(failure);
-        }
-
-    }
-
-    public void consumeQuerySnapshot(boolean clear, QuerySnapshot querySnapshot){
-        if(clear){
-            delete(null, null);
-        }
-        if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
-            for(DocumentSnapshot doc: querySnapshot){
-                ProductsSubTypes obj = doc.toObject(ProductsSubTypes.class);
-                if(update(obj, CODE+"=?", new String[]{obj.getCODE()}) <=0){
-                    insert(obj);
-                }
-            }
-        }
-
-    }
 }

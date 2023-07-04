@@ -1,21 +1,22 @@
 package far.com.eatit;
 
 import android.app.Dialog;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.SearchView;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
@@ -24,6 +25,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 
+import far.com.eatit.API.models.Area;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.Adapters.SimpleRowEditionAdapter;
 import far.com.eatit.CloudFireStoreObjects.Areas;
@@ -31,7 +33,6 @@ import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.Controllers.AreasController;
 import far.com.eatit.Controllers.LicenseController;
 import far.com.eatit.Dialogs.AreasDialogFragment;
-import far.com.eatit.Globales.CODES;
 import far.com.eatit.Interfases.ListableActivity;
 import far.com.eatit.Utils.Funciones;
 
@@ -41,7 +42,7 @@ public class MaintenanceAreas extends AppCompatActivity implements ListableActiv
     ArrayList<SimpleRowModel> objects;
     SimpleRowEditionAdapter adapter;
     AreasController areasController;
-    Areas areas = null;
+    Area areas = null;
     Licenses licence;
     String lastSearch = null;
 
@@ -66,24 +67,7 @@ public class MaintenanceAreas extends AppCompatActivity implements ListableActiv
 
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        areasController.getReferenceFireStore().addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                areasController.delete(null, null);//limpia la tabla
 
-                for(DocumentSnapshot ds: querySnapshot){
-
-                    Areas a = ds.toObject(Areas.class);
-                    areasController.insert(a);
-                }
-
-                refreshList(lastSearch);
-            }
-        });
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -155,7 +139,7 @@ public class MaintenanceAreas extends AppCompatActivity implements ListableActiv
 
         String description = "";
         if(areas != null){
-            description = areas.getDESCRIPTION();
+            description = areas.getDescription();
         }
 
         final Dialog d = new Dialog(MaintenanceAreas.this);
@@ -177,7 +161,7 @@ public class MaintenanceAreas extends AppCompatActivity implements ListableActiv
                 }
 
                 if(areas != null){
-                    areasController.deleteFromFireBase(areas);
+                    //areasController.deleteFromFireBase(areas);
                 }
                 d.dismiss();
             }
@@ -213,7 +197,7 @@ public class MaintenanceAreas extends AppCompatActivity implements ListableActiv
         areas = null;
         SimpleRowModel sr = (SimpleRowModel)obj;
 
-        areas = areasController.getAreaByCode(sr.getId());
+        areas = areasController.getAreaByCode(sr.getId()+"");
 
     }
 
@@ -244,7 +228,7 @@ public class MaintenanceAreas extends AppCompatActivity implements ListableActiv
     public String getMsgDependency(){
         String msgDependency ="";
         if(areas != null){
-                msgDependency = areasController.hasDependencies(areas.getCODE());
+                //msgDependency = areasController.hasDependencies(areas.getCODE());
         }
         return msgDependency;
     }

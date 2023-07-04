@@ -3,13 +3,6 @@ package far.com.eatit;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.FragmentTransaction;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.CardView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,21 +14,32 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 //import com.example.bluetoothlibrary.BluetoothScan;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.annotation.Nullable;
 
+import far.com.eatit.API.models.License;
 import far.com.eatit.CloudFireStoreObjects.Devices;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.CloudFireStoreObjects.Token;
-import far.com.eatit.CloudFireStoreObjects.UserControl;
 import far.com.eatit.CloudFireStoreObjects.UserInbox;
 import far.com.eatit.CloudFireStoreObjects.Users;
 import far.com.eatit.CloudFireStoreObjects.UsersDevices;
@@ -53,6 +57,9 @@ import far.com.eatit.Utils.Funciones;
 public class Main extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    License currentLicense;//for Admin
+
+    Fragment currentFragment;
     MaintenanceFragment fragmentMaintenance;
     LogoFragment logoFragment;
     LicenseController licenseController;
@@ -72,6 +79,9 @@ public class Main extends AppCompatActivity
     boolean exit;
 
     Dialog actualizationDialog;
+    Dialog waitDialog;
+    Dialog errorDialog;
+    Dialog successDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,20 +136,138 @@ public class Main extends AppCompatActivity
 
     }
 
+
+
+
+    private  void replace(Fragment fragment){
+        currentFragment = fragment;
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.details, fragment).commit();
+    }
+
+    public void setLoginFragment(){
+        if(!(currentFragment instanceof LoginFragment)){
+            replace(LoginFragment.newInstance(this));
+        }
+
+    }
+
+    public void setLicenseFragment(){
+        if(!(currentFragment instanceof AdminLicensesFragment)){
+            replace(AdminLicensesFragment.newInstance(this));
+        }
+
+    }
+
+    public void setCredentialsFragment(){
+        if(!(currentFragment instanceof AdminCredentialsFragment)){
+            replace(AdminCredentialsFragment.newInstance(this));
+        }
+
+    }
+
+    public void setAdminLicenseSetupFragment(License l){
+        currentLicense = l;
+        if(!(currentFragment instanceof AdminLicenseSetupFragment)){
+            replace(AdminLicenseSetupFragment.newInstance(this,l));
+        }
+
+    }
+
+    public void setAdminLicenseTokens(License l){
+        currentLicense = l;
+        if(!(currentFragment instanceof AdminLicenseTokens)){
+            replace(AdminLicenseTokens.newInstance(this,l));
+        }
+    }
+
+    public void setAdminLicenseDevices(License l){
+        currentLicense = l;
+        if(!(currentFragment instanceof AdminLicenseDevices)){
+            replace(AdminLicenseDevices.newInstance(this,l));
+        }
+    }
+
+    public void setAdminLicenseUserRole(License l){
+        currentLicense = l;
+        if(!(currentFragment instanceof AdminLicenseUserRole)){
+            replace(AdminLicenseUserRole.newInstance(this,l));
+        }
+    }
+
+    public void setAdminLicenseUsers(License l){
+        currentLicense = l;
+        if(!(currentFragment instanceof AdminLicenseUsers)){
+            replace(AdminLicenseUsers.newInstance(this,l));
+        }
+    }
+
+    public void setAdminLicenseCompany(License l){
+        currentLicense = l;
+        if(!(currentFragment instanceof AdminLicenseCompany)){
+            replace(AdminLicenseCompany.newInstance(this,l));
+        }
+    }
+
+    public void setAdminLicenseUserDevice(License l){
+        currentLicense = l;
+        if(!(currentFragment instanceof AdminLicenseUserDevice)){
+            replace(AdminLicenseUserDevice.newInstance(this,l));
+        }
+    }
+
+    public void setMainMenuFragment(){
+        if(!(currentFragment instanceof MainMenuFragment)){
+            replace(MainMenuFragment.newInstance(this));
+        }
+    }
+
+    public void setMaintenenceFragment(){
+        if(!(currentFragment instanceof MaintenanceFragment)){
+            replace(MaintenanceFragment.newInstance(this));
+        }
+    }
+
+    public void setMaintenanceProductTypes(String type){
+        if(!(currentFragment instanceof MaintenanceProductTypes)){
+            replace(MaintenanceProductTypes.newInstance(this, type));
+        }
+    }
+
+    public void setMaintenanceProductSubTypes(String type){
+        if(!(currentFragment instanceof MaintenanceProductSubTypes)){
+            replace(MaintenanceProductSubTypes.newInstance(this, type));
+        }
+    }
+
+    public void setMaintenanceUnitMeasure(String type){
+        if(!(currentFragment instanceof MaintenanceUnitMeasure)){
+            replace(MaintenanceUnitMeasure.newInstance(this, type));
+        }
+    }
+
+    public void setMaintenanceProducts(String type){
+        if(!(currentFragment instanceof MaintenanceProducts)){
+            replace(MaintenanceProducts.newInstance(this, type));
+        }
+    }
+
+
+
     @Override
     protected void onStart() {
         super.onStart();
-        licenseController.getReferenceFireStore().addSnapshotListener(this, licenceListener);
-        usersController.getReferenceFireStore().addSnapshotListener(this, usersListener);
-        devicesController.getReferenceFireStore(licenseController.getLicense()).addSnapshotListener(this, deviceListener);
-        usersDevicesController.getReferenceFireStore(licenseController.getLicense()).addSnapshotListener(this, userDevicesListener);
+        //licenseController.getReferenceFireStore().addSnapshotListener(this, licenceListener);
+        //usersController.getReferenceFireStore().addSnapshotListener(this, usersListener);
+        //devicesController.getReferenceFireStore(licenseController.getLicense()).addSnapshotListener(this, deviceListener);
+        //usersDevicesController.getReferenceFireStore(licenseController.getLicense()).addSnapshotListener(this, userDevicesListener);
 
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        setUpForUserType();
+        //setUpForUserType();
         //licenseController.setLastUpdateToFireBase();//Actualiza la licencia
     }
 
@@ -149,8 +277,11 @@ public class Main extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            //super.onBackPressed();
-            return;
+            if(currentFragment instanceof AdminLicenseCompany || currentFragment instanceof AdminLicenseDevices ||
+               currentFragment instanceof AdminLicenseTokens || currentFragment instanceof AdminLicenseUserRole ||
+               currentFragment instanceof  AdminLicenseUsers || currentFragment instanceof AdminLicenseUserDevice){
+                setAdminLicenseSetupFragment(currentLicense);
+            }
         }
     }
 
@@ -432,7 +563,7 @@ public class Main extends AppCompatActivity
 
 
     public void startActivityLoginFromBegining(int code) {
-        Intent intent = new Intent(getApplicationContext(), Login.class);
+        Intent intent = new Intent(getApplicationContext(), LoginFragment.class);
         intent.putExtra(CODES.EXTRA_SECURITY_ERROR_CODE, code);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
@@ -491,7 +622,7 @@ public class Main extends AppCompatActivity
     }
 
     public void setInitialFragment() {
-        if (usersController.isSuperUser() || usersController.isAdmin()) {//SU o Administrador
+        /*if (usersController.isSuperUser() || usersController.isAdmin()) {//SU o Administrador
             fragmentMaintenance = new MaintenanceFragment();
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.details, fragmentMaintenance);
@@ -503,8 +634,11 @@ public class Main extends AppCompatActivity
             ft.replace(R.id.details, logoFragment);
             ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
             ft.commit();
-        }
+        }*/
+        setLoginFragment();
     }
+
+    
 
 
     public void changeModule(int id) {
@@ -545,9 +679,107 @@ public class Main extends AppCompatActivity
             Toast.makeText(Main.this, Funciones.gerErrorMessage(code), Toast.LENGTH_LONG).show();
             Funciones.savePreferences(Main.this, CODES.PREFERENCE_LOGIN_BLOQUED, "1");
             Funciones.savePreferences(Main.this, CODES.PREFERENCE_LOGIN_BLOQUED_REASON, code + "");
-            startActivityLoginFromBegining(code);
+            //startActivityLoginFromBegining(code);
+            setLoginFragment();
         }
     }
+
+
+    public void showWaitingDialog(){
+        if(waitDialog!=null){
+            waitDialog.dismiss();
+            waitDialog = null;
+        }
+
+        waitDialog = Funciones.getWaitDialog(Main.this);
+
+        waitDialog.show();
+    }
+
+    public void dismissWaitingDialog(){
+        if(waitDialog != null){
+            waitDialog.dismiss();
+        }
+        waitDialog = null;
+    }
+
+
+    public void showErrorDialog(String title, String message){
+        if(title == null){title = "";}
+        if(message == null){message = "";}
+
+        if(errorDialog!=null){
+            errorDialog.dismiss();
+            errorDialog = null;
+        }
+
+        errorDialog = Funciones.getErrorDialog(Main.this,R.color.red_900,title,message, new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dismissErrorDialog();
+            }
+        });
+
+        errorDialog.show();
+    }
+
+    public void dismissErrorDialog(){
+        errorDialog.dismiss();
+        errorDialog = null;
+    }
+
+
+
+    public void showErrorDialogAutoClose(String message, Runnable runnable){
+        if(errorDialog!=null){
+            errorDialog.dismiss();
+            errorDialog = null;
+        }
+
+        int colorResource = R.color.red_900;
+        String status = "ha ocurrido un error".toUpperCase();
+        String msg = message;
+        errorDialog = Funciones.getErrorDialogNoButtons(Main.this,colorResource,status,msg);
+        errorDialog.show();
+        final Timer timerError = new Timer();
+        timerError.schedule(new TimerTask() {
+            public void run() {
+                timerError.cancel(); //this will cancel the timer of the system
+                dismissErrorDialog();
+                if(runnable != null){
+                    runnable.run();
+                }
+
+            }
+        }, 5000); // the timer will count 5 seconds....
+    }
+
+    public void dismissSuccessPaymentDialog(){
+        successDialog.dismiss();
+        successDialog = null;
+    }
+
+
+    public void showSuccessActionDialog(String message, Runnable runnable){
+        if(successDialog!=null){
+            successDialog.dismiss();
+            successDialog = null;
+        }
+        successDialog = Funciones.getSucessActionDialog(Main.this,message);
+        successDialog.show();
+        final Timer timer2 = new Timer();
+        timer2.schedule(new TimerTask() {
+            public void run() {
+                if(runnable != null){
+                    runnable.run();
+                }
+                dismissSuccessPaymentDialog();
+                timer2.cancel(); //this will cancel the timer of the system
+            }
+        }, 5000); // the timer will count 5 seconds....
+    }
+
+
 
 
 }

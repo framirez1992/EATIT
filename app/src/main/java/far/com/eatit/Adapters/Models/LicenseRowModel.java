@@ -1,29 +1,22 @@
 package far.com.eatit.Adapters.Models;
 
-import far.com.eatit.CloudFireStoreObjects.Licenses;
+import java.util.Date;
+
+import far.com.eatit.API.models.License;
+//import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.Utils.Funciones;
 
 public class LicenseRowModel {
-    String code, clientName,counter, dateIni, dateEnd, days, devices;
-    boolean status, inServer;
-    Licenses licenses;
+    String code, clientName;
+    boolean enabled;
+    License license;
 
-    public LicenseRowModel(String code, String clientName, String counter, String dateIni, String dateEnd, String days, String devices, boolean status, boolean inserver){
-        this.code = code; this.clientName = clientName; this.counter = counter; this.dateIni = dateIni; this.dateEnd = dateEnd; this.days = days;
-        this.devices = devices; this.status = status;this.inServer = inserver;
-    }
 
-    public LicenseRowModel(Licenses l){
-        this.code = l.getCODE();
-        this.clientName = l.getCLIENTNAME();
-        this.counter = l.getCOUNTER()+"";
-        this.dateIni = Funciones.getFormatedDateRepDom(l.getDATEINI());
-        this.dateEnd = Funciones.getFormatedDateRepDom(l.getDATEEND());
-        this.days = l.getDAYS()+"";
-        this.devices = l.getDEVICES()+"";
-        this.status = l.isENABLED();
-        this.inServer = l.getLASTUPDATE()!=null;
-        this.licenses = l;
+    public LicenseRowModel(License l){
+        this.code = l.getCode();
+        this.clientName = l.getClientName();
+        this.enabled = l.isEnabled();
+        this.license = l;
     }
 
     public String getCode() {
@@ -42,67 +35,19 @@ public class LicenseRowModel {
         this.clientName = clientName;
     }
 
-    public String getCounter() {
-        return counter;
+    public License getLicense() {
+        return license;
     }
 
-    public void setCounter(String counter) {
-        this.counter = counter;
+    public void setLicense(License license) {
+        this.license = license;
     }
 
-    public String getDateIni() {
-        return dateIni;
+    public boolean isEnabled() {
+        return enabled;
     }
 
-    public void setDateIni(String dateIni) {
-        this.dateIni = dateIni;
-    }
-
-    public String getDateEnd() {
-        return dateEnd;
-    }
-
-    public void setDateEnd(String dateEnd) {
-        this.dateEnd = dateEnd;
-    }
-
-    public String getDays() {
-        return days;
-    }
-
-    public void setDays(String days) {
-        this.days = days;
-    }
-
-    public String getDevices() {
-        return devices;
-    }
-
-    public void setDevices(String devices) {
-        this.devices = devices;
-    }
-
-    public boolean isStatus() {
-        return status;
-    }
-
-    public void setStatus(boolean status) {
-        this.status = status;
-    }
-
-    public boolean isInServer() {
-        return inServer;
-    }
-
-    public void setInServer(boolean inServer) {
-        this.inServer = inServer;
-    }
-
-    public Licenses getLicenses() {
-        return licenses;
-    }
-
-    public void setLicenses(Licenses licenses) {
-        this.licenses = licenses;
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }

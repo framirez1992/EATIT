@@ -1,16 +1,7 @@
 package far.com.eatit;
 
 import android.content.res.ColorStateList;
-import android.support.design.widget.NavigationView;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v4.widget.ImageViewCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.CardView;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.MenuInflater;
@@ -25,6 +16,16 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+import androidx.core.view.GravityCompat;
+import androidx.core.widget.ImageViewCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
@@ -35,6 +36,8 @@ import java.util.ArrayList;
 
 import javax.annotation.Nullable;
 
+import far.com.eatit.API.models.Product;
+import far.com.eatit.API.models.Sale;
 import far.com.eatit.Adapters.Models.NotificationRowModel;
 import far.com.eatit.Adapters.Models.OrderDetailModel;
 import far.com.eatit.Adapters.Models.OrderReceiptModel;
@@ -68,10 +71,10 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
 
     ProductsMeasureController productsMeasureController;
 
-    CollectionReference sales;
-    CollectionReference salesDetails;
+    //CollectionReference sales;
+    //CollectionReference salesDetails;
     CollectionReference userInbox;
-    CollectionReference productsMeasure;
+    //CollectionReference productsMeasure;
 
     NewOrderFragment newOrderFragment;
     ResumenOrderFragment resumenOrderFragment;
@@ -108,10 +111,10 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
         userInboxController = UserInboxController.getInstance(MainOrders.this);
         productsMeasureController = ProductsMeasureController.getInstance(MainOrders.this);
 
-        sales = salesController.getReferenceFireStore();
-        salesDetails = salesController.getReferenceDetailFireStore();
+        //sales = salesController.getReferenceFireStore();
+        //salesDetails = salesController.getReferenceDetailFireStore();
         userInbox = userInboxController.getReferenceFireStore();
-        productsMeasure = productsMeasureController.getReferenceFireStore();
+        //productsMeasure = productsMeasureController.getReferenceFireStore();
 
         rlNotifications = findViewById(R.id.rlNotifications);
         cvNotificacions = findViewById(R.id.cvNotifications);
@@ -227,25 +230,7 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
     @Override
     protected void onStart() {
         super.onStart();
-        sales.addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(QuerySnapshot querySnapshot, FirebaseFirestoreException e) {
-                if(querySnapshot == null ){
-                    return;
-                }
-                salesController.delete(null, null);
-            for(DocumentSnapshot dc: querySnapshot){
-                    Sales s = dc.toObject(Sales.class);
-                    if(s.getCODEUSER().equals(Funciones.getCodeuserLogged(MainOrders.this))){
-                        salesController.insert(s);
-                    }
 
-                }
-
-                refreshInterface();
-
-            }
-        });
 
         userInbox.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -354,7 +339,7 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
     @Override
     public void onClick(Object obj) {
         if(obj instanceof SimpleRowModel) {
-            Products p = ProductsController.getInstance(MainOrders.this).getProductByCode(((SimpleRowModel) obj).getId());
+            Product p = ProductsController.getInstance(MainOrders.this).getProductByCode(((SimpleRowModel) obj).getId());
             callAddDialog(p);
         }else if(obj instanceof NotificationRowModel){
             UserInboxController.getInstance(MainOrders.this).setMessageReaded(((NotificationRowModel) obj).getCode());
@@ -494,14 +479,14 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
 
     }
 
-    public void editOrder(Sales s){
-        orderCode = s.getCODE();
+    public void editOrder(Sale s){
+        orderCode = s.getId()+"";
         tempOrdersController.delete(null, null);
         tempOrdersController.delete_Detail(null, null);
 
-        tempOrdersController.insert(s);
+        //tempOrdersController.insert(s);
 
-        for(SalesDetails sd: salesController.getSalesDetailsByCodeSales(orderCode)){
+        for(SalesDetails sd: salesController.getSalesDetailsByCodeSales(s.getId())){
             tempOrdersController.insert_Detail(sd);
         }
 
@@ -590,7 +575,7 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
             SalesController.getInstance(MainOrders.this).closeOrders(receipt,sales);
             //////////////////////////////////////////////////////////////////
             //////////  GUARDANDO RECIBO          ////////////////////////////
-            ReceiptController.getInstance(MainOrders.this).sendToFireBase(receipt);
+            //ReceiptController.getInstance(MainOrders.this).sendToFireBase(receipt);
             /////////////////////////////////////////////////////////////////
         }
     }
@@ -611,10 +596,10 @@ public class MainOrders extends AppCompatActivity implements ListableActivity, R
         ((ViewGroup)findViewById(R.id.result)).setVisibility(View.GONE);
     }
 
-    public void setUpEditSplitedOrder(Sales s){
-        if(s.getCODEPRODUCTTYPE() != null || s.getCODEPRODUCTSUBTYPE() != null){
+    public void setUpEditSplitedOrder(Sale s){
+        /*if(s.getCODEPRODUCTTYPE() != null || s.getCODEPRODUCTSUBTYPE() != null){
                 newOrderFragment.setUpEditSplitedOrder(s);
-        }
+        }*/
     }
 
     public void setEditing(boolean b){

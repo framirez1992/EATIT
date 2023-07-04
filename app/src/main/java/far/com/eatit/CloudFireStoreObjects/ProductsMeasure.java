@@ -26,13 +26,13 @@ public class ProductsMeasure {
 
         public HashMap<String, Object> toMap(){
             HashMap<String, Object> map = new HashMap<>();
-            map.put(ProductsMeasureController.CODE,CODE);
+            /*map.put(ProductsMeasureController.CODE,CODE);
             map.put(ProductsMeasureController.CODEPRODUCT, CODEPRODUCT);
             map.put(ProductsMeasureController.CODEMEASURE, CODEMEASURE);
             map.put(ProductsMeasureController.PRICE, PRICE);
             map.put(ProductsMeasureController.ENABLED, ENABLED);
             map.put(ProductsMeasureController.DATE, (DATE == null)? FieldValue.serverTimestamp():DATE);
-            map.put(ProductsMeasureController.MDATE,(MDATE == null)? FieldValue.serverTimestamp():MDATE);
+            map.put(ProductsMeasureController.MDATE,(MDATE == null)? FieldValue.serverTimestamp():MDATE);*/
 
             return map;
         }

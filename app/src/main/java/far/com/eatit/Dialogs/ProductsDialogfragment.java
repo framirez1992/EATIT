@@ -2,13 +2,6 @@ package far.com.eatit.Dialogs;
 
 import android.app.Dialog;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputEditText;
-import android.support.v4.app.DialogFragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,15 +11,35 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
+import far.com.eatit.API.APIClient;
+import far.com.eatit.API.APIInterface;
+import far.com.eatit.API.models.LoginResponse;
+import far.com.eatit.API.models.MeasureUnit;
+import far.com.eatit.API.models.Product;
+import far.com.eatit.API.models.ProductMeasure;
+import far.com.eatit.API.models.ProductSubType;
+import far.com.eatit.API.models.ProductType;
+import far.com.eatit.API.models.ResponseBase;
 import far.com.eatit.Adapters.EditSelectionRowAdapter;
 import far.com.eatit.Adapters.Models.EditSelectionRowModel;
+import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.Adapters.Models.SimpleSeleccionRowModel;
 import far.com.eatit.Adapters.SimpleSelectionRowAdapter;
 import far.com.eatit.CloudFireStoreObjects.Products;
@@ -44,32 +57,59 @@ import far.com.eatit.Controllers.ProductsTypesInvController;
 import far.com.eatit.Controllers.SalesController;
 import far.com.eatit.Generic.Objects.KV;
 import far.com.eatit.Globales.CODES;
+import far.com.eatit.Interfases.DialogCaller;
+import far.com.eatit.Main;
 import far.com.eatit.R;
 import far.com.eatit.Utils.Funciones;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-public class ProductsDialogfragment extends DialogFragment implements OnFailureListener {
+public class ProductsDialogfragment extends DialogFragment {
 
-    private  Products tempObj;
+    Main mainActivity;
+    APIInterface apiInterface;
+    LoginResponse loginResponse;
+    DialogCaller dialogCaller;
+    ProductsDialogfragmentResponse dialogResponse;
+
+    private Product tempObj;
 
     LinearLayout llSave;
     TextInputEditText etCode, etName;
     Spinner spnFamily, spnGroup;
     RecyclerView rvMeasures;
-    LinearLayout llMeasureScreen, llMainScreen, llNext;
+    LinearLayout llMeasureScreen, llMainScreen, llNext, llBack;
 
-    ProductsController productsController;
-    ProductsInvController productsInvController;
+    List<ProductMeasure> productMeasures;
+    List<MeasureUnit> measureUnits;
     ArrayList<EditSelectionRowModel> selected = new ArrayList<>() ;
-    boolean firstTime = true;
+    //boolean firstTime = true;
+    boolean firstLoadProductType = true;
+    boolean firstLoadProductSubType = true;
     String type;
 
     Dialog loadingDialg;
     Dialog errorDialog;
 
-    public  static ProductsDialogfragment newInstance(String type, Products pt) {
+    Runnable exitRunnable = new Runnable() {
+        @Override
+        public void run() {
+            mainActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    dialogCaller.dialogClosed(dialogResponse);
+                    ProductsDialogfragment.this.dismiss();
+                }
+            });
+        }
+    };
 
 
+    public  static ProductsDialogfragment newInstance(Main mainActivity,String type,Product pt, DialogCaller dialogCaller) {
         ProductsDialogfragment f = new ProductsDialogfragment();
+        f.mainActivity = mainActivity;
+        f.dialogCaller = dialogCaller;
         f.type = type;
         f.tempObj = pt;
 
@@ -89,8 +129,6 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
         // Pick a style based on the num.
         int style = DialogFragment.STYLE_NORMAL, theme = 0;
         setStyle(style, theme);
-        productsController = ProductsController.getInstance(getActivity());
-        productsInvController = ProductsInvController.getInstance(getActivity());
 
     }
 
@@ -104,7 +142,8 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-
+        loginResponse = Funciones.getLoginResponseData(mainActivity);
+        apiInterface = APIClient.getClient(mainActivity).create(APIInterface.class);
         return inflater.inflate(R.layout.dialog_add_edit_product, container, true);
     }
 
@@ -113,7 +152,6 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
         super.onViewCreated(view, savedInstanceState);
 
         init(view);
-
     }
 
     @Override
@@ -130,6 +168,7 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
         llMainScreen = view.findViewById(R.id.llMainScreen);
         llMeasureScreen = view.findViewById(R.id.llMeasureScreen);
         llNext = view.findViewById(R.id.llNext);
+        llBack = view.findViewById(R.id.llBack);
         llSave = view.findViewById(R.id.llSave);
         etCode = view.findViewById(R.id.etCode);
         etName = view.findViewById(R.id.etName);
@@ -138,13 +177,14 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
         rvMeasures = view.findViewById(R.id.rvMeasures);
         rvMeasures.setLayoutManager(new LinearLayoutManager(getActivity()));
 
+        /*
         if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
             ProductsTypesController.getInstance(getActivity()).fillSpinner(spnFamily, false);
             ProductsSubTypesController.getInstance(getActivity()).fillSpinner(spnGroup, false);
         }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
             ProductsTypesInvController.getInstance(getActivity()).fillSpinner(spnFamily, false);
             ProductsSubTypesInvController.getInstance(getActivity()).fillSpinner(spnGroup, false);
-        }
+        }*/
 
         etCode.setEnabled(false);
         etCode.setText(Funciones.generateCode());
@@ -157,8 +197,9 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
                 if(tempObj == null){
                     Save();
                 }else{
-                    showLoadingDialog();
-                    searchProduct(tempObj.getCODE());
+                    //showLoadingDialog();
+                    //searchProduct(String.valueOf(tempObj.getId()));
+                    EditProduct();
                 }
                 //Funciones.getDateOnline(ProductTypeDialogFragment.this);
             }
@@ -172,29 +213,38 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
             }
         });
 
+        llBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                llMainScreen.setVisibility((llMainScreen.getVisibility() == View.GONE)?View.VISIBLE:View.GONE);
+                llMeasureScreen.setVisibility((llMeasureScreen.getVisibility() == View.VISIBLE)?View.GONE:View.VISIBLE);
+            }
+        });
+
         if(tempObj != null){//EDIT
             setUpToEditUsers();
         }
 
-        fillMeasures();
 
 
         spnFamily.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 KV familia = (KV)spnFamily.getSelectedItem();
-                if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
+                /*if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
                     ProductsSubTypesController.getInstance(getActivity()).fillSpinner(spnGroup, false, familia.getKey());
                 }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
                     ProductsSubTypesInvController.getInstance(getActivity()).fillSpinner(spnGroup, false, familia.getKey());
-                }
+                }*/
 
-                if(firstTime){//para que seleccione el subType del producto automaticamente la primera vez que abra el dialogo.
-                    firstTime= false;
+                if(firstLoadProductType){//para que seleccione el subType del producto automaticamente la primera vez que abra el dialogo.
+                    firstLoadProductType= false;
                     if(tempObj != null){
-                        setSpinnerposition(spnGroup, tempObj.getSUBTYPE());
+                        setSpinnerposition(spnFamily, String.valueOf(tempObj.getIdproductType()));
                     }
                 }
+
+                fillProductSubTypes(Integer.parseInt(familia.getKey()));
             }
 
             @Override
@@ -202,6 +252,37 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
 
             }
         });
+
+        spnGroup.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                KV group = (KV)spnGroup.getSelectedItem();
+                /*if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
+                    ProductsSubTypesController.getInstance(getActivity()).fillSpinner(spnGroup, false, familia.getKey());
+                }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
+                    ProductsSubTypesInvController.getInstance(getActivity()).fillSpinner(spnGroup, false, familia.getKey());
+                }*/
+
+                if(firstLoadProductSubType){//para que seleccione el subType del producto automaticamente la primera vez que abra el dialogo.
+                    firstLoadProductSubType= false;
+                    if(tempObj != null){
+                        setSpinnerposition(spnGroup, String.valueOf(tempObj.getIdproductSubType()));
+                    }
+
+                }
+
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+
+        fillProductTypes();
+        fillUnitMeasure();
     }
 
     public boolean validate(){
@@ -238,18 +319,48 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
             String description = etName.getText().toString();
             String productType = ((KV)spnFamily.getSelectedItem()).getKey();
             String productSubType = ((KV)spnGroup.getSelectedItem()).getKey();
-            Products product = new Products(code, description, productType, productSubType, false);
+            //int idLicense, int idproductType, int idproductSubType, String code, String description, boolean combo
+            Product product = new Product(loginResponse.getLicense().getId(),Integer.parseInt(productType), Integer.parseInt(productSubType),code,description, false);
 
-            ArrayList<ProductsMeasure> list = new ArrayList<>();
+            ArrayList<ProductMeasure> list = new ArrayList<>();
             for(EditSelectionRowModel ssrm: selected){
-                list.add(new ProductsMeasure(Funciones.generateCode(), code, ssrm.getCode(),Double.parseDouble(ssrm.getText()),true, null, null));
+                MeasureUnit mu = (MeasureUnit)ssrm.getEntity();
+                //int idproduct, int idmeasureUnit, double price, double maxPrice, double minPrice, boolean enabled, boolean range
+                list.add(new ProductMeasure(0, mu.getId(), Double.parseDouble(ssrm.getText()),0,0, ssrm.isChecked(), false));
             }
+            product.setProductMeasures(list);
 
+            /*
             if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
                 productsController.sendToFireBase(product, list);
             }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
                 productsInvController.sendToFireBase(product, list);
-            }
+            }*/
+
+
+            apiInterface.saveProduct(product).enqueue(new Callback<ResponseBase>() {
+                @Override
+                public void onResponse(Call<ResponseBase> call, Response<ResponseBase> response) {
+                    ResponseBase rb = response.body();
+                    if(response.isSuccessful()){
+                        Product pt = (Product) rb.getData();
+                        dialogResponse = new ProductsDialogfragmentResponse(pt);
+                        mainActivity.showSuccessActionDialog("Saved",exitRunnable);
+                    }else{
+                        String message = rb == null?response.errorBody().toString():rb.getResposeMessage();
+                        dialogResponse = new ProductsDialogfragmentResponse("99",message);
+                        mainActivity.showErrorDialogAutoClose(message, exitRunnable);
+                    }
+                    mainActivity.dismissWaitingDialog();
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBase> call, Throwable t) {
+                    dialogResponse = new ProductsDialogfragmentResponse("99",t.getMessage());
+                    mainActivity.showErrorDialogAutoClose(t.getMessage(), exitRunnable);
+                    mainActivity.dismissWaitingDialog();
+                }
+            });
 
 
             this.dismiss();
@@ -262,22 +373,82 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
 
     public void EditProduct(){
         try {
-            Products products = ((Products)tempObj);
-            products.setDESCRIPTION(etName.getText().toString());
-            products.setTYPE(((KV)spnFamily.getSelectedItem()).getKey());
-            products.setSUBTYPE(((KV)spnGroup.getSelectedItem()).getKey());
-            products.setMDATE(null);
+            Product product = ((Product)tempObj);
+            product.setDescription(etName.getText().toString());
+            product.setIdproductType(Integer.parseInt(((KV)spnFamily.getSelectedItem()).getKey()));
+            product.setIdproductSubType(Integer.parseInt(((KV)spnGroup.getSelectedItem()).getKey()));
+            //products.setMDATE(null);
 
-            ArrayList<ProductsMeasure> list = new ArrayList<>();
-            for(EditSelectionRowModel ssrm: selected){
-                list.add(new ProductsMeasure(Funciones.generateCode(), products.getCODE(), ssrm.getCode(),Double.parseDouble(ssrm.getText()),true, null, null));
+            ArrayList<ProductMeasure> list = new ArrayList<>();
+            list.addAll(productMeasures);//agregamos todos los productMeasure existentes
+
+            for(EditSelectionRowModel ssrm: selected){ //iterar sobra las unidades de medidas selecionadas
+                MeasureUnit mu = (MeasureUnit)ssrm.getEntity();
+                ProductMeasure pm = null;
+
+                for(ProductMeasure obj : list){//itera sobre los productMeasureExistentes
+                    if(mu.getId() == obj.getIdmeasureUnit()){//modificar al product measure
+                        pm = obj;
+                        break;
+                    }
+                }
+                if(pm == null){// si el pm == null significa que 1- no existe en los producMeasure  hay que agregarlo
+                    list.add(new ProductMeasure(tempObj.getId(), mu.getId(), Double.parseDouble(ssrm.getText()),0,0, ssrm.isChecked(), false));
+                }else{//si existe de modifica el precio y si esta checked
+                    pm.setPrice(Double.parseDouble(ssrm.getText()));
+                    pm.setEnabled(ssrm.isChecked());
+                }
+
             }
 
+
+            //Escenario se esta editando un producto con una unidad de media, se inactiva la unidad de medida actual y se activa una nueva
+            for(ProductMeasure pm : list){//encontrar los inactivos y cambiar su status
+                boolean deselect = true;
+                for(EditSelectionRowModel ssrm: selected){
+                    MeasureUnit mu = (MeasureUnit)ssrm.getEntity();
+                    if(pm.getIdmeasureUnit() == mu.getId()){//existe pero lo deseleccionaron
+                       deselect = false;
+                        break;
+                    }
+                }
+
+                if(deselect){
+                    pm.setEnabled(false);
+                }
+            }
+            product.setProductMeasures(list);
+
+
+            apiInterface.updateProduct(product).enqueue(new Callback<ResponseBase>() {
+                @Override
+                public void onResponse(Call<ResponseBase> call, Response<ResponseBase> response) {
+                    ResponseBase rb = response.body();
+                    if(response.isSuccessful()){
+                        Product pt = (Product) rb.getData();
+                        dialogResponse = new ProductsDialogfragmentResponse(pt);
+                        mainActivity.showSuccessActionDialog("Saved",exitRunnable);
+                    }else{
+                        String message = rb == null?response.errorBody().toString():rb.getResposeMessage();
+                        dialogResponse = new ProductsDialogfragmentResponse("99",message);
+                        mainActivity.showErrorDialogAutoClose(message, exitRunnable);
+                    }
+                    mainActivity.dismissWaitingDialog();
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBase> call, Throwable t) {
+                    dialogResponse = new ProductsDialogfragmentResponse("99",t.getMessage());
+                    mainActivity.showErrorDialogAutoClose(t.getMessage(), exitRunnable);
+                    mainActivity.dismissWaitingDialog();
+                }
+            });
+            /*
             if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
                 productsController.sendToFireBase(products, list);
             }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
                 productsInvController.sendToFireBase(products, list);
-            }
+            }*/
 
             this.dismiss();
         }catch(Exception e){
@@ -289,13 +460,10 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
 
 
     public void setUpToEditUsers(){
-        Products p = ((Products)tempObj);
-        etCode.setText(p.getCODE());
+        Product p = ((Product)tempObj);
+        etCode.setText(p.getCode());
         etCode.setEnabled(false);
-        etName.setText(p.getDESCRIPTION());
-        setSpinnerposition(spnFamily, p.getTYPE());
-        setSpinnerposition(spnGroup, p.getSUBTYPE());
-
+        etName.setText(p.getDescription());
 
     }
 
@@ -311,32 +479,6 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
 
 
 
-    @Override
-    public void onFailure(@NonNull Exception e) {
-        Funciones.showNetworkErrorWithText(getView(), e.getMessage());
-        llSave.setEnabled(true);
-    }
-
-    public void fillMeasures(){
-
-        if(tempObj != null) {
-            if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
-                selected.addAll(ProductsMeasureController.getInstance(getActivity()).getSSRMByCodeProduct((tempObj).getCODE()));
-            }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
-               // selectedObjs.addAll(ProductsMeasureInvController.getInstance(getActivity()).getSSRMByCodeProduct(((Products) tempObj).getCODE()));
-            }
-        }
-        ArrayList<EditSelectionRowModel> arr = null;
-        if(type.equals(CODES.ENTITY_TYPE_EXTRA_PRODUCTSFORSALE)){
-            arr =  MeasureUnitsController.getInstance(getActivity()).getUnitMeasuresSSRM(null, null, null);
-        }else if(type.equals(CODES.ENTITY_TYPE_EXTRA_INVENTORY)){
-            //arr = MeasureUnitsInvController.getInstance(getActivity()).getUnitMeasuresSSRM(null, null, null);
-        }
-
-        rvMeasures.setAdapter(new EditSelectionRowAdapter(getActivity(),arr, selected));
-        rvMeasures.getAdapter().notifyDataSetChanged();
-        rvMeasures.invalidate();
-    }
 
     OnFailureListener onFailureSerachProduct = new OnFailureListener() {
         @Override
@@ -367,7 +509,7 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
      * @param codeProduct
      */
     public void searchProduct(String codeProduct){
-        SalesController.getInstance(getActivity()).searchProductInSalesDetail(codeProduct,onSuccessSeachProduct, onFailureSerachProduct);
+        //SalesController.getInstance(getActivity()).searchProductInSalesDetail(codeProduct,onSuccessSeachProduct, onFailureSerachProduct);
     }
 
     public void showLoadingDialog(){
@@ -393,5 +535,195 @@ public class ProductsDialogfragment extends DialogFragment implements OnFailureL
         });
         errorDialog.setCancelable(false);
         errorDialog.show();
+    }
+
+    private void fillProductTypes(){
+        apiInterface.getProductTypes(loginResponse.getLicense().getId()).enqueue(new Callback<List<ProductType>>() {
+            @Override
+            public void onResponse(Call<List<ProductType>> call, Response<List<ProductType>> response) {
+                ArrayList<KV> lrm = new ArrayList<>();
+
+                if(response.isSuccessful()){
+                    List<ProductType> list = response.body();
+                    for(ProductType obj : list){
+                        //String id, String text, Object entity
+                        lrm.add(new KV(String.valueOf(obj.getId()),obj.getDescription()));
+                    }
+                }else{
+                    Snackbar.make(getView(),response.errorBody().byteStream().toString(), BaseTransientBottomBar.LENGTH_LONG).show();
+                }
+
+                ArrayAdapter<KV> adapter = new ArrayAdapter<KV>(mainActivity, android.R.layout.simple_list_item_1,lrm);
+                spnFamily.setAdapter(adapter);
+
+            }
+
+            @Override
+            public void onFailure(Call<List<ProductType>> call, Throwable t) {
+                Snackbar.make(getView(),t.getMessage(), BaseTransientBottomBar.LENGTH_LONG).show();
+            }
+        });
+
+    }
+
+    private void fillProductSubTypes(int idProductType){
+        apiInterface.getProductSubTypes(loginResponse.getLicense().getId(), idProductType).enqueue(new Callback<List<ProductSubType>>() {
+            @Override
+            public void onResponse(Call<List<ProductSubType>> call, Response<List<ProductSubType>> response) {
+                ArrayList<KV> lrm = new ArrayList<>();
+
+                if(response.isSuccessful()){
+                    List<ProductSubType> list = response.body();
+                    for(ProductSubType obj : list){
+                        //String id, String text, Object entity
+                        lrm.add(new KV(String.valueOf(obj.getId()),obj.getDescription()));
+                    }
+                }else{
+                    Snackbar.make(getView(),response.errorBody().byteStream().toString(), BaseTransientBottomBar.LENGTH_LONG).show();
+                }
+
+                ArrayAdapter<KV> adapter = new ArrayAdapter<KV>(mainActivity, android.R.layout.simple_list_item_1,lrm);
+                spnGroup.setAdapter(adapter);
+
+            }
+
+            @Override
+            public void onFailure(Call<List<ProductSubType>> call, Throwable t) {
+                Snackbar.make(getView(),t.getMessage(), BaseTransientBottomBar.LENGTH_LONG).show();
+            }
+        });
+
+    }
+
+    public void fillUnitMeasure(){
+        apiInterface.getMeasureUnits(loginResponse.getLicense().getId()).enqueue(new Callback<List<MeasureUnit>>() {
+            @Override
+            public void onResponse(Call<List<MeasureUnit>> call, Response<List<MeasureUnit>> response) {
+                ArrayList<EditSelectionRowModel> arr = new ArrayList<>();
+
+                if(response.isSuccessful()){
+                    measureUnits = response.body();
+                    for(MeasureUnit obj : measureUnits){
+                        //String code, String description, String text, boolean checked,
+                        arr.add(new EditSelectionRowModel(String.valueOf(obj.getId()),obj.getDescription(),"0",false,obj));
+                    }
+                }else{
+                    Snackbar.make(getView(),response.errorBody().byteStream().toString(), BaseTransientBottomBar.LENGTH_LONG).show();
+                }
+
+
+                if(tempObj != null && productMeasures == null  ) {
+                    searchProductMeasures();
+                }else{
+                    fillUnitMeasureAdapter(arr);
+                }
+
+            }
+
+            @Override
+            public void onFailure(Call<List<MeasureUnit>> call, Throwable t) {
+                Snackbar.make(getView(),t.getMessage(), BaseTransientBottomBar.LENGTH_LONG).show();
+            }
+        });
+
+    }
+
+
+    private void fillUnitMeasureAdapter(ArrayList<EditSelectionRowModel> arr){
+        rvMeasures.setAdapter(new EditSelectionRowAdapter(getActivity(),arr, selected));
+        rvMeasures.getAdapter().notifyDataSetChanged();
+        rvMeasures.invalidate();
+    }
+
+    public void searchProductMeasures(){
+        apiInterface.getProductMeasures(tempObj.getId()).enqueue(new Callback<List<ProductMeasure>>() {
+            @Override
+            public void onResponse(Call<List<ProductMeasure>> call, Response<List<ProductMeasure>> response) {
+                mainActivity.dismissWaitingDialog();
+
+                if(response.isSuccessful()){
+                    productMeasures = response.body();
+                    loadSelectedMeasures();
+                }else{
+                    Snackbar.make(getView(),response.errorBody().byteStream().toString(), BaseTransientBottomBar.LENGTH_LONG).show();
+                }
+
+
+            }
+
+            @Override
+            public void onFailure(Call<List<ProductMeasure>> call, Throwable t) {
+                Snackbar.make(getView(),t.getMessage(), BaseTransientBottomBar.LENGTH_LONG).show();
+                mainActivity.dismissWaitingDialog();
+            }
+        });
+
+    }
+
+    private void loadSelectedMeasures(){
+        ArrayList<EditSelectionRowModel> adapterData = new ArrayList<>();
+
+        for(MeasureUnit obj : measureUnits){
+
+            ProductMeasure p = null;
+            for(ProductMeasure pm : productMeasures){
+                if(pm.getIdmeasureUnit() == obj.getId()){
+                    p = pm;
+                    break;
+                }
+            }
+
+            EditSelectionRowModel esm = new EditSelectionRowModel(String.valueOf(obj.getId()),obj.getDescription(),p==null? "0":String.valueOf(p.getPrice()),(p!=null && p.isEnabled()),obj);
+            if(p != null && p.isEnabled()){
+                selected.add(esm);
+            }
+            adapterData.add(esm);
+        }
+
+        fillUnitMeasureAdapter(adapterData);
+    }
+
+
+
+    public  class ProductsDialogfragmentResponse{
+        private Product product;
+        private String responseCode;
+        private String responseMessage;
+
+        public ProductsDialogfragmentResponse(Product product) {
+            this.product = product;
+            this.responseCode = "00";
+            this.responseMessage = "success";
+        }
+
+        public ProductsDialogfragmentResponse(String responseCode, String responseMessage) {
+            this.product = null;
+            this.responseCode = responseCode;
+            this.responseMessage = responseMessage;
+        }
+
+        public Product getProduct() {
+            return product;
+        }
+
+        public void setProduct(Product product) {
+            this.product = product;
+        }
+
+        public String getResponseCode() {
+            return responseCode;
+        }
+
+        public void setResponseCode(String responseCode) {
+            this.responseCode = responseCode;
+        }
+
+        public String getResponseMessage() {
+            return responseMessage;
+        }
+
+        public void setResponseMessage(String responseMessage) {
+            this.responseMessage = responseMessage;
+        }
     }
 }

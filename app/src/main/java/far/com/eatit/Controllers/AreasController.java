@@ -20,6 +20,8 @@ import com.google.firebase.firestore.WriteBatch;
 import java.util.ArrayList;
 import java.util.Date;
 
+import far.com.eatit.API.models.Area;
+import far.com.eatit.API.models.Client;
 import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.CloudFireStoreObjects.Areas;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
@@ -32,17 +34,32 @@ import far.com.eatit.Utils.Funciones;
 
 public class AreasController {
     public static final String TABLE_NAME = "AREAS";
-    public static String CODE = "code", DESCRIPTION = "description", ORDER = "orden", DATE="date", MDATE="mdate";
-    public static String[]colums = new String[]{CODE, DESCRIPTION, ORDER, DATE, MDATE};
+    public static String IDAREA="idArea", IDCOMPANY="idCompany",CODE = "code", DESCRIPTION = "description", POSITION = "position", DATA="data", DATA2="data2",DATA3="data3",
+            CREATEDATE = "createDate", CREATEUSER = "createUser", UPDATEDATE="updateDate", UPDATEUSER="updateUser",DELETEDATE="deleteDate",DELETEUSER="deleteUser" ;
+    public static String[]colums = new String[]{IDAREA,IDCOMPANY,CODE, DESCRIPTION, POSITION, DATA, DATA2, DATA3, CREATEDATE, CREATEUSER,UPDATEDATE, UPDATEUSER, DELETEDATE, DELETEUSER};
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+" ("
-            +CODE+" TEXT, "+DESCRIPTION+" TEXT, "+ORDER+" INTEGER, "+DATE+" TEXT, "+MDATE+" TEXT)";
+            +IDAREA+" INTEGER, "
+            +IDCOMPANY+" INTEGER, "
+            +CODE+" TEXT, "
+            +DESCRIPTION+" TEXT, "
+            +POSITION+" INTEGER, "
+            +DATA+" TEXT,  "
+            +DATA2+" TEXT,  "
+            +DATA3+" TEXT,  "
+            +CREATEDATE+" TEXT, "
+            +CREATEUSER+" TEXT, "
+            +UPDATEDATE+" TEXT, "
+            +UPDATEUSER+" TEXT, "
+            +DELETEDATE+" TEXT, "
+            +DELETEUSER+" TEXT "
+            +")";
 
     Context context;
-    FirebaseFirestore db;
+    DB db;
     private static AreasController instance;
     private AreasController(Context c){
         this.context = c;
-        this.db = FirebaseFirestore.getInstance();
+        this.db = DB.getInstance(c);
     }
     public static AreasController getInstance(Context context){
         if(instance == null){
@@ -51,61 +68,72 @@ public class AreasController {
         return instance;
     }
 
-    public CollectionReference getReferenceFireStore(){
-        Licenses l = LicenseController.getInstance(context).getLicense();
-        if(l == null){
-            return null;
-        }
-        CollectionReference reference = db.collection(Tablas.generalUsers).document(l.getCODE()).collection(Tablas.generalUsersAreas);
-        return reference;
+    public void insertOrUpdate(Area obj){
+        String sql ="insert or replace into "+TABLE_NAME+" ("+IDAREA+", "+IDCOMPANY+", "+CODE+", "+DESCRIPTION+","+POSITION+","+DATA+","+DATA2+","+DATA3+", "+CREATEDATE+", "+CREATEUSER+","+UPDATEDATE+", "+UPDATEUSER+", "+DELETEDATE+", "+DELETEUSER+") values " +
+                "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        db.getWritableDatabase().execSQL(sql,new String[]{obj.getIdarea()+"", obj.getIdcompany()+"", obj.getCode(), obj.getDescription(),obj.getPosition()+"",obj.getData(),obj.getData2(),obj.getData3(), obj.getCreateDate(), obj.getCreateUser(),  obj.getUpdateDate(),obj.getUpdateUser(),  obj.getDeleteDate(), obj.getDeleteUser() });
     }
-    public long insert(Areas a){
+
+
+    public long insert(Area obj){
         ContentValues cv = new ContentValues();
-        cv.put(CODE,a.getCODE());
-        cv.put(DESCRIPTION,a.getDESCRIPTION());
-        cv.put(ORDER, a.getORDEN());
-        cv.put(DATE, Funciones.getFormatedDate(a.getDATE()));
-        cv.put(MDATE, Funciones.getFormatedDate(a.getMDATE()));
+        cv.put(IDAREA,obj.getIdarea());
+        cv.put(IDCOMPANY,obj.getIdcompany());
+        cv.put(CODE,obj.getCode());
+        cv.put(DESCRIPTION,obj.getDescription());
+        cv.put(POSITION, obj.getPosition());
+        cv.put(DATA, obj.getData());
+        cv.put(DATA2, obj.getData2());
+        cv.put(DATA3, obj.getData3());
+        cv.put(CREATEDATE, obj.getCreateDate());
+        cv.put(CREATEUSER, obj.getCreateUser());
+        cv.put(UPDATEDATE, obj.getCreateDate());
+        cv.put(UPDATEUSER, obj.getUpdateUser());
+        cv.put(DELETEDATE, obj.getCreateDate());
+        cv.put(DELETEUSER, obj.getDeleteUser());
 
         long result = DB.getInstance(context).getWritableDatabase().insert(TABLE_NAME,null,cv);
         return result;
     }
 
-    public long update(Areas a){
-        String where = CODE+" = ?";
-        return update(a, where, new String[]{a.getCODE()});
-    }
-    public long update(Areas a, String where, String[] args){
+    public long update(Area obj){
         ContentValues cv = new ContentValues();
-        cv.put(CODE,a.getCODE() );
-        cv.put(DESCRIPTION,a.getDESCRIPTION());
-        cv.put(ORDER, a.getORDEN());
-        cv.put(DATE, Funciones.getFormatedDate(a.getMDATE()));
-        cv.put(MDATE, Funciones.getFormatedDate(a.getMDATE()));
+        cv.put(IDAREA,obj.getIdarea());
+        cv.put(IDCOMPANY,obj.getIdcompany());
+        cv.put(CODE,obj.getCode());
+        cv.put(DESCRIPTION,obj.getDescription());
+        cv.put(POSITION, obj.getPosition());
+        cv.put(DATA, obj.getData());
+        cv.put(DATA2, obj.getData2());
+        cv.put(DATA3, obj.getData3());
+        cv.put(CREATEDATE, obj.getCreateDate());
+        cv.put(CREATEUSER, obj.getCreateUser());
+        cv.put(UPDATEDATE, obj.getCreateDate());
+        cv.put(UPDATEUSER, obj.getUpdateUser());
+        cv.put(DELETEDATE, obj.getCreateDate());
+        cv.put(DELETEUSER, obj.getDeleteUser());
 
-        long result = DB.getInstance(context).getWritableDatabase().update(TABLE_NAME,cv,where, args);
+        long result = DB.getInstance(context).getWritableDatabase().update(TABLE_NAME,cv,IDAREA.concat(" = ?"), new String[]{obj.getIdarea()+""});
         return result;
     }
 
-    public long delete(Areas a){
-        return delete(CODE+" = ?", new String[]{a.getCODE()});
-    }
 
-    public long delete(String where, String[] args){
-        long result = DB.getInstance(context).getWritableDatabase().delete(TABLE_NAME,where, args);
+
+    public long delete(Area obj){
+        long result = DB.getInstance(context).getWritableDatabase().delete(TABLE_NAME,IDAREA.concat(" = ?"), new String[]{obj.getIdarea()+""});
         return result;
     }
 
-    public ArrayList<Areas> getAreas(String[] camposFiltros, String[]argumentos, String campoOrderBy){
+    public ArrayList<Area> getAreas(String[] camposFiltros, String[]argumentos, String campoOrderBy){
 
-        ArrayList<Areas> result = new ArrayList<>();
+        ArrayList<Area> result = new ArrayList<>();
         if(campoOrderBy == null){
             campoOrderBy=DESCRIPTION;
         }
         try {
             Cursor c =  DB.getInstance(context).getReadableDatabase().query(TABLE_NAME, colums, ((camposFiltros!=null)?DB.getWhereFormat(camposFiltros):null), argumentos, null, null, campoOrderBy);
             while (c.moveToNext()){
-                result.add(new Areas(c));
+                result.add(new Area(c));
             }
             c.close();
         }catch (Exception e){
@@ -116,14 +144,14 @@ public class AreasController {
 
     public int getCount(){
         int result = 0;
-        ArrayList<Areas> pts = getAreas(null, null, null);
+        ArrayList<Area> pts = getAreas(null, null, null);
         if(pts != null){
             result =  pts.size();
         }
         return result;
     }
-    public Areas getAreaByCode(String code){
-        ArrayList<Areas> pts = getAreas(new String[]{CODE}, new String[]{code}, null);
+    public Area getAreaByCode(String code){
+        ArrayList<Area> pts = getAreas(new String[]{CODE}, new String[]{code}, null);
         if(pts.size()>0){
             return  pts.get(0);
         }
@@ -132,7 +160,7 @@ public class AreasController {
 
     public int getNextOrden(){
         int result = 0;
-        String sql = "SELECT MAX("+ORDER+" + 1) " +
+        String sql = "SELECT MAX("+POSITION+" + 1) " +
                 "FROM "+TABLE_NAME;
         try{
             Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, null);
@@ -149,11 +177,11 @@ public class AreasController {
 
     public ArrayList<SimpleRowModel> getAllAreasSRM(String where, String[] args){
         ArrayList<SimpleRowModel> result = new ArrayList<>();
-        String orderBy = ORDER+" ASC, "+DESCRIPTION;
+        String orderBy = POSITION+" ASC, "+DESCRIPTION;
         try {
             Cursor c = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME, colums, where, args, null, null, orderBy);
             while(c.moveToNext()){
-                result.add(new SimpleRowModel(c.getString(c.getColumnIndex(CODE)), c.getString(c.getColumnIndex(DESCRIPTION)), c.getString(c.getColumnIndex(MDATE)) != null));
+                result.add(new SimpleRowModel(c.getString(c.getColumnIndex(CODE)), c.getString(c.getColumnIndex(DESCRIPTION)), c.getString(c.getColumnIndex(CREATEDATE)) != null));
             }
         }catch(Exception e){
             e.printStackTrace();
@@ -164,66 +192,16 @@ public class AreasController {
     }
 
 
-    public void sendToFireBase(Areas a){
-        try {
-            WriteBatch lote = db.batch();
-            lote.set(getReferenceFireStore().document(a.getCODE()), a.toMap());
-            lote.commit();
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-
-    }
-
-
-    public void deleteFromFireBase(Areas a){
-        try {
-            getReferenceFireStore().document(a.getCODE()).delete();
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-
-
-    public void getDataFromFireBase(String key, OnSuccessListener<QuerySnapshot> onSuccessListener,
-                                    OnFailureListener onFailureListener){
-
-            Task<QuerySnapshot> areas = db.collection(Tablas.generalUsers).document(key).collection(Tablas.generalUsersAreas).get();
-            areas.addOnSuccessListener(onSuccessListener);
-            areas.addOnFailureListener(onFailureListener);
-
-    }
-
-    public void getAllDataFromFireBase(String key, OnFailureListener onFailureListener){
-        try {
-            Task<QuerySnapshot> measureUnits = getReferenceFireStore().get();
-            measureUnits.addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot querySnapshot) {
-                    if(querySnapshot != null && querySnapshot.getDocumentChanges()!= null && !querySnapshot.getDocumentChanges().isEmpty()){
-                        for(DocumentChange dc : querySnapshot.getDocumentChanges()) {
-                            Areas area = dc.getDocument().toObject(Areas.class);
-                            delete(area);
-                            insert(area);
-                        }
-                    }
-                }
-            }).addOnFailureListener(onFailureListener);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-
     public void fillSpinner(Spinner spn, boolean addTodos){
-        String orderBy = ProductsTypesController.ORDER+" ASC, "+ProductsTypesController.DESCRIPTION;
-        ArrayList<Areas> list = getAreas(null, null, orderBy);
+        String orderBy = ProductsTypesController.POSITION+" ASC, "+ProductsTypesController.DESCRIPTION;
+        ArrayList<Area> list = getAreas(null, null, orderBy);
         ArrayList<KV> data = new ArrayList<>();
         if(addTodos){
             KV obj = new KV("-1", "TODOS");
             data.add(obj);
         }
-        for(Areas a : list){
-            data.add(new KV(a.getCODE(), a.getDESCRIPTION()));
+        for(Area a : list){
+            data.add(new KV(a.getCode(), a.getDescription()));
         }
 
         ArrayAdapter<KV> adapter = new ArrayAdapter<KV>(context,android.R.layout.simple_list_item_1, data);
@@ -231,7 +209,7 @@ public class AreasController {
     }
 
     public void fillSpinnerAreasForAssignedTables(Spinner spn, boolean addTodos){
-        String orderBy = " ac."+AreasController.ORDER+" ASC, ac."+AreasController.DESCRIPTION;
+        String orderBy = " ac."+AreasController.POSITION+" ASC, ac."+AreasController.DESCRIPTION;
         ArrayList<KV> data = new ArrayList<>();
         if(addTodos){
             KV obj = new KV("-1", "TODOS");
@@ -245,13 +223,13 @@ public class AreasController {
 
             String sql = "SELECT ac." + AreasController.CODE + ", ac." + AreasController.DESCRIPTION + " " +
                     "FROM " + AreasDetailController.TABLE_NAME + " ad " +
-                    "INNER JOIN " + AreasController.TABLE_NAME + " ac on ac." + AreasController.CODE + " = ad." + AreasDetailController.CODEAREA + " " +
+                    "INNER JOIN " + AreasController.TABLE_NAME + " ac on ac." + AreasController.IDAREA + " = ad." + AreasDetailController.IDAREA + " " +
                     "INNER JOIN " + UserControlController.TABLE_NAME + " uc on uc."+UserControlController.CONTROL+" = '"+CODES.USERCONTROL_TABLEASSIGN+"' AND uc."+UserControlController.ACTIVE+" = '1' " +
                     "AND (   (uc."+UserControlController.TARGET+" = '"+CODES.USERSCONTROL_TARGET_USER+"' AND uc."+UserControlController.TARGETCODE+" = '"+u.getCODE()+"') " +
                     "      OR(uc."+UserControlController.TARGET+" = '"+CODES.USERSCONTROL_TARGET_USER_ROL+"' AND uc."+UserControlController.TARGETCODE+" = '"+u.getROLE()+"') " +
                     "      OR(uc."+UserControlController.TARGET+" = '"+CODES.USERSCONTROL_TARGET_COMPANY+"' AND uc."+UserControlController.TARGETCODE+" = '"+u.getCOMPANY()+"') " +
                     ")" +
-                    "AND  ad." + AreasDetailController.CODE + " = uc." + UserControlController.VALUE + "  "+
+                    "AND  ad." + AreasDetailController.IDAREADETAIL + " = uc." + UserControlController.VALUE + "  "+
                     "GROUP BY ac." + AreasController.CODE + ", ac." + AreasController.DESCRIPTION + " " +
                     "ORDER BY " + orderBy;
 
@@ -270,55 +248,6 @@ public class AreasController {
 
 
 
-    /**
-     * retorna true si el codigo tiene dependencias en otras tablas (llave foranea)
-     * @param code
-     * @return
-     */
-    public String hasDependencies(String code){
-        String msg = "";
-        ArrayList<String> tables = new ArrayList<>();
-        if(DB.getInstance(context).hasDependencies(AreasDetailController.TABLE_NAME,AreasDetailController.CODEAREA,code))
-            tables.add(AreasDetailController.TABLE_NAME);
-        for(String s: tables){
-            msg+= s+"\n";
-        }
-        return msg;
-    }
-
-
-    public void searchChanges(boolean all, OnSuccessListener<QuerySnapshot> success,  OnFailureListener failure){
-
-        Date mdate = all?null: DB.getLastMDateSaved(context, TABLE_NAME);
-        if(mdate != null){
-            getReferenceFireStore().
-                    whereGreaterThan(MDATE, mdate).//mayor que, ya que las fechas (la que buscamos de la DB) tienen hora, minuto y segundos.
-                    get().
-                    addOnSuccessListener(success).
-                    addOnFailureListener(failure);
-        }else{//TODOS
-            getReferenceFireStore().
-                    get().
-                    addOnSuccessListener(success).
-                    addOnFailureListener(failure);
-        }
-
-    }
-
-    public void consumeQuerySnapshot(boolean clear, QuerySnapshot querySnapshot){
-        if(clear){
-            delete(null, null);
-        }
-        if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
-            for(DocumentSnapshot doc: querySnapshot){
-                Areas obj = doc.toObject(Areas.class);
-                if(update(obj, CODE+"=?", new String[]{obj.getCODE()}) <=0){
-                    insert(obj);
-                }
-            }
-        }
-
-    }
 
 
 }

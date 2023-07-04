@@ -25,23 +25,27 @@ import far.com.eatit.Utils.Funciones;
         }
         public HashMap<String, Object> toMap(){
             HashMap<String, Object> map = new HashMap<>();
-            map.put(ProductsSubTypesController.CODE, CODE);
+            /*map.put(ProductsSubTypesController.CODE, CODE);
             map.put(ProductsSubTypesController.CODETYPE, CODETYPE);
             map.put(ProductsSubTypesController.DESCRIPTION, DESCRIPTION);
             map.put(ProductsSubTypesController.ORDER, ORDEN);
             map.put(ProductsSubTypesController.DATE, (DATE == null)? FieldValue.serverTimestamp():DATE);
             map.put(ProductsSubTypesController.MDATE, (MDATE == null)? FieldValue.serverTimestamp():MDATE);
 
+             */
+
             return map;
 
         }
         public ProductsSubTypes(Cursor c){
-            this.CODE = c.getString(c.getColumnIndex(ProductsSubTypesController.CODE));
+            /*this.CODE = c.getString(c.getColumnIndex(ProductsSubTypesController.CODE));
             this.CODETYPE = c.getString(c.getColumnIndex(ProductsSubTypesController.CODETYPE));
             this.DESCRIPTION = c.getString(c.getColumnIndex(ProductsSubTypesController.DESCRIPTION));
             this.ORDEN = c.getInt(c.getColumnIndex(ProductsSubTypesController.ORDER));
             this.DATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(ProductsSubTypesController.DATE)));
             this.DATE = Funciones.parseStringToDate(c.getString(c.getColumnIndex(ProductsSubTypesController.MDATE)));
+
+             */
         }
 
         public String getCODE() {

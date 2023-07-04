@@ -2,11 +2,6 @@ package far.com.eatit.Dialogs;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputEditText;
-import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,30 +10,58 @@ import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-import far.com.eatit.AdminConfiguration;
-import far.com.eatit.CloudFireStoreObjects.Licenses;
+import far.com.eatit.API.APIClient;
+import far.com.eatit.API.APIInterface;
+import far.com.eatit.API.models.License;
+//import far.com.eatit.CloudFireStoreObjects.Licenses;
+import far.com.eatit.API.models.ResponseBase;
 import far.com.eatit.Controllers.LicenseController;
 import far.com.eatit.Globales.CODES;
+import far.com.eatit.Interfases.DialogCaller;
+import far.com.eatit.Main;
 import far.com.eatit.R;
 import far.com.eatit.Utils.Funciones;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class LicenseDialogFragment extends DialogFragment implements OnFailureListener {
 
-    AdminConfiguration adminConfiguration;
-    public Licenses tempObj;
+    Main mainActivity;
+    DialogCaller dialogCaller;
+    APIInterface apiInterface;
+    License tempObj;
     public String type;
 
+    LicenseDialogFragmentResponse dialogResponse;
+
     LinearLayout llSave;
-    TextInputEditText etCode, etClient, etDateIni, etDateEnd, etDevices;
-    ImageView imgDateIni, imgDateEnd;
+    TextInputEditText etCode, etClient;
     CheckBox cbEnabled;
-    boolean firstLicense;
+    Runnable exitRunnable = new Runnable() {
+        @Override
+        public void run() {
+            mainActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    dialogCaller.dialogClosed(dialogResponse);
+                    LicenseDialogFragment.this.dismiss();
+                }
+            });
+        }
+    };
 
 
     LicenseController licenseController;
@@ -47,12 +70,12 @@ public class LicenseDialogFragment extends DialogFragment implements OnFailureLi
      * Create a new instance of MyDialogFragment, providing "num"
      * as an argument.
      */
-    public  static LicenseDialogFragment newInstance(AdminConfiguration adminConfiguration, Licenses l, boolean firstLicense) {
+    public  static LicenseDialogFragment newInstance(Main mainActivity, DialogCaller dialogCaller, License l) {
 
         LicenseDialogFragment f = new LicenseDialogFragment();
-        f.adminConfiguration = adminConfiguration;
+        f.mainActivity = mainActivity;
+        f.dialogCaller = dialogCaller;
         f.tempObj = l;
-        f.firstLicense = firstLicense;
 
         // Supply num input as an argument.
         Bundle args = new Bundle();
@@ -71,6 +94,7 @@ public class LicenseDialogFragment extends DialogFragment implements OnFailureLi
         int style = DialogFragment.STYLE_NO_TITLE, theme = 0;
         setStyle(style, theme);
         licenseController = LicenseController.getInstance(getActivity());
+        apiInterface = APIClient.getClient(mainActivity).create(APIInterface.class);
 
     }
 
@@ -108,11 +132,6 @@ public class LicenseDialogFragment extends DialogFragment implements OnFailureLi
         llSave = view.findViewById(R.id.llSave);
         etCode = view.findViewById(R.id.etCode);
         etClient = view.findViewById(R.id.etClient);
-        etDateIni = view.findViewById(R.id.etDateIni);
-        etDateEnd = view.findViewById(R.id.etDateEnd);
-        etDevices = view.findViewById(R.id.etDevices);
-        imgDateIni = view.findViewById(R.id.imgDateIni);
-        imgDateEnd = view.findViewById(R.id.imgDateEnd);
         cbEnabled = view.findViewById(R.id.cbEnabled);
 
         llSave.setOnClickListener(new View.OnClickListener() {
@@ -127,19 +146,7 @@ public class LicenseDialogFragment extends DialogFragment implements OnFailureLi
             }
         });
 
-        imgDateIni.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDatePicker(etDateIni);
-            }
-        });
 
-        imgDateEnd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDatePicker(etDateEnd);
-            }
-        });
 
         etCode.setText(Funciones.generateCode());
 
@@ -152,18 +159,6 @@ public class LicenseDialogFragment extends DialogFragment implements OnFailureLi
         if(etClient.getText().toString().trim().equals("")){
             Snackbar.make(getView(), "Especifique un nombre", Snackbar.LENGTH_SHORT).show();
             return false;
-        }else if(etDateIni.getText().toString().trim().isEmpty()){
-            Snackbar.make(getView(), "Especifique una fecha de inicio", Snackbar.LENGTH_SHORT).show();
-            return false;
-        }else if(etDateEnd.getText().toString().trim().isEmpty()){
-            Snackbar.make(getView(), "Especifique una fecha de vencimiento", Snackbar.LENGTH_SHORT).show();
-            return false;
-        }else if(etDevices.getText().toString().trim().isEmpty()){
-            Snackbar.make(getView(), "Especifique un limite de dispositivos", Snackbar.LENGTH_SHORT).show();
-            return false;
-        }else if(Integer.parseInt(etDevices.getText().toString())<1){
-            Snackbar.make(getView(), "El numero de dispositivos debe ser mayor a 1", Snackbar.LENGTH_SHORT).show();
-            return false;
         }
 
         return true;
@@ -172,30 +167,46 @@ public class LicenseDialogFragment extends DialogFragment implements OnFailureLi
 
     public void Save(){
         if(validateProductType()) {
-            SaveProductType();
+            SaveLicense();
         }
 
         llSave.setEnabled(true);
 
     }
 
-    public void SaveProductType(){
+    public void SaveLicense(){
         try {
             String code = etCode.getText().toString();
             String client = etClient.getText().toString();
-            Date dateIni = new SimpleDateFormat("dd/MM/yyyy").parse(etDateIni.getText().toString());
-            Date dateEnd = new SimpleDateFormat("dd/MM/yyyy").parse(etDateEnd.getText().toString());
-            String devices = etDevices.getText().toString();
+            License license = new License(code,client,cbEnabled.isChecked());
+
+            mainActivity.showWaitingDialog();
+            apiInterface.saveLicense(license).enqueue(new Callback<ResponseBase>() {
+                @Override
+                public void onResponse(Call<ResponseBase> call, Response<ResponseBase> response) {
+                    ResponseBase rb = response.body();
+                    if(response.isSuccessful()){
+                        License l = (License) rb.getData();
+                        dialogResponse = new LicenseDialogFragmentResponse(l);
+                        mainActivity.showSuccessActionDialog("Saved",exitRunnable);
+                    }else{
+                        String message = rb == null?response.errorBody().toString():rb.getResposeMessage();
+                        mainActivity.showErrorDialogAutoClose(message, exitRunnable);
+                        dialogResponse = new LicenseDialogFragmentResponse("99",message);
+                        mainActivity.showErrorDialogAutoClose(message, exitRunnable);
+                    }
+                    mainActivity.dismissWaitingDialog();
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBase> call, Throwable t) {
+                    dialogResponse = new LicenseDialogFragmentResponse("99",t.getMessage());
+                    mainActivity.showErrorDialogAutoClose(t.getMessage(), exitRunnable);
+                    mainActivity.dismissWaitingDialog();
+                }
+            });
 
 
-
-
-            //String code, String password,String clientName, Date dateIni, Date dateEnd, int counter, int days, int devices, boolean enabled, boolean updated, Date lastUpdate, int status
-            Licenses license = new Licenses(code, code, client,dateIni, dateEnd, 0,Funciones.calcularDias(dateEnd, dateIni),Integer.parseInt(devices),cbEnabled.isChecked(),true,null, CODES.CODE_LICENSE_VALID);
-
-           LicenseController.getInstance(getContext()).createNewLicense(firstLicense, license);
-           adminConfiguration.searchLicenses();
-            this.dismiss();
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -204,41 +215,41 @@ public class LicenseDialogFragment extends DialogFragment implements OnFailureLi
     }
 
 
-    public void showDatePicker(final TextInputEditText et){
-        Calendar c = Calendar.getInstance();
-        DatePickerDialog datePickerDialog = new DatePickerDialog(getContext(), new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                Calendar c = Calendar.getInstance();
-                c.set(Calendar.YEAR, year);
-                c.set(Calendar.MONTH, month);
-                c.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                et.setText(Funciones.getFormatedDateRepDom(c.getTime()));
-            }
-        },c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DAY_OF_MONTH));
 
-        datePickerDialog.show();
-    }
     public void EditLicense(){
         try {
             String code = etCode.getText().toString();
             String client = etClient.getText().toString();
-            Date dateIni = new SimpleDateFormat("dd/MM/yyyy").parse(etDateIni.getText().toString());
-            Date dateEnd = new SimpleDateFormat("dd/MM/yyyy").parse(etDateEnd.getText().toString());
-            String devices = etDevices.getText().toString();
 
-            tempObj.setCLIENTNAME(client);
-            tempObj.setDATEINI(dateIni);
-            tempObj.setDATEEND(dateEnd);
-            tempObj.setDAYS(Funciones.calcularDias(dateEnd, dateIni));
-            tempObj.setDEVICES(Integer.parseInt(devices));
-            tempObj.setLASTUPDATE(null);
-            tempObj.setENABLED(cbEnabled.isChecked());
-            //tempObj.setSTATUS(CODES.LIC);
+            tempObj.setClientName(client);
+            tempObj.setEnabled(cbEnabled.isChecked());
 
-            LicenseController.getInstance(getContext()).updateLicense(tempObj);
-            adminConfiguration.searchLicenses();
-            this.dismiss();
+            mainActivity.showWaitingDialog();
+            apiInterface.updateLicense(tempObj).enqueue(new Callback<ResponseBase>() {
+                @Override
+                public void onResponse(Call<ResponseBase> call, Response<ResponseBase> response) {
+
+                    ResponseBase rb = response.body();
+                    if(response.isSuccessful()){
+                        tempObj = (License) rb.getData();
+                        dialogCaller.dialogClosed(new LicenseDialogFragmentResponse(tempObj));
+                        mainActivity.showSuccessActionDialog("Updated",exitRunnable);
+                    }else{
+                        String message = rb == null?response.errorBody().toString():rb.getResposeMessage();
+                        dialogCaller.dialogClosed(new LicenseDialogFragmentResponse("99",message));
+                        mainActivity.showErrorDialog("Error",message);
+                    }
+                    mainActivity.dismissWaitingDialog();
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBase> call, Throwable t) {
+                    mainActivity.showErrorDialogAutoClose(t.getMessage(), exitRunnable);
+                    dialogCaller.dialogClosed(new LicenseDialogFragmentResponse("99",t.getMessage()));
+                    mainActivity.dismissWaitingDialog();
+                }
+            });
+
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -249,12 +260,9 @@ public class LicenseDialogFragment extends DialogFragment implements OnFailureLi
 
 
     public void setUpToEditProductType(){
-        etCode.setText(tempObj.getCODE());
-        etClient.setText(tempObj.getCLIENTNAME());
-        etDateIni.setText(Funciones.getFormatedDateRepDom(tempObj.getDATEINI()));
-        etDateEnd.setText(Funciones.getFormatedDateRepDom(tempObj.getDATEEND()));
-        etDevices.setText(tempObj.getDEVICES()+"");
-        cbEnabled.setChecked(tempObj.isENABLED());
+        etCode.setText(tempObj.getCode());
+        etClient.setText(tempObj.getClientName());
+        cbEnabled.setChecked(tempObj.isEnabled());
 
     }
 
@@ -266,5 +274,46 @@ public class LicenseDialogFragment extends DialogFragment implements OnFailureLi
     }
 
 
+    public  class LicenseDialogFragmentResponse{
+        private License license;
+        private String responseCode;
+        private String responseMessage;
+
+        public LicenseDialogFragmentResponse(License license) {
+            this.license = license;
+            this.responseCode = "00";
+            this.responseMessage = "success";
+        }
+
+        public LicenseDialogFragmentResponse(String responseCode, String responseMessage) {
+            this.license = null;
+            this.responseCode = responseCode;
+            this.responseMessage = responseMessage;
+        }
+
+        public License getLicense() {
+            return license;
+        }
+
+        public void setLicense(License license) {
+            this.license = license;
+        }
+
+        public String getResponseCode() {
+            return responseCode;
+        }
+
+        public void setResponseCode(String responseCode) {
+            this.responseCode = responseCode;
+        }
+
+        public String getResponseMessage() {
+            return responseMessage;
+        }
+
+        public void setResponseMessage(String responseMessage) {
+            this.responseMessage = responseMessage;
+        }
+    }
 
 }

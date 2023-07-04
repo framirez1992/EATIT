@@ -1,13 +1,6 @@
 package far.com.eatit.Dialogs;
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputEditText;
-import android.support.v4.app.DialogFragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,8 +11,15 @@ import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -29,13 +29,9 @@ import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
 
-import far.com.eatit.Adapters.Models.SimpleRowModel;
 import far.com.eatit.Adapters.Models.SimpleSeleccionRowModel;
-import far.com.eatit.Adapters.SimpleRowEditionAdapter;
 import far.com.eatit.Adapters.SimpleSelectionRowAdapter;
-import far.com.eatit.AdminLicenseDevices;
 import far.com.eatit.AdminLicenseTokens;
-import far.com.eatit.CloudFireStoreObjects.Devices;
 import far.com.eatit.CloudFireStoreObjects.Token;
 import far.com.eatit.CloudFireStoreObjects.UsersDevices;
 import far.com.eatit.Generic.Objects.KV;
@@ -47,7 +43,6 @@ import far.com.eatit.Utils.Funciones;
 
 public class TokenDialogFragment extends DialogFragment implements ListableActivity, OnFailureListener {
 
-    AdminLicenseTokens adminLicenseTokens;
     public Token tempObj;
     public String codeLicense;
 
@@ -65,10 +60,9 @@ public class TokenDialogFragment extends DialogFragment implements ListableActiv
      * Create a new instance of MyDialogFragment, providing "num"
      * as an argument.
      */
-    public  static TokenDialogFragment newInstance(AdminLicenseTokens adminLicenseTokens, Token token, String codeLicense) {
+    public  static TokenDialogFragment newInstance(Token token, String codeLicense) {
 
         TokenDialogFragment f = new TokenDialogFragment();
-        f.adminLicenseTokens = adminLicenseTokens;
         f.tempObj = token;
         f.codeLicense = codeLicense;
         f.fs = FirebaseFirestore.getInstance();
@@ -106,24 +100,7 @@ public class TokenDialogFragment extends DialogFragment implements ListableActiv
 
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        fs.collection(Tablas.generalUsers).document(codeLicense)
-                .collection(Tablas.generalUsersUsersDevices)
-                .addSnapshotListener(getActivity(), new EventListener<QuerySnapshot>() {
-                    @Override
-                    public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
-                        userDevices = new ArrayList<>();
-                        for (DocumentSnapshot ds : querySnapshot) {
-                            UsersDevices t = ds.toObject(UsersDevices.class);
-                            userDevices.add(t);
-                        }
-                        refreshDevicesList();
 
-                    }
-                });
-    }
 
     @Override
     public void onResume() {
@@ -262,6 +239,7 @@ public class TokenDialogFragment extends DialogFragment implements ListableActiv
     }
 
     public void SaveToken(){
+        /*
         try {
             WriteBatch lote = adminLicenseTokens.getFs().batch();
 
@@ -290,13 +268,14 @@ public class TokenDialogFragment extends DialogFragment implements ListableActiv
             this.dismiss();
         }catch(Exception e){
             e.printStackTrace();
-        }
+        }*/
 
 
     }
 
 
     public void EditLicense(){
+        /*
         try {
             String code = "";//etCode.getText().toString();
 
@@ -314,7 +293,7 @@ public class TokenDialogFragment extends DialogFragment implements ListableActiv
             this.dismiss();
         }catch(Exception e){
             e.printStackTrace();
-        }
+        }*/
 
 
     }

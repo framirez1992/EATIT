@@ -3,9 +3,11 @@ package far.com.eatit.Controllers;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.support.annotation.NonNull;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+
+import androidx.annotation.NonNull;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -20,30 +22,46 @@ import com.google.firebase.firestore.WriteBatch;
 import java.util.ArrayList;
 import java.util.Date;
 
+import far.com.eatit.API.models.Company;
+import far.com.eatit.API.models.UserRole;
 import far.com.eatit.Adapters.Models.CompanyRowModel;
-import far.com.eatit.CloudFireStoreObjects.Company;
 import far.com.eatit.CloudFireStoreObjects.Licenses;
 import far.com.eatit.DataBase.DB;
 import far.com.eatit.Generic.Objects.KV;
-import far.com.eatit.Globales.Tablas;
-import far.com.eatit.Utils.Funciones;
 
 
 public class CompanyController {
     public static final String TABLE_NAME ="COMPANY";
-    public static  String CODE = "code", NAME = "name" ,
-            RNC = "rnc",PHONE = "phone", PHONE2="phone2",LOGO = "logo",
-            ADDRESS="address", ADDRESS2="address2", DATE = "date", MDATE = "mdate";
-    String[] columns = new String[]{CODE, NAME, RNC, PHONE, PHONE2, ADDRESS, ADDRESS2,LOGO, DATE, MDATE};
+    public static  String IDCOMPANY="idCompany",IDLICENSE="idLicense", CODE = "code", NAME = "name" ,
+            RNC = "rnc",PHONE = "phone", PHONE2="phone2",PHONE3="phone3",LOGO = "logo", ADDRESS="address", ADDRESS2="address2",ADDRESS3="address3",
+            CREATEDATE = "createDate", CREATEUSER = "createUser", UPDATEDATE="updateDate", UPDATEUSER="updateUser",DELETEDATE="deleteDate",DELETEUSER="deleteUser" ;
+    String[] columns = new String[]{IDCOMPANY,IDLICENSE,CODE, NAME, RNC, PHONE, PHONE2,PHONE3, ADDRESS, ADDRESS2,ADDRESS3,LOGO, CREATEDATE, CREATEUSER,UPDATEDATE, UPDATEUSER, DELETEDATE, DELETEUSER};
     public static String QUERY_CREATE = "CREATE TABLE "+TABLE_NAME+"("
-            +CODE+" TEXT, "+NAME+" TEXT, "+RNC+" TEXT, "+PHONE+" TEXT, "+PHONE2+" TEXT, "+ADDRESS+" TEXT," +
-            ADDRESS2+" TEXT,"+LOGO+" TEXT,  "+DATE+" TEXT, "+MDATE+" TEXT)";
+            +IDCOMPANY+" INTEGER, "
+            +IDLICENSE+" INTEGER, "
+            +CODE+" TEXT, "
+            +NAME+" TEXT, "
+            +RNC+" TEXT, "
+            +PHONE+" TEXT, "
+            +PHONE2+" TEXT, "
+            +PHONE3+" TEXT, "
+            +ADDRESS+" TEXT,"
+            +ADDRESS2+" TEXT,"
+            +ADDRESS3+" TEXT,"
+            +LOGO+" TEXT,  "
+            +CREATEDATE+" TEXT, "
+            +CREATEUSER+" TEXT, "
+            +UPDATEDATE+" TEXT, "
+            +UPDATEUSER+" TEXT, "
+            +DELETEDATE+" TEXT, "
+            +DELETEUSER+" TEXT "
+            +")";
     Context context;
-    FirebaseFirestore db;
+    DB db;
     private static CompanyController instance;
     private CompanyController(Context c){
         this.context = c;
-        db = FirebaseFirestore.getInstance();
+        this.db = DB.getInstance(c);
     }
 
     public static CompanyController getInstance(Context context){
@@ -52,104 +70,74 @@ public class CompanyController {
         }
         return instance;
     }
-    public CollectionReference getReferenceFireStore(){
-        Licenses l = LicenseController.getInstance(context).getLicense();
-        if(l == null){
-            return null;
-        }
-        CollectionReference reference = db.collection(Tablas.generalUsers).document(l.getCODE()).collection(Tablas.generalUsersCompany);
-        return reference;
+
+    public void insertOrUpdate(Company obj){
+        String sql ="insert or replace into "+TABLE_NAME+" ("+IDCOMPANY+", "+IDLICENSE+", "+CODE+", "+NAME+","+RNC+","+PHONE+","+PHONE2+","+PHONE3+","+ADDRESS+","+ADDRESS2+","+ADDRESS3+","+LOGO+", "+CREATEDATE+", "+CREATEUSER+","+UPDATEDATE+", "+UPDATEUSER+", "+DELETEDATE+", "+DELETEUSER+") values " +
+                "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        db.getWritableDatabase().execSQL(sql,new String[]{obj.getId()+"", obj.getIdLicense()+"", obj.getCode(), obj.getName(),obj.getRnc(),obj.getPhone(),obj.getPhone2(),obj.getPhone3(),obj.getAddress(),obj.getAddress2(),obj.getAddress3(),obj.getLogo(), obj.getCreateDate(), obj.getCreateUser(),  obj.getUpdateDate(),obj.getUpdateUser(),  obj.getDeleteDate(), obj.getDeleteUser() });
     }
 
-    public long insert(Company c){
+    public long insert(Company obj){
         ContentValues cv = new ContentValues();
-        cv.put(CODE,c.getCODE() );
-        cv.put(NAME,c.getNAME());
-        cv.put(RNC, c.getRNC());
-        cv.put(PHONE,c.getPHONE() );
-        cv.put(PHONE2,c.getPHONE2() );
-        cv.put(ADDRESS,c.getADDRESS() );
-        cv.put(ADDRESS2,c.getADDRESS2() );
-        cv.put(LOGO, c.getLOGO());
-        cv.put(DATE, Funciones.getFormatedDate((Date) c.getDATE()));
-        cv.put(MDATE, Funciones.getFormatedDate((Date) c.getMDATE()));
+        cv.put(IDCOMPANY,obj.getId() );
+        cv.put(IDLICENSE,obj.getIdLicense() );
+        cv.put(CODE,obj.getCode() );
+        cv.put(NAME,obj.getName());
+        cv.put(RNC, obj.getRnc());
+        cv.put(PHONE,obj.getPhone() );
+        cv.put(PHONE2,obj.getPhone2() );
+        cv.put(PHONE3,obj.getPhone3() );
+        cv.put(ADDRESS,obj.getAddress() );
+        cv.put(ADDRESS2,obj.getAddress2() );
+        cv.put(ADDRESS3,obj.getAddress3() );
+        cv.put(LOGO, obj.getLogo());
+        cv.put(CREATEDATE, obj.getCreateDate());
+        cv.put(CREATEUSER, obj.getCreateUser());
+        cv.put(UPDATEDATE, obj.getCreateDate());
+        cv.put(UPDATEUSER, obj.getUpdateUser());
+        cv.put(DELETEDATE, obj.getCreateDate());
+        cv.put(DELETEUSER, obj.getDeleteUser());
 
         long result = DB.getInstance(context).getWritableDatabase().insert(TABLE_NAME,null,cv);
         return result;
     }
 
-    public long update(Company c, String where, String[] args){
+    public long update(Company obj){
         ContentValues cv = new ContentValues();
-        cv.put(CODE,c.getCODE() );
-        cv.put(NAME,c.getNAME());
-        cv.put(RNC, c.getRNC());
-        cv.put(PHONE,c.getPHONE() );
-        cv.put(PHONE2,c.getPHONE2() );
-        cv.put(ADDRESS,c.getADDRESS() );
-        cv.put(ADDRESS2,c.getADDRESS2() );
-        cv.put(LOGO, c.getLOGO());
-        cv.put(MDATE, Funciones.getFormatedDate(c.getMDATE()));
+        cv.put(IDCOMPANY,obj.getId() );
+        cv.put(IDLICENSE,obj.getIdLicense() );
+        cv.put(CODE,obj.getCode() );
+        cv.put(NAME,obj.getName());
+        cv.put(RNC, obj.getRnc());
+        cv.put(PHONE,obj.getPhone() );
+        cv.put(PHONE2,obj.getPhone2() );
+        cv.put(PHONE3,obj.getPhone3() );
+        cv.put(ADDRESS,obj.getAddress() );
+        cv.put(ADDRESS2,obj.getAddress2() );
+        cv.put(ADDRESS3,obj.getAddress3() );
+        cv.put(LOGO, obj.getLogo());
+        cv.put(CREATEDATE, obj.getCreateDate());
+        cv.put(CREATEUSER, obj.getCreateUser());
+        cv.put(UPDATEDATE, obj.getCreateDate());
+        cv.put(UPDATEUSER, obj.getUpdateUser());
+        cv.put(DELETEDATE, obj.getCreateDate());
+        cv.put(DELETEUSER, obj.getDeleteUser());
 
-        long result = DB.getInstance(context).getWritableDatabase().update(TABLE_NAME,cv,where, args);
+        long result = db.getWritableDatabase().update(TABLE_NAME,cv,IDCOMPANY.concat("= ?"),new String[]{ obj.getId()+""});
         return result;
     }
 
-    public long delete(String where, String[] args){
-        long result = DB.getInstance(context).getWritableDatabase().delete(TABLE_NAME,where, args);
+    public long delete(Company obj){
+        long result = db.getWritableDatabase().delete(TABLE_NAME,IDCOMPANY.concat("= ?"),new String[]{ obj.getId()+""});
         return result;
     }
 
-    public void getDataFromFireBase(String key, OnSuccessListener<QuerySnapshot> onSuccessListener,
-                                     OnFailureListener onFailureListener){
-        try {
-            Task<QuerySnapshot> combos = db.collection(Tablas.generalUsers).document(key).collection(Tablas.generalUsersCompany).get();
-            combos.addOnSuccessListener(onSuccessListener);
-            combos.addOnFailureListener(onFailureListener);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
 
-    public void getAllDataFromFireBase(String key, OnFailureListener onFailureListener){
-        try {
-            Task<QuerySnapshot> company =getReferenceFireStore().get();
-            company.addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot querySnapshot) {
-                    if(querySnapshot != null && querySnapshot.getDocumentChanges()!= null && !querySnapshot.getDocumentChanges().isEmpty()){
-                        for(DocumentChange dc : querySnapshot.getDocumentChanges()) {
-                            Company object = dc.getDocument().toObject(Company.class);
-                            delete(null, null);
-                            insert(object);
-                        }
-                    }
-                }
-            }).addOnFailureListener(onFailureListener);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
 
-    public void sendToFireBase(Company company){
-        try {
-            WriteBatch lote = db.batch();
-            lote.set(getReferenceFireStore().document(company.getCODE()), company.toMap());
-            lote.commit();
-
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-
-    }
-
-    public Company getCompanyByCode(String code){
-        ArrayList<Company> arrayList  = getCompanys(CODE+" = ?", new String[]{code}, null);
-        return arrayList.size()>0?arrayList.get(0):null;
-    }
     public ArrayList<Company> getCompanys(String where, String[]args, String orderBy){
         ArrayList<Company> result = new ArrayList<>();
         try{
-            Cursor c = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME,columns,where,args,null,null,orderBy);
+            Cursor c = db.getReadableDatabase().query(TABLE_NAME,columns,where,args,null,null,orderBy);
             while(c.moveToNext()){
                 result.add(new Company(c));
             }c.close();
@@ -162,7 +150,7 @@ public class CompanyController {
     public Company getCompany(){
         Company result=null;
         try{
-            Cursor c = DB.getInstance(context).getReadableDatabase().query(TABLE_NAME,columns,null,null,null,null,null);
+            Cursor c = db.getReadableDatabase().query(TABLE_NAME,columns,null,null,null,null,null);
             if(c.moveToFirst()){
                 result=new Company(c);
             }c.close();
@@ -179,10 +167,10 @@ public class CompanyController {
         try {
 
             String sql = "SELECT "+CODE+" as CODE,"+RNC+" as RNC, "+NAME+" AS NAME, "+PHONE+" AS PHONE, "+PHONE2+" as PHONE2, " +
-                    ""+ADDRESS+" as ADDRESS, "+ADDRESS2+" as ADDRESS2,"+LOGO+" as LOGO, "+MDATE+" AS MDATE " +
+                    ""+ADDRESS+" as ADDRESS, "+ADDRESS2+" as ADDRESS2,"+LOGO+" as LOGO, "+CREATEDATE +" AS CREATEDATE " +
                     "FROM "+TABLE_NAME+" u " +
                     where;
-            Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, args);
+            Cursor c = db.getReadableDatabase().rawQuery(sql, args);
             while(c.moveToNext()){
                 result.add(new CompanyRowModel(c.getString(c.getColumnIndex("CODE")),
                         c.getString(c.getColumnIndex("NAME")),
@@ -192,7 +180,7 @@ public class CompanyController {
                         c.getString(c.getColumnIndex("PHONE")) ,
                         c.getString(c.getColumnIndex("PHONE2")) ,
                         c.getString(c.getColumnIndex("LOGO")) ,
-                        c.getString(c.getColumnIndex("MDATE")) != null));
+                        c.getString(c.getColumnIndex("CREATEDATE")) != null));
             }
         }catch(Exception e){
             e.printStackTrace();
@@ -204,38 +192,7 @@ public class CompanyController {
 
 
 
-    public void searchChanges(boolean all, OnSuccessListener<QuerySnapshot> success,  OnFailureListener failure){
 
-        Date mdate = all?null: DB.getLastMDateSaved(context, TABLE_NAME);
-        if(mdate != null){
-            getReferenceFireStore().
-                    whereGreaterThan(MDATE, mdate).//mayor que, ya que las fechas (la que buscamos de la DB) tienen hora, minuto y segundos.
-                    get().
-                    addOnSuccessListener(success).
-                    addOnFailureListener(failure);
-        }else{//TODOS
-            getReferenceFireStore().
-                    get().
-                    addOnSuccessListener(success).
-                    addOnFailureListener(failure);
-        }
-
-    }
-
-    public void consumeQuerySnapshot(boolean clear, QuerySnapshot querySnapshot){
-        if(clear){
-            delete(null, null);
-        }
-        if (querySnapshot != null && querySnapshot.getDocuments()!= null && querySnapshot.getDocuments().size() > 0) {
-            for(DocumentSnapshot doc: querySnapshot){
-                Company obj = doc.toObject(Company.class);
-                if(update(obj, CODE+"=?", new String[]{obj.getCODE()}) <=0){
-                    insert(obj);
-                }
-            }
-        }
-
-    }
 
 
 
@@ -270,29 +227,13 @@ public class CompanyController {
     }*/
 
 
-    public void deleteFromFireBase(Company company){
-        try {
-            WriteBatch lote = db.batch();
-            lote.delete(getReferenceFireStore().document(company.getCODE()));
-
-
-            lote.commit().addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    e.printStackTrace();
-                }
-            });
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
 
 
     public void fillSpnCompany(Spinner spn){
         ArrayList<Company> result = getCompanys(null, null, null);
         ArrayList<KV> spnList = new ArrayList<>();
         for(Company ut : result){
-            spnList.add(new KV(ut.getCODE(), ut.getNAME()+" ["+ut.getRNC()+"]"));
+            spnList.add(new KV(ut.getCode(), ut.getName()+" ["+ut.getRnc()+"]"));
         }
         spn.setAdapter(new ArrayAdapter<KV>(context, android.R.layout.simple_list_item_1,spnList));
     }

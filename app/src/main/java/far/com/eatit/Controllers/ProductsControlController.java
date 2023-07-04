@@ -3,9 +3,10 @@ package far.com.eatit.Controllers;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.support.annotation.NonNull;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+
+import androidx.annotation.NonNull;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -136,8 +137,8 @@ public class ProductsControlController {
         try {
             String sql = "SELECT p." + ProductsController.CODE + " AS CODE, p." + ProductsController.DESCRIPTION + " AS DESCRIPTION, ifnull("+BLOQUED+", 0) as BLOQUED " +
                     "FROM " + ProductsController.TABLE_NAME + " p " +
-                    "INNER JOIN "+ProductsSubTypesController.TABLE_NAME+" ps on p."+ProductsController.SUBTYPE+" = ps."+ProductsSubTypesController.CODE+" "+
-                    "INNER JOIN "+ProductsTypesController.TABLE_NAME+" pt on pt."+ProductsTypesController.CODE+" = ps."+ProductsSubTypesController.CODETYPE+" "+
+                    "INNER JOIN "+ProductsSubTypesController.TABLE_NAME+" ps on p."+ProductsController.IDPRODUCTSUBTYPE+" = ps."+ProductsSubTypesController.CODE+" "+
+                    "INNER JOIN "+ProductsTypesController.TABLE_NAME+" pt on pt."+ProductsTypesController.CODE+" = ps."+ProductsSubTypesController.IDPRODUCTTYPE+" "+
                     "LEFT JOIN " + TABLE_NAME + " pc  ON pc." + CODEPRODUCT + " = p." + ProductsController.CODE + " " +
                     "WHERE  "+where+" "+
                     "ORDER BY p."+ProductsController.DESCRIPTION;

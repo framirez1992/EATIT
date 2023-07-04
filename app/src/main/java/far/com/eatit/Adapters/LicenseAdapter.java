@@ -2,14 +2,15 @@ package far.com.eatit.Adapters;
 
 import android.app.Activity;
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
@@ -39,11 +40,11 @@ public class LicenseAdapter extends RecyclerView.Adapter<LicenseAdapter.LicenseR
     public void onBindViewHolder(@NonNull LicenseRowHolder holder, final int position) {
 
         holder.fillData(objects.get(position));
-        holder.getMenuImage().setOnClickListener(new View.OnClickListener() {
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                activity.registerForContextMenu(v);
-                v.showContextMenu();
+                //activity.registerForContextMenu(v);
+                //v.showContextMenu();
                 listableActivity.onClick(objects.get(position));
             }
         });
@@ -57,38 +58,21 @@ public class LicenseAdapter extends RecyclerView.Adapter<LicenseAdapter.LicenseR
 
 
     public class LicenseRowHolder extends RecyclerView.ViewHolder {
-        TextView tvCode,  tvClientName, tvDateIni, tvDateEnd, tvDays, tvCounter, tvDevices;
+        TextView tvCode,  tvClientName;
         CheckBox cbStatus;
-        ImageView imgMenu,imgTime;
         public LicenseRowHolder(View itemView) {
             super(itemView);
             tvCode = itemView.findViewById(R.id.tvCode);
             tvClientName = itemView.findViewById(R.id.tvClientName);
-            //tvDateIni = itemView.findViewById(R.id.tvDateIni);
-            tvDateEnd = itemView.findViewById(R.id.tvDateEnd);
-            //tvDays = itemView.findViewById(R.id.tvDays);
-            //tvCounter = itemView.findViewById(R.id.tvCounter);
-            tvDevices = itemView.findViewById(R.id.tvDevices);
             cbStatus = itemView.findViewById(R.id.cbStatus);
-
-            imgMenu = itemView.findViewById(R.id.imgMenu);
-            imgTime = itemView.findViewById(R.id.imgTime);
         }
 
         public void fillData(LicenseRowModel lrm){
             tvCode.setText(lrm.getCode());
             tvClientName.setText(lrm.getClientName());
-            //tvDateIni.setText(lrm.getDateIni());
-            tvDateEnd.setText(lrm.getDateEnd());
-            //tvDays.setText(lrm.getDays());
-            //tvCounter.setText(lrm.getCounter());
-            tvDevices.setText(lrm.getDevices());
-            cbStatus.setChecked(lrm.isStatus());
-            imgTime.setVisibility((lrm.isInServer())?View.INVISIBLE:View.VISIBLE);
+            cbStatus.setChecked(lrm.isEnabled());
         }
 
-        public ImageView getMenuImage(){
-            return imgMenu;
-        }
+
     }
 }

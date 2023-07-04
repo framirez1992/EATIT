@@ -1,21 +1,22 @@
 package far.com.eatit;
 
 import android.app.Dialog;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.SearchView;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
@@ -31,7 +32,7 @@ import far.com.eatit.CloudFireStoreObjects.UserTypes;
 import far.com.eatit.Controllers.LicenseController;
 import far.com.eatit.Controllers.UserTypesController;
 import far.com.eatit.Controllers.UsersController;
-import far.com.eatit.Dialogs.UserTypesDialogFragment;
+import far.com.eatit.Dialogs.UserRoleDialogFragment;
 import far.com.eatit.Interfases.ListableActivity;
 import far.com.eatit.Utils.Funciones;
 
@@ -132,15 +133,18 @@ public class MaintenanceUserTypes extends AppCompatActivity implements ListableA
     }
 
     public void callAddDialog(boolean isNew){
+        /*
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         Fragment prev = getSupportFragmentManager().findFragmentByTag("dialog");
         if (prev != null) {
             ft.remove(prev);
         }
         ft.addToBackStack(null);
-        DialogFragment newFragment =  UserTypesDialogFragment.newInstance((isNew)?null:userTypes);
+        DialogFragment newFragment =  UserRoleDialogFragment.newInstance(,(isNew)?null:userTypes);
         // Create and show the dialog.
         newFragment.show(ft, "dialog");
+        */
+
     }
 
     public void callDeleteConfirmation(){

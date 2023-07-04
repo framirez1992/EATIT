@@ -1,27 +1,25 @@
 package far.com.eatit.Dialogs;
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputEditText;
-import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
 import java.util.UUID;
 
-import far.com.eatit.Adapters.Models.OptionModel;
-import far.com.eatit.CloudFireStoreObjects.UserTypes;
 import far.com.eatit.CloudFireStoreObjects.Users;
 import far.com.eatit.Controllers.RolesController;
 import far.com.eatit.Controllers.UserTypesController;
@@ -177,7 +175,7 @@ public class UsersDialogFragment extends DialogFragment implements OnFailureList
             String role = ((KV)spnRol.getSelectedItem()).getKey();
             String empresa = "01";
             Users users = new Users(code,systemCode, password, userName, role, empresa, enabled);
-            usersController.sendToFireBase(users);
+
             this.dismiss();
         }catch(Exception e){
             e.printStackTrace();

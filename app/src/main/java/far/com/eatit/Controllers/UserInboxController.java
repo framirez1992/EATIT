@@ -3,9 +3,10 @@ package far.com.eatit.Controllers;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.support.annotation.NonNull;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+
+import androidx.annotation.NonNull;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -301,14 +302,14 @@ public class UserInboxController{
     public  ArrayList<UserInbox> getUsersInboxForBloquedProduct(String sender, String productsIn){
         ArrayList<UserInbox> userInboxes = new ArrayList<>();
         try {
-            String sql = "SELECT s." + SalesController.CODE + " AS CODE, s." + SalesController.CODEUSER + " AS CODEUSER, p." + ProductsController.DESCRIPTION + " as PRODUCT " +
+            String sql = "SELECT s." + SalesController.IDSALE + " AS CODE, s." + SalesController.IDUSER + " AS CODEUSER, p." + ProductsController.DESCRIPTION + " as PRODUCT " +
                     "FROM " + SalesController.TABLE_NAME + " s " +
-                    "INNER JOIN " + SalesController.TABLE_NAME_DETAIL + " sd on sd." + SalesController.DETAIL_CODESALES + " = s." + SalesController.CODE + " " +
-                    "INNER JOIN " + ProductsController.TABLE_NAME + " p on p." + ProductsController.CODE + " = sd." + SalesController.DETAIL_CODEPRODUCT + " " +
-                    "LEFT JOIN " + ProductsControlController.TABLE_NAME + " pc on pc." + ProductsControlController.CODEPRODUCT + " = sd." + SalesController.DETAIL_CODEPRODUCT + " " +
-                    "WHERE s." + SalesController.STATUS + " = ? AND sd."+SalesController.DETAIL_CODEPRODUCT+" in ("+productsIn+") " +
+                    "INNER JOIN " + SalesController.TABLE_NAME_DETAIL + " sd on sd." + SalesController.DETAIL_IDSALE + " = s." + SalesController.IDSALE + " " +
+                    "INNER JOIN " + ProductsController.TABLE_NAME + " p on p." + ProductsController.CODE + " = sd." + SalesController.DETAIL_IDPRODUCT + " " +
+                    "LEFT JOIN " + ProductsControlController.TABLE_NAME + " pc on pc." + ProductsControlController.CODEPRODUCT + " = sd." + SalesController.DETAIL_IDPRODUCT + " " +
+                    "WHERE s." + SalesController.STATUS + " = ? AND sd."+SalesController.DETAIL_IDPRODUCT+" in ("+productsIn+") " +
                     //"ifnull(pc." + ProductsControlController.BLOQUED + ", '0') = ? " +
-                    "GROUP BY s." + SalesController.CODE + ", s." + SalesController.CODEUSER;
+                    "GROUP BY s." + SalesController.IDSALE + ", s." + SalesController.IDUSER;
 
             Cursor c = DB.getInstance(context).getReadableDatabase().rawQuery(sql, new String[]{CODES.CODE_ORDER_STATUS_OPEN + "",  /*CODES.CODE_PRODUCTS_CONTROL_BLOQUED +"", productsIn*/});
             while (c.moveToNext()) {

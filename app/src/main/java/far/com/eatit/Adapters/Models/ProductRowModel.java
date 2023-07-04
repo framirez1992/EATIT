@@ -1,8 +1,11 @@
 package far.com.eatit.Adapters.Models;
 
+import far.com.eatit.API.models.Product;
+
 public class ProductRowModel {
     String code, description, codeType,codeTypeDesc, codeSubType, codeSubTypeDesc;
     boolean inServer;
+    Product product;
 
     public ProductRowModel(String code, String description, String codeType, String codeTypeDesc, String codeSubType, String codeSubTypeDesc, boolean inServer){
         this.code = code;
@@ -12,6 +15,17 @@ public class ProductRowModel {
         this.codeSubType = codeSubType;
         this.codeSubTypeDesc = codeSubTypeDesc;
         this.inServer = inServer;
+    }
+
+    public ProductRowModel(Product product){
+        this.code = String.valueOf(product.getId());
+        this.description = product.getDescription();
+        this.codeType = String.valueOf(product.getIdproductType());
+        this.codeTypeDesc = String.valueOf(product.getProductTypeDescription());
+        this.codeSubType = String.valueOf(product.getIdproductSubType());
+        this.codeSubTypeDesc = String.valueOf(product.getProductSubTypeDescription());
+        this.inServer = true;
+        this.product = product;
     }
 
     public String getCode() {
@@ -68,5 +82,13 @@ public class ProductRowModel {
 
     public void setInServer(boolean inServer) {
         this.inServer = inServer;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
     }
 }

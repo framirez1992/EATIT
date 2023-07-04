@@ -4,13 +4,6 @@ package far.com.eatit;
 import android.app.Activity;
 import android.app.Dialog;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,9 +16,19 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.snackbar.Snackbar;
+
 import java.util.ArrayList;
 import java.util.Date;
 
+import far.com.eatit.API.models.Sale;
 import far.com.eatit.Adapters.Models.OrderDetailModel;
 import far.com.eatit.Adapters.OrderDetailAdapter;
 import far.com.eatit.Adapters.OrdersBoardAdapter;
@@ -54,7 +57,7 @@ public class OrdersEditionFragment extends Fragment {
 
 
     DialogFragment parent;
-    Sales sales = null;
+    Sale sales = null;
     RecyclerView rvList;
     TextView tvOrderNumber,tvArea, tvMesa, tvTime, tvNotes;
     LinearLayout llEdition;
@@ -123,7 +126,7 @@ public class OrdersEditionFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if(sales != null) {
-                    if (sales.getSTATUS() == CODES.CODE_ORDER_STATUS_DELIVERED) {
+                    if (sales.getStatus() == CODES.CODE_ORDER_STATUS_DELIVERED) {
                         cerrarOrden();
                     } else {
                         Snackbar.make(parent.getView(), "No se puede CERRAR la orden", Snackbar.LENGTH_SHORT).show();
@@ -136,7 +139,7 @@ public class OrdersEditionFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if(sales != null) {
-                    if (sales.getSTATUS() == CODES.CODE_ORDER_STATUS_READY) {
+                    if (sales.getStatus() == CODES.CODE_ORDER_STATUS_READY) {
                         entregarOrden();
                     } else {
                         Snackbar.make(parent.getView(), "No se puede ENTREGAR la orden", Snackbar.LENGTH_SHORT).show();
@@ -149,7 +152,7 @@ public class OrdersEditionFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if(sales != null) {
-                    if ((sales.getSTATUS() == CODES.CODE_ORDER_STATUS_OPEN || sales.getSTATUS() == CODES.CODE_ORDER_STATUS_READY || sales.getSTATUS() == CODES.CODE_ORDER_STATUS_DELIVERED)) {
+                    if ((sales.getStatus() == CODES.CODE_ORDER_STATUS_OPEN || sales.getStatus() == CODES.CODE_ORDER_STATUS_READY || sales.getStatus() == CODES.CODE_ORDER_STATUS_DELIVERED)) {
                         showDialogReturnCause();
                     } else {
                         Snackbar.make(parent.getView(), "No se puede ANULAR la orden.", Snackbar.LENGTH_SHORT).show();
@@ -183,26 +186,26 @@ public class OrdersEditionFragment extends Fragment {
 
     }
 
-    public void setSales(Sales s){
+    public void setSales(Sale s){
         this.sales = s;
         showSales();
     }
     public void showSales(){
         if(sales != null && tvOrderNumber != null) {
-            tvOrderNumber.setText("Orden: " + sales.getCODE());
-            AreasDetail ad = AreasDetailController.getInstance(parent.getContext()).getAreasDetailByCode(sales.getCODEAREADETAIL());
-            tvArea.setText(AreasController.getInstance(parent.getContext()).getAreaByCode(ad.getCODEAREA()).getDESCRIPTION());
-            tvMesa.setText(ad.getDESCRIPTION());
-            if(sales.getSTATUS() == CODES.CODE_ORDER_STATUS_OPEN && sales.getDATE().equals(sales.getMDATE())){
+            tvOrderNumber.setText("Orden: " + sales.getId());
+            //AreasDetail ad = AreasDetailController.getInstance(parent.getContext()).getAreasDetailByCode(sales.getTaxes()+"");
+            tvArea.setText(/*AreasController.getInstance(parent.getContext()).getAreaByCode(ad.getCODEAREA()).getDESCRIPTION()*/"");
+            tvMesa.setText(/*ad.getDESCRIPTION()*/"");
+            if(sales.getStatus() == CODES.CODE_ORDER_STATUS_OPEN && sales.getCreateDate().equals(sales.getUpdateDate())){
                tvTime.setVisibility(View.GONE);
             }else{
                 tvTime.setVisibility(View.VISIBLE);
-                tvTime.setText("Listo hace " + Funciones.calcularMinutos(new Date(), sales.getMDATE()) + " Mins");
+                tvTime.setText("Listo hace " + Funciones.calcularMinutos(new Date(), Funciones.parseStringToDate(sales.getUpdateDate())) + " Mins");
             }
 
-            tvNotes.setText("Notas: " + ((sales.getNOTES() != null) ? sales.getNOTES() : ""));
+            tvNotes.setText("Notas: " + ((sales.getNotes() != null) ? sales.getNotes() : ""));
 
-            OrderDetailAdapter adapter = new OrderDetailAdapter(parent.getActivity(),SalesController.getInstance(getActivity()).getOrderDetailModels(sales.getCODE()));
+            OrderDetailAdapter adapter = new OrderDetailAdapter(parent.getActivity(),SalesController.getInstance(getActivity()).getOrderDetailModels(sales.getId()));
             rvList.setAdapter(adapter);
             rvList.invalidate();
         }
@@ -211,26 +214,26 @@ public class OrdersEditionFragment extends Fragment {
 
     public void cerrarOrden(){
         if(sales != null){
-            sales.setSTATUS(CODES.CODE_ORDER_STATUS_CLOSED);
-            sales.setMDATE(null);//actualizar fecha de ultima actualizacion.
+            sales.setStatus(CODES.CODE_ORDER_STATUS_CLOSED);
+            //sales.setMDATE(null);//actualizar fecha de ultima actualizacion.
 
 
-            ArrayList<Sales> s = new ArrayList<>();
+            ArrayList<Sale> s = new ArrayList<>();
             s.add(sales);
             ///////////////////////////////////////////////////////////////////
             ///////////   ENVIANDO AL HISTORICO     ///////////////////////////
 
-            SalesHistoryController.getInstance(parent.getContext()).sendToHistory(s);
+            //SalesHistoryController.getInstance(parent.getContext()).sendToHistory(s);
             ///////////////////////////////////////////////////////////////////
 
             ///////////////////////////////////////////////////////////////////
             //////      ELIMINANDO DE LA TABLA SALES Y SALES_DETAIL EN FIREBASE   ////////
-            SalesController.getInstance(parent.getContext()).massiveDelete(s);
+            //SalesController.getInstance(parent.getContext()).massiveDelete(s);
             //////////////////////////////////////////////////////////////////
 
             ///////////////////////////////////////////////////////////////////
             //////////  ELIMINANDOLA EN EL MOVIL   ///////////////////////////
-            SalesController.getInstance(parent.getContext()).deleteHeadDetail(sales);//esto es porque la lista se actualizara antes de que el server retorne la actualizacion.
+            //SalesController.getInstance(parent.getContext()).deleteHeadDetail(sales);//esto es porque la lista se actualizara antes de que el server retorne la actualizacion.
             //////////////////////////////////////////////////////////////////
 
             ((MainOrders)parent.getActivity()).refreshInterface();
@@ -249,17 +252,17 @@ public class OrdersEditionFragment extends Fragment {
 
         if(sales != null) {
             btnEntregar.setEnabled(false);
-            sales.setSTATUS(CODES.CODE_ORDER_STATUS_DELIVERED);
+            sales.setStatus(CODES.CODE_ORDER_STATUS_DELIVERED);
             SalesController.getInstance(getActivity()).update(sales);//esto es porque la lista se actualizara antes de que el server retorne la actualizacion.
 
-            sales.setMDATE(null);//actualizar fecha de ultima actualizacion.
-            SalesController.getInstance(getActivity()).sendToFireBase(sales);
+            //sales.setMDATE(null);//actualizar fecha de ultima actualizacion.
+            //SalesController.getInstance(getActivity()).sendToFireBase(sales);
 
             //////////////////////////////////////////////////////////////////
             //////     ELIMINANDO ALERTAS DE ESTA ORDEN             /////////
 
             String where = UserInboxController.CODEMESSAGE + " = ? AND " + UserInboxController.STATUS + " = ?";
-            String[] args = new String[]{sales.getCODE(), CODES.CODE_USERINBOX_STATUS_NO_READ + ""};
+            String[] args = new String[]{sales.getId()+"", CODES.CODE_USERINBOX_STATUS_NO_READ + ""};
             ArrayList<UserInbox> inbox = UserInboxController.getInstance(parent.getContext()).getUserInbox(where, args, null);
             if (inbox != null && inbox.size() > 0) {
                 UserInboxController.getInstance(parent.getContext()).massiveDelete(inbox);
@@ -275,25 +278,25 @@ public class OrdersEditionFragment extends Fragment {
 
     public void anularOrden(KV motivo){
         if(sales!= null){
-            boolean wasOpen = sales.getSTATUS() == CODES.CODE_ORDER_STATUS_OPEN;//INDICA SI LA ORDEN AUN ESTABA ABIERTA CUANDO LA ANULARON
+            boolean wasOpen = sales.getStatus() == CODES.CODE_ORDER_STATUS_OPEN;//INDICA SI LA ORDEN AUN ESTABA ABIERTA CUANDO LA ANULARON
 
-            sales.setSTATUS(CODES.CODE_ORDER_STATUS_CANCELED);
-            sales.setCODEREASON(motivo.getKey());
-            sales.setREASONDESCRIPTION(motivo.getValue());
+            sales.setStatus(CODES.CODE_ORDER_STATUS_CANCELED);
+            sales.setCancelReason(motivo.getKey());
+            sales.setCancelReason(motivo.getValue());
 
             /////////////////////////////////////////////////////////////////
             ////////   ELIMINANDO DE LA TABLA SALES           //////////////
             //SalesController.getInstance(getActivity()).sendToFireBase(sales);
-            ArrayList<Sales> del = new ArrayList<>();
+            ArrayList<Sale> del = new ArrayList<>();
             del.add(sales);
-            SalesController.getInstance(getActivity()).massiveDelete(del);
+            //SalesController.getInstance(getActivity()).massiveDelete(del);
             ////////////////////////////////////////////////////////////////
 
             ///////////////////////////////////////////////////////////////////
             ///////////   ENVIANDO AL HISTORICO     ///////////////////////////
-            ArrayList<Sales> s = new ArrayList<>();
+            ArrayList<Sale> s = new ArrayList<>();
             s.add(sales);
-            SalesHistoryController.getInstance(parent.getContext()).sendToHistory(s);
+            //SalesHistoryController.getInstance(parent.getContext()).sendToHistory(s);
             ///////////////////////////////////////////////////////////////////
 
             if(wasOpen) {
@@ -336,14 +339,14 @@ public class OrdersEditionFragment extends Fragment {
 
     public void setupEdition(){
 
-        if(!sales.getCODEUSER().equals(Funciones.getCodeuserLogged(parent.getContext()))){
+        if(! String.valueOf(sales.getIduser()).equals(Funciones.getCodeuserLogged(parent.getContext()))){
             btnAnular.setVisibility(View.GONE);
             btnEditar.setVisibility(View.GONE);
             btnCerrar.setVisibility(View.GONE);
             btnEntregar.setVisibility(View.GONE);
             return;
         }
-       if(sales.getSTATUS() == CODES.CODE_ORDER_STATUS_READY || sales.getSTATUS() == CODES.CODE_ORDER_STATUS_OPEN || sales.getSTATUS() == CODES.CODE_ORDER_STATUS_DELIVERED) {
+       if( sales.getStatus() == CODES.CODE_ORDER_STATUS_READY || sales.getStatus() == CODES.CODE_ORDER_STATUS_OPEN || sales.getStatus() == CODES.CODE_ORDER_STATUS_DELIVERED) {
            btnEditar.setVisibility(View.GONE);
            btnAnular.setVisibility(View.GONE);
 
@@ -354,9 +357,9 @@ public class OrdersEditionFragment extends Fragment {
                btnAnular.setVisibility(View.VISIBLE);
            }
 
-           btnEntregar.setVisibility((sales.getSTATUS() == CODES.CODE_ORDER_STATUS_READY)?View.VISIBLE:View.GONE);
+           btnEntregar.setVisibility((sales.getStatus() == CODES.CODE_ORDER_STATUS_READY)?View.VISIBLE:View.GONE);
 
-       }else if(sales.getSTATUS() == CODES.CODE_ORDER_STATUS_CANCELED || sales.getSTATUS() == CODES.CODE_ORDER_STATUS_CLOSED ){
+       }else if(sales.getStatus() == CODES.CODE_ORDER_STATUS_CANCELED || sales.getStatus() == CODES.CODE_ORDER_STATUS_CLOSED ){
            btnEditar.setVisibility(View.GONE);
            btnAnular.setVisibility(View.GONE);
            btnEntregar.setVisibility(View.GONE);
