@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="far.com.eatit">
 
-    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -15,16 +16,16 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true">
         <activity android:name=".AdminLicenseControls"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
-        <activity android:name=".AdminLicenseUserTypes" />
+        <activity android:name=".AdminLicenseUserRole" />
         <activity android:name=".AdminLicenseCompany" />
         <activity android:name=".AdminLicenseUsers" />
         <activity android:name=".AdminLicenseDevices" />
         <activity android:name=".AdminLicenseTokens" />
         <activity android:name=".AdminLicenseUserDevice" />
-        <activity android:name=".AdminConfiguration" />
         <activity
             android:name=".UserMenu.MainUserMenu"
             android:screenOrientation="landscape"
@@ -37,13 +38,7 @@
             android:label="@string/title_activity_main_receipt"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".MaintenanceUsersControl" />
-        <activity android:name=".Login">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
 
         <receiver
             android:name=".Utils.Receiver"
@@ -60,7 +55,14 @@
             android:theme="@style/AppTheme.NoActionBar" /> <!-- android:configChanges="keyboardHidden|orientation|screenSize" -->
         <activity
             android:name=".Main"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <activity android:name=".MaintenanceProductTypes" />
         <activity android:name=".MaintenanceUnitMeasure" />
         <activity android:name=".MaintenanceUsers" />
